@@ -49,3 +49,24 @@
 #define LMAT_VLINE_BEW_ALT                              LMAT_BASE(5, 8, 3)
 #define LMAT_VLINE_PKM                                  LMAT_BASE(5, 6, 4)
 #define LMAT_VLINE_PKM_ALT                              LMAT_BASE(5, 6, 5)
+
+#define LMAT_VLINE                                      \
+    LMAT_VLINE_MEL, LMAT_VLINE_MEL_ALT,                \
+    LMAT_VLINE_TLN, LMAT_VLINE_TLN_ALT,                \
+    LMAT_VLINE_RBK, LMAT_VLINE_RBK_ALT,                \
+    LMAT_VLINE_CPS, LMAT_VLINE_CPS_ALT,                \
+    LMAT_VLINE_WVL, LMAT_VLINE_WVL_ALT,                \
+    LMAT_VLINE_DAV, LMAT_VLINE_DAV_ALT,                \
+    LMAT_VLINE_TNT, LMAT_VLINE_TNT_ALT,                \
+    LMAT_VLINE_DEK, LMAT_VLINE_DEK_ALT,                \
+    LMAT_VLINE_ADR, LMAT_VLINE_ADR_ALT,                \
+    LMAT_VLINE_SUN, LMAT_VLINE_SUN_ALT,                \
+    LMAT_VLINE_FSY, LMAT_VLINE_FSY_ALT,                \
+    LMAT_VLINE_SSS, LMAT_VLINE_SSS_ALT,                \
+    LMAT_VLINE_FSS,                                    \
+    LMAT_VLINE_RMD, LMAT_VLINE_RMD_ALT,                \
+    LMAT_VLINE_CFD, LMAT_VLINE_CFD_ALT,                \
+    LMAT_VLINE_CLA, LMAT_VLINE_CLA_ALT,                \
+    LMAT_VLINE_DNG, LMAT_VLINE_DNG_ALT,                \
+    LMAT_VLINE_BEW, LMAT_VLINE_BEW_ALT,                \
+    LMAT_VLINE_PKM, LMAT_VLINE_PKM_ALT

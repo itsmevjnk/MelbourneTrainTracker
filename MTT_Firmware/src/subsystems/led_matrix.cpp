@@ -1,0 +1,100 @@
+#include "subsystems/led_matrix.h"
+
+#include <string.h>
+
+#include "esp_check.h"
+
+/* for logging */
+#include "esp_log.h"
+static const char* TAG = "led_matrix";
+
+/* SPI configs */
+static const spi_bus_config_t kSPI2BusConfig = {
+    .mosi_io_num = SPI2_MOSI,
+    .miso_io_num = SPI2_MISO,
+    .sclk_io_num = SPI2_SCK,
+    .data2_io_num = -1,
+    .data3_io_num = -1,
+    .data4_io_num = -1,
+    .data5_io_num = -1,
+    .data6_io_num = -1,
+    .data7_io_num = -1,
+    .max_transfer_sz = 216 + 2,
+    
+};
+static const spi_bus_config_t kSPI3BusConfig = {
+    .mosi_io_num = SPI3_MOSI,
+    .miso_io_num = SPI3_MISO,
+    .sclk_io_num = SPI3_SCK,
+    .data2_io_num = -1,
+    .data3_io_num = -1,
+    .data4_io_num = -1,
+    .data5_io_num = -1,
+    .data6_io_num = -1,
+    .data7_io_num = -1,
+    .max_transfer_sz = 216 + 2
+};
+
+const size_t LEDMatrix::kBufferOffsets[8] = {
+    0,
+    12 * L0_ROWS,
+    12 * (L0_ROWS + L1_ROWS),
+    12 * (L0_ROWS + L1_ROWS + L2_ROWS),
+    12 * (L0_ROWS + L1_ROWS + L2_ROWS + L3_ROWS),
+    12 * (L0_ROWS + L1_ROWS + L2_ROWS + L3_ROWS + L4_ROWS),
+    12 * (L0_ROWS + L1_ROWS + L2_ROWS + L3_ROWS + L4_ROWS + L5_ROWS),
+    12 * (L0_ROWS + L1_ROWS + L2_ROWS + L3_ROWS + L4_ROWS + L5_ROWS + L6_ROWS),
+};
+
+AW20216S* LEDMatrix::m_drivers[8];
+uint8_t* LEDMatrix::m_buffer; // LED matrix frame buffer
+const size_t LEDMatrix::kBufferSize = 12 * (L0_ROWS + L1_ROWS + L2_ROWS + L3_ROWS + L4_ROWS + L5_ROWS + L6_ROWS + L7_ROWS); // size of m_buffer
+
+esp_err_t LEDMatrix::init() {
+    /* allocate framebuffer */
+    m_buffer = new uint8_t[kBufferSize];
+    memset(m_buffer, 0, kBufferSize); // clear framebuffer here too
+    ESP_LOGV(TAG, "%u byte framebuffer allocated at 0x%x", kBufferSize, (uintptr_t)m_buffer);
+
+    /* initialise DRV_EN pin */
+    ESP_RETURN_ON_ERROR(gpio_set_direction(DRV_EN, GPIO_MODE_OUTPUT), TAG, "cannot set pin %u direction", DRV_EN);
+    ESP_RETURN_ON_ERROR(enableDrivers(), TAG, "cannot enable driver output");
+
+    /* initialise SPI buses */
+    ESP_RETURN_ON_ERROR(spi_bus_initialize(
+        SPI2_HOST,
+        &kSPI2BusConfig,
+        SPI_DMA_CH_AUTO
+    ), TAG, "SPI2 bus initialisation failed");
+    spi_device_handle_t spi2Handle;
+    ESP_RETURN_ON_ERROR(spi_bus_add_device(
+        SPI2_HOST,
+        &AW20216S::kSPIDeviceConfig,
+        &spi2Handle
+    ), TAG, "SPI2 device add failed");
+
+    ESP_RETURN_ON_ERROR(spi_bus_initialize(
+        SPI3_HOST,
+        &kSPI3BusConfig,
+        SPI_DMA_CH_AUTO
+    ), TAG, "SPI3 bus initialisation failed");
+    spi_device_handle_t spi3Handle;
+    ESP_RETURN_ON_ERROR(spi_bus_add_device(
+        SPI3_HOST,
+        &AW20216S::kSPIDeviceConfig,
+        &spi3Handle
+    ), TAG, "SPI3 device add failed");
+
+    /* initialise LED drivers */
+#define SPI_HANDLE(host)                (((host) == SPI2_HOST) ? spi2Handle : spi3Handle) // macro to select SPI handle
+    m_drivers[0] = new AW20216S("aw0", SPI_HANDLE(L0_SPI), L0_CS, &m_buffer[kBufferOffsets[0]], L0_ROWS); ESP_RETURN_ON_ERROR(m_drivers[0]->init(), TAG, "L0 init failed");
+    m_drivers[1] = new AW20216S("aw1", SPI_HANDLE(L1_SPI), L1_CS, &m_buffer[kBufferOffsets[1]], L1_ROWS); ESP_RETURN_ON_ERROR(m_drivers[1]->init(), TAG, "L1 init failed");
+    m_drivers[2] = new AW20216S("aw2", SPI_HANDLE(L2_SPI), L2_CS, &m_buffer[kBufferOffsets[2]], L2_ROWS); ESP_RETURN_ON_ERROR(m_drivers[2]->init(), TAG, "L2 init failed");
+    m_drivers[3] = new AW20216S("aw3", SPI_HANDLE(L3_SPI), L3_CS, &m_buffer[kBufferOffsets[3]], L3_ROWS); ESP_RETURN_ON_ERROR(m_drivers[3]->init(), TAG, "L3 init failed");
+    m_drivers[4] = new AW20216S("aw4", SPI_HANDLE(L4_SPI), L4_CS, &m_buffer[kBufferOffsets[4]], L4_ROWS); ESP_RETURN_ON_ERROR(m_drivers[4]->init(), TAG, "L4 init failed");
+    m_drivers[5] = new AW20216S("aw5", SPI_HANDLE(L5_SPI), L5_CS, &m_buffer[kBufferOffsets[5]], L5_ROWS); ESP_RETURN_ON_ERROR(m_drivers[5]->init(), TAG, "L5 init failed");
+    m_drivers[6] = new AW20216S("aw6", SPI_HANDLE(L6_SPI), L6_CS, &m_buffer[kBufferOffsets[6]], L6_ROWS); ESP_RETURN_ON_ERROR(m_drivers[6]->init(), TAG, "L6 init failed");
+    m_drivers[7] = new AW20216S("aw7", SPI_HANDLE(L7_SPI), L7_CS, &m_buffer[kBufferOffsets[7]], L7_ROWS); ESP_RETURN_ON_ERROR(m_drivers[7]->init(), TAG, "L7 init failed");
+
+    return ESP_OK;
+}

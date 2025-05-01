@@ -17,8 +17,13 @@ extern "C" void app_main() {
 
     /* placeholder */
     while (true) {
-        // ESP_LOGI(TAG, "spinning");
-        StatusLED::actyOn(); StatusLED::errorOff(); vTaskDelay(500 / portTICK_PERIOD_MS); // delay for 500 msec
-        StatusLED::actyOff(); StatusLED::errorOn(); vTaskDelay(500 / portTICK_PERIOD_MS);
+        colour_t colours[9] = { kSandringham, kCrossCity, kDandenong, kBurnley, kNorthern, kClifton, kFlemington, kVLine, kOff };
+        for (int i = 0; i < 9; i++) {
+            colour_t colour = colours[i];
+            ESP_LOGI(TAG, "displaying #%06X", colour);
+            ESP_ERROR_CHECK(LEDMatrix::fill(colour));
+            ESP_ERROR_CHECK(LEDMatrix::update());
+            vTaskDelay(1000 / portTICK_PERIOD_MS);
+        }
     }
 }

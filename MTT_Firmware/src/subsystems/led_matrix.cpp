@@ -35,16 +35,7 @@ static const spi_bus_config_t kSPI3BusConfig = {
     .max_transfer_sz = 216 + 2
 };
 
-const size_t LEDMatrix::kBufferOffsets[8] = {
-    0,
-    12 * L0_ROWS,
-    12 * (L0_ROWS + L1_ROWS),
-    12 * (L0_ROWS + L1_ROWS + L2_ROWS),
-    12 * (L0_ROWS + L1_ROWS + L2_ROWS + L3_ROWS),
-    12 * (L0_ROWS + L1_ROWS + L2_ROWS + L3_ROWS + L4_ROWS),
-    12 * (L0_ROWS + L1_ROWS + L2_ROWS + L3_ROWS + L4_ROWS + L5_ROWS),
-    12 * (L0_ROWS + L1_ROWS + L2_ROWS + L3_ROWS + L4_ROWS + L5_ROWS + L6_ROWS),
-};
+const size_t LEDMatrix::kBufferOffsets[8] = { L0_OFFSET, L1_OFFSET, L2_OFFSET, L3_OFFSET, L4_OFFSET, L5_OFFSET, L6_OFFSET, L7_OFFSET };
 
 AW20216S* LEDMatrix::m_drivers[8];
 uint8_t* LEDMatrix::m_buffer; // LED matrix frame buffer
@@ -95,6 +86,64 @@ esp_err_t LEDMatrix::init() {
     m_drivers[5] = new AW20216S("aw5", SPI_HANDLE(L5_SPI), L5_CS, &m_buffer[kBufferOffsets[5]], L5_ROWS); ESP_RETURN_ON_ERROR(m_drivers[5]->init(), TAG, "L5 init failed");
     m_drivers[6] = new AW20216S("aw6", SPI_HANDLE(L6_SPI), L6_CS, &m_buffer[kBufferOffsets[6]], L6_ROWS); ESP_RETURN_ON_ERROR(m_drivers[6]->init(), TAG, "L6 init failed");
     m_drivers[7] = new AW20216S("aw7", SPI_HANDLE(L7_SPI), L7_CS, &m_buffer[kBufferOffsets[7]], L7_ROWS); ESP_RETURN_ON_ERROR(m_drivers[7]->init(), TAG, "L7 init failed");
+
+    return ESP_OK;
+}
+
+esp_err_t LEDMatrix::set(size_t offset, colour_t colour) {
+    if (offset % 3 != 0) {
+        ESP_LOGE(TAG, "offset %u given to LEDMatrix::set() is invalid", offset);
+        return ESP_ERR_INVALID_ARG;
+    }
+
+    m_buffer[LMAT_R(offset)] = (colour >> 16) & 0xFF; // red
+    m_buffer[LMAT_G(offset)] = (colour >> 8) & 0xFF; // green
+    m_buffer[LMAT_B(offset)] = (colour >> 0) & 0xFF; // blue
+
+    return ESP_OK;
+}
+
+esp_err_t LEDMatrix::setMulti(const size_t* offsets, size_t leds, colour_t colour) {
+    uint8_t r = (colour >> 16) & 0xFF, // red
+            g = (colour >> 8) & 0xFF, // green
+            b = (colour >> 0) & 0xFF; // blue
+    
+    for (size_t i = 0; i < leds; i++, offsets++) { // increment to next offset after each iteration
+        size_t offset = *offsets;
+        if (offset % 3 != 0) {
+            ESP_LOGE(TAG, "offset %u given to LEDMatrix::setMulti() is invalid", offset);
+            return ESP_ERR_INVALID_ARG;
+        }
+        m_buffer[LMAT_R(offset)] = r;
+        m_buffer[LMAT_G(offset)] = g;
+        m_buffer[LMAT_B(offset)] = b;
+    }
+
+    return ESP_OK;
+}
+
+esp_err_t LEDMatrix::fill(colour_t colour) {
+    uint8_t r = (colour >> 16) & 0xFF, // red
+            g = (colour >> 8) & 0xFF, // green
+            b = (colour >> 0) & 0xFF; // blue
+            
+    if (r == g && g == b) memset(m_buffer, r, kBufferSize); // use memset if possible because it's faster
+    else {
+        for (size_t offset = 0; offset < kBufferSize; offset += 3) {
+            m_buffer[LMAT_R(offset)] = r;
+            m_buffer[LMAT_G(offset)] = g;
+            m_buffer[LMAT_B(offset)] = b;
+        }
+    }
+
+    return ESP_OK;
+}
+
+esp_err_t LEDMatrix::update() {
+    /* TODO: more intelligent updating */
+    for (int i = 0; i < 8; i++) {
+        ESP_RETURN_ON_ERROR(m_drivers[i]->update(), TAG, "updating L%d failed", i);
+    }
 
     return ESP_OK;
 }

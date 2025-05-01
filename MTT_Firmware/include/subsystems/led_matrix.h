@@ -9,6 +9,8 @@
 
 #include "driver/gpio.h"
 
+#include "colours.h"
+
 class LEDMatrix {
 public:
     static esp_err_t init(); // initialise LED matrix drivers
@@ -22,6 +24,12 @@ public:
     static inline esp_err_t disableDrivers() {
         return gpio_set_level(DRV_EN, 0);
     }
+
+    static esp_err_t update(); // update all changed LEDs to display on the board
+    
+    static esp_err_t set(size_t offset, colour_t colour); // set an LED's colour
+    static esp_err_t setMulti(const size_t* offsets, size_t leds, colour_t colour); // set multiple LEDs to a colour
+    static esp_err_t fill(colour_t colour); // fill the entire buffer with a colour
 
 private:
     static AW20216S* m_drivers[8]; // LED driver objects - initialised in init()

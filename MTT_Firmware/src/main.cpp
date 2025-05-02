@@ -1,6 +1,10 @@
 /* subsystems */
 #include "subsystems/status_led.h"
 #include "subsystems/led_matrix.h"
+#include "subsystems/wifi.h"
+#include "subsystems/uart.h"
+
+#include "config.h"
 
 #include "esp_log.h"
 static const char* TAG = "main"; // for logging
@@ -22,9 +26,36 @@ extern "C" void app_main() {
     // vTaskDelay(3000 / portTICK_PERIOD_MS);
 
     ESP_LOGI(TAG, "init begin");
-    ESP_ERROR_CHECK(StatusLED::init());
+
+    ESP_ERROR_CHECK(UART::init());
+    ESP_ERROR_CHECK(StatusLED::init()); ESP_ERROR_CHECK(StatusLED::actyOn()); ESP_ERROR_CHECK(StatusLED::errorOn());
     ESP_ERROR_CHECK(LEDMatrix::init());
-    ESP_LOGI(TAG, "init end");
+    
+    /* load config */
+    esp_err_t ret = Config::init();
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "configuration loading failed (%s), booting into configuration CLI", esp_err_to_name(ret));
+        goto runCLI;
+    } else {
+        ESP_LOGI(TAG, "press any key within 3 seconds to boot into configuration CLI");
+        uint8_t buf;
+        if (UART::read(&buf, 1, 3000 / portTICK_PERIOD_MS) > 0) { // catch incoming byte, and if there's any, we boot into CLI
+            ESP_LOGI(TAG, "booting into configuration CLI");
+runCLI:
+            ESP_ERROR_CHECK(Config::cli());
+            while (true) { // while CLI is running on another task, we flash the two LEDs alternately
+                ESP_ERROR_CHECK(StatusLED::actyOn()); ESP_ERROR_CHECK(StatusLED::errorOff()); vTaskDelay(500 / portTICK_PERIOD_MS);
+                ESP_ERROR_CHECK(StatusLED::actyOff()); ESP_ERROR_CHECK(StatusLED::errorOn()); vTaskDelay(500 / portTICK_PERIOD_MS);
+            }
+        }
+    }
+
+    if (Config::isWiFiEnterprise())
+        ESP_ERROR_CHECK(WiFi::init(Config::getWiFiSSID(), Config::getWiFiIdentity(), Config::getWiFiUsername(), Config::getWiFiPassword(), Config::getWiFiCertificate(), Config::getWiFiCertLength()));
+    else
+        ESP_ERROR_CHECK(WiFi::init(Config::getWiFiSSID(), Config::getWiFiPassword()));
+
+    ESP_LOGI(TAG, "init end"); ESP_ERROR_CHECK(StatusLED::actyOff()); ESP_ERROR_CHECK(StatusLED::errorOff());
 
     /* placeholder */
     while (true) {

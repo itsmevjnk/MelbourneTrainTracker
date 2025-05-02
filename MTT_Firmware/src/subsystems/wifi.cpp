@@ -108,7 +108,7 @@ esp_err_t WiFi::init(const char* ssid, const char* identity, const char* usernam
         esp_eap_client_set_password((const uint8_t*)password, pwLength),
         TAG, "unable to set EAP password"
     );
-    if (certificate) {
+    if (certificate && certLength > 0) {
         /* certificate provided */
         ESP_RETURN_ON_ERROR(
             esp_eap_client_set_ca_cert((const uint8_t*)certificate, certLength),
@@ -131,10 +131,7 @@ size_t WiFi::kMaxRetries;
 esp_err_t WiFi::initStub(wifi_config_t& config, size_t maxRetries) {
     kMaxRetries = maxRetries;
 
-    if (!NVS::isInitialised()) {
-        ESP_LOGI(TAG, "NVS has not been initialised, initialising now");
-        ESP_RETURN_ON_ERROR(NVS::init(), TAG, "NVS initialisation failed, cannot continue");
-    }
+    ESP_RETURN_ON_ERROR(NVS::init(), TAG, "NVS initialisation failed, cannot continue");
 
     ESP_RETURN_ON_ERROR(esp_netif_init(), TAG, "cannot initialise network interface");
 

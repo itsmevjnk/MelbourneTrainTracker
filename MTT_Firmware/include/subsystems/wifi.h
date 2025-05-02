@@ -28,6 +28,8 @@ public:
         size_t maxRetries = 3
     ); // initialise Wi-Fi with enterprise credentials
 
+    static bool isConnected();
+
 private:
     static esp_err_t initStub(wifi_config_t& config, size_t maxRetries = 3); // initialise Wi-Fi with prepared configuration, without starting the Wi-Fi driver. this allows the WPA2-Enterprise init method to inject addition setup
     static esp_err_t start(); // start Wi-Fi driver and wait for connection
@@ -38,4 +40,6 @@ private:
     static EventGroupHandle_t m_eventGroup; // Wi-Fi event group
     static size_t kMaxRetries;
     static size_t m_retries; // retry counter
+
+    static bool m_connected;
 };

@@ -15,7 +15,7 @@
 #endif
 
 const esp_console_cmd_t* Config::kCommands[] = {
-    &kExitCommand, &kShowConfigCommand, &kShowCertificateCommand, &kSetWiFiCommand
+    &kExitCommand, &kShowConfigCommand, &kShowCertificateCommand, &kSetWiFiCommand, &kSetNTPCommand
 };
 
 esp_err_t Config::cliRegisterCommands() {

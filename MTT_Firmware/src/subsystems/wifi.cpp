@@ -189,6 +189,11 @@ esp_err_t WiFi::start() {
     }
 }
 
+bool WiFi::m_connected = false;
+bool WiFi::isConnected() {
+    return m_connected;
+}
+
 size_t WiFi::m_retries = 0;
 void WiFi::wifiEventHandler(void* arg, esp_event_base_t eventBase, int32_t eventID, void* eventData) {
     if (eventID == WIFI_EVENT_STA_START || eventID == WIFI_EVENT_STA_DISCONNECTED) {
@@ -202,6 +207,8 @@ void WiFi::wifiEventHandler(void* arg, esp_event_base_t eventBase, int32_t event
             ESP_LOGI(TAG, "disconnection event received, attempting to reconnect");
         }
         else ESP_LOGI(TAG, "Wi-Fi driver started, connecting to network");
+
+        m_connected = false;
 
         /* connect to Wi-Fi network */
         esp_err_t ret = esp_wifi_connect();
@@ -226,5 +233,6 @@ void WiFi::ipEventHandler(void* arg, esp_event_base_t eventBase, int32_t eventID
         ESP_LOGI(TAG, "acquired IP address: " IPSTR ", netmask " IPSTR ", gateway " IPSTR, IP2STR(&event->ip_info.ip), IP2STR(&event->ip_info.netmask), IP2STR(&event->ip_info.gw));
         xEventGroupSetBits(m_eventGroup, WIFI_CONNECTED_BIT);
         m_retries = 0; // reset counter
+        m_connected = true;
     }
 }

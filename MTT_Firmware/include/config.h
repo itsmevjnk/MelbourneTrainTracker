@@ -22,6 +22,9 @@ public:
     static const char* getWiFiCertificate(); // null if isWiFiEnterprise() return false
     static size_t getWiFiCertLength(); // 0 if isWiFiEnterprise() return false
 
+    /* get address config */
+    static const char* getTimeServer();
+
 private:
     static bool m_initialised;
 
@@ -33,6 +36,9 @@ private:
     static char m_wifiIdentity[64];
     static char* m_wifiCert;
     static size_t m_wifiCertLength;
+
+    /* network address configuration */
+    static char m_timeServer[64];
 
     static const char* kTag; // for logging
 
@@ -61,6 +67,9 @@ private:
 
     static esp_console_cmd_t kSetWiFiCommand;
     static esp_err_t cliSetWiFi(int argc, char** argv);
+
+    static esp_console_cmd_t kSetNTPCommand;
+    static esp_err_t cliSetNTP(int argc, char** argv);
 
     /* utilities for CLI */
     static size_t readString(char* str, size_t maxSize);

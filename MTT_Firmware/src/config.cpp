@@ -13,26 +13,42 @@ esp_err_t Config::init() {
     ESP_RETURN_ON_ERROR(NVS::init(), kTag, "NVS initialisation failed, cannot continue");
     
     /* load Wi-Fi config */
-    NVSHandle handle = NVS::open("wifi", NVS_READONLY);
-    if (handle.isClosed()) {
+    NVSHandle wifiHandle = NVS::open("wifi", NVS_READONLY);
+    if (wifiHandle.isClosed()) {
         ESP_LOGE(kTag, "cannot open Wi-Fi configuration from NVS");
         return ESP_ERR_INVALID_STATE;
     }
-    ESP_RETURN_ON_ERROR(handle.getString("ssid", m_wifiSSID, sizeof(m_wifiSSID)), kTag, "cannot read Wi-Fi SSID");
-    ESP_RETURN_ON_ERROR(handle.getString("pw", m_wifiPassword, sizeof(m_wifiPassword)), kTag, "cannot read Wi-Fi password");
+    ESP_RETURN_ON_ERROR(wifiHandle.getString("ssid", m_wifiSSID, sizeof(m_wifiSSID)), kTag, "cannot read Wi-Fi SSID");
+    ESP_RETURN_ON_ERROR(wifiHandle.getString("pw", m_wifiPassword, sizeof(m_wifiPassword)), kTag, "cannot read Wi-Fi password");
     uint8_t enterprise;
-    ESP_RETURN_ON_ERROR(handle.getU8("ent", &enterprise), kTag, "cannot read WPA2-Enterprise flag");
+    ESP_RETURN_ON_ERROR(wifiHandle.getU8("ent", &enterprise), kTag, "cannot read WPA2-Enterprise flag");
     m_wifiEnterprise = (enterprise != 0);
     if (m_wifiEnterprise) {
-        ESP_RETURN_ON_ERROR(handle.getString("id", m_wifiIdentity, sizeof(m_wifiIdentity)), kTag, "cannot read Wi-Fi EAP identity");
-        ESP_RETURN_ON_ERROR(handle.getString("user", m_wifiUsername, sizeof(m_wifiUsername)), kTag, "cannot read Wi-Fi EAP username");
-        ESP_RETURN_ON_ERROR(handle.getBlobLength("cert", &m_wifiCertLength), kTag, "cannot get Wi-Fi server certificate length");
+        ESP_RETURN_ON_ERROR(wifiHandle.getString("id", m_wifiIdentity, sizeof(m_wifiIdentity)), kTag, "cannot read Wi-Fi EAP identity");
+        ESP_RETURN_ON_ERROR(wifiHandle.getString("user", m_wifiUsername, sizeof(m_wifiUsername)), kTag, "cannot read Wi-Fi EAP username");
+        ESP_RETURN_ON_ERROR(wifiHandle.getBlobLength("cert", &m_wifiCertLength), kTag, "cannot get Wi-Fi server certificate length");
         if (m_wifiCertLength > 0) {
             m_wifiCert = new char[m_wifiCertLength];
-            ESP_RETURN_ON_ERROR(handle.getBlob("cert", m_wifiCert, m_wifiCertLength), kTag, "cannot read Wi-Fi server certificate");
+            ESP_RETURN_ON_ERROR(wifiHandle.getBlob("cert", m_wifiCert, m_wifiCertLength), kTag, "cannot read Wi-Fi server certificate");
         }
     }
-    handle.close(); // while it will be closed on destruction, it's best if we do that by ourselves
+    // wifiHandle.close(); // while it will be closed on destruction, it's best if we do that by ourselves
+
+    /* load address config */
+    NVSHandle addrHandle = NVS::open("addr", NVS_READONLY);
+    if (addrHandle.isClosed()) {
+        ESP_LOGW(kTag, "cannot open address configuration from NVS - using default values");
+        // TODO: maybe we'll need to make this fatal
+    } else {
+        esp_err_t ret = addrHandle.getString("ntp", m_timeServer, sizeof(m_timeServer));
+        switch (ret) {
+            case ESP_OK: break;
+            case ESP_ERR_NVS_NOT_FOUND: ESP_LOGW(kTag, "time server not set in NVS, defaulting to %s", m_timeServer); break;
+            default: ESP_LOGE(kTag, "cannot read time server address (%s)", esp_err_to_name(ret)); return ret;
+        }
+
+        // addrHandle.close();
+    }
 
     /* success */
     ESP_LOGI(kTag, "configuration has been read successfully");
@@ -85,4 +101,13 @@ size_t Config::m_wifiCertLength = 0;
 size_t Config::getWiFiCertLength() {
     verifyInit();
     return (!m_wifiEnterprise) ? 0 : m_wifiCertLength;
+}
+
+#ifndef CONFIG_DEFAULT_TIME_SERVER
+#define CONFIG_DEFAULT_TIME_SERVER                          "pool.ntp.org"
+#endif
+char Config::m_timeServer[64] = CONFIG_DEFAULT_TIME_SERVER;
+const char* Config::getTimeServer() {
+    verifyInit();
+    return m_timeServer;
 }

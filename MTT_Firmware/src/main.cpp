@@ -3,6 +3,7 @@
 #include "subsystems/led_matrix.h"
 #include "subsystems/wifi.h"
 #include "subsystems/uart.h"
+#include "subsystems/ntp.h"
 
 #include "config.h"
 
@@ -49,13 +50,16 @@ runCLI:
             }
         }
     }
+    ESP_ERROR_CHECK(StatusLED::errorOff());
 
     if (Config::isWiFiEnterprise())
         ESP_ERROR_CHECK(WiFi::init(Config::getWiFiSSID(), Config::getWiFiIdentity(), Config::getWiFiUsername(), Config::getWiFiPassword(), Config::getWiFiCertificate(), Config::getWiFiCertLength()));
     else
         ESP_ERROR_CHECK(WiFi::init(Config::getWiFiSSID(), Config::getWiFiPassword()));
 
-    ESP_LOGI(TAG, "init end"); ESP_ERROR_CHECK(StatusLED::actyOff()); ESP_ERROR_CHECK(StatusLED::errorOff());
+    ESP_ERROR_CHECK(NTP::init(Config::getTimeServer()));
+
+    ESP_LOGI(TAG, "init end"); ESP_ERROR_CHECK(StatusLED::actyOff());
 
     /* placeholder */
     while (true) {

@@ -60,26 +60,6 @@ const parseCalendar = (stream) => {
     });
 };
 
-const parseCalendarDates = (stream) => {
-    return new Promise((resolve, reject) => {
-        const parser = csv.parse({ delimiter: ',', columns: true, bom: true });
-        parser.on('error', (err) => {
-            reject(err);
-        });
-        const entries = {};
-        parser.on('readable', () => {
-            let record;
-            while ((record = parser.read()) !== null) {
-                entries[record.service_id] = convertDate(record.date);
-            }
-        });
-        parser.on('end', () => {
-            resolve({ calendarDates: entries });
-        });
-        stream.pipe(parser);
-    });
-};
-
 const resolveVLineStation = (name) => {
     name = name.split('Railway')[0].trim(); // trim name to get station name
     return {
@@ -202,12 +182,6 @@ const extractFeed = (readStream) => {
                             promises.push(parseCalendar(fileStream));
                         });
                     }
-                    else if (entryPath == 'calendar_dates.txt') {
-                        zipfile.openReadStream(entry, (err, fileStream) => {
-                            if (err) return reject(err);
-                            promises.push(parseCalendarDates(fileStream));
-                        });
-                    }
                     else if (entryPath == 'stops.txt') {
                         zipfile.openReadStream(entry, (err, fileStream) => {
                             if (err) return reject(err);
@@ -289,7 +263,6 @@ const download = () => {
                         Promise.all(promises).then((results) => { // wait for all extraction promises to finish
                             const ret = {
                                 calendar: {},
-                                calendarDates: {},
                                 stops: {},
                                 times: {},
                                 tripCalendar: {}
@@ -298,9 +271,6 @@ const download = () => {
                             for (let i = 0; i < results.length; i++) {
                                 for (const [key, value] of Object.entries(results[i].calendar)) {
                                     ret.calendar[`${i}_${key}`] = value;
-                                }
-                                for (const [key, value] of Object.entries(results[i].calendarDates)) {
-                                    ret.calendarDates[`${i}_${key}`] = value;
                                 }
                                 for (const [key, value] of Object.entries(results[i].tripCalendar)) {
                                     ret.tripCalendar[key] = `${i}_${value}`;
@@ -323,3 +293,120 @@ const download = () => {
             throw err;
         });
 };
+
+module.exports = { download };
+
+if (require.main === module) {
+    const database = require('./database'); // connect to database
+    const { TableName, ColumnSet, insert } = database.pgp.helpers;
+    const db = database.db;
+
+    download().then((data) => {
+        const stops = [];
+        const stopIDs = [];
+        for (const [key, value] of Object.entries(data.stops)) {
+            for (const id of value) {
+                stops.push({
+                    id: id,
+                    station: key
+                });
+                stopIDs.push(id);
+            }
+        }
+        console.log('Updating database.');
+        return Promise.all([
+                (() => { // calendar 
+                    const cs = new ColumnSet(
+                        ['id', 'start_date', 'end_date', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'],
+                        { 
+                            table: new TableName({
+                                schema: 'gtfs',
+                                table: 'calendar'
+                            }) 
+                        }
+                    );
+                    const calendar = [];
+                    for (const [key, value] of Object.entries(data.calendar)) {
+                        calendar.push({
+                            id: key,
+                            start_date: value.startDate,
+                            end_date: value.endDate,
+                            monday: value.monday,
+                            tuesday: value.tuesday,
+                            wednesday: value.wednesday,
+                            thursday: value.thursday,
+                            friday: value.friday,
+                            saturday: value.saturday,
+                            sunday: value.sunday
+                        });
+                    }
+                    return db.none('TRUNCATE TABLE gtfs.calendar CASCADE')
+                        .then(() => db.none(insert(calendar, cs)))
+                        .then(() => console.log('Calendar has been updated'));
+                })(),
+                (() => { // stops
+                    const cs = new ColumnSet(
+                        ['id', 'station'],
+                        { 
+                            table: new TableName({
+                                schema: 'gtfs',
+                                table: 'stops'
+                            }) 
+                        }
+                    );
+                    /* stops iterated above */
+                    return db.none('TRUNCATE TABLE gtfs.stops CASCADE')
+                        .then(() => db.none(insert(stops, cs)))
+                        .then(() => console.log('Stops have been updated'));
+                })()
+            ]).then(() => { // trips
+                const cs = new ColumnSet(
+                    ['id', 'calendar'],
+                    { 
+                        table: new TableName({
+                            schema: 'gtfs',
+                            table: 'trips'
+                        }) 
+                    }
+                );
+                const trips = [];
+                for (const [key, value] of Object.entries(data.tripCalendar)) {
+                    trips.push({
+                        id: key,
+                        calendar: value
+                    });
+                }
+                return db.none('TRUNCATE TABLE gtfs.trips CASCADE')
+                    .then(() => db.none(insert(trips, cs)))
+                    .then(() => console.log('Trips have been updated'));
+            }).then(() => { // timetable
+                const cs = new ColumnSet(
+                    ['trip_id', 'seq', 'stop_id', 'arrival', 'departure'],
+                    { 
+                        table: new TableName({
+                            schema: 'gtfs',
+                            table: 'timetable'
+                        }) 
+                    }
+                );
+                const timetable = [];
+                for (const [trip, times] of Object.entries(data.times)) {
+                    for (const [seq, value] of Object.entries(times)) {
+                        if (!stopIDs.includes(value.stopID)) continue; // skip entries with non-metro stops
+                        timetable.push({
+                            trip_id: trip,
+                            seq: seq,
+                            stop_id: value.stopID,
+                            arrival: `${(value.arrivalTime / 1000).toFixed(0)}S`,
+                            departure: `${(value.departureTime / 1000).toFixed(0)}S`
+                        });
+                    }
+                }
+                return db.none('TRUNCATE TABLE gtfs.timetable CASCADE')
+                    .then(() => db.none(insert(timetable, cs)))
+                    .then(() => console.log('Timetable has been updated'));
+            });
+    }).then(() => {
+        console.log("All operations completed");
+    });
+}

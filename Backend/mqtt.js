@@ -39,12 +39,14 @@ const publish = () => {
             message.push({
                 ...entryBase,
                 arr: row.arrival.getTime() / 1000,
-                adj: row.prev_station || undefined // adjacent station
+                adj: row.prev_station || undefined, // adjacent station
+                adjt: (!row.prev_departure) ? undefined : (row.prev_departure.getTime() / 1000)
             }); // arrival entry
             message.push({
                 ...entryBase,
                 dep: row.departure.getTime() / 1000,
-                adj: row.next_station || undefined
+                adj: row.next_station || undefined,
+                adjt: (!row.next_arrival) ? undefined : (row.next_arrival.getTime() / 1000)
             }); // departure entry
         }
 

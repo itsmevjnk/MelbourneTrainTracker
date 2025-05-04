@@ -24,7 +24,9 @@ CREATE TABLE daily.timetable (
     last_updated timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     station character(3) NOT NULL,
     next_station character(3),
+    next_arrival timestamp with time zone,
     prev_station character(3),
+    prev_departure timestamp with time zone,
     CONSTRAINT timetable_time CHECK ((arrival <= departure))
 );
 

@@ -37,12 +37,13 @@ const publish = () => {
             };
             message.push({
                 ...entryBase,
-                arr: row.arrival.getTime() / 1000
+                arr: row.arrival.getTime() / 1000,
+                adj: row.prev_station || undefined // adjacent station
             }); // arrival entry
             message.push({
                 ...entryBase,
                 dep: row.departure.getTime() / 1000,
-                next: row.next_station || undefined
+                adj: row.next_station || undefined
             }); // departure entry
         }
 

@@ -4,6 +4,7 @@
 #include "subsystems/wifi.h"
 #include "subsystems/uart.h"
 #include "subsystems/ntp.h"
+#include "subsystems/mqtt.h"
 
 #include "config.h"
 
@@ -58,6 +59,8 @@ runCLI:
         ESP_ERROR_CHECK(WiFi::init(Config::getWiFiSSID(), Config::getWiFiPassword()));
 
     ESP_ERROR_CHECK(NTP::init(Config::getTimeServer()));
+
+    ESP_ERROR_CHECK(MQTT::init(Config::getMQTTBroker()));
 
     ESP_LOGI(TAG, "init end"); ESP_ERROR_CHECK(StatusLED::actyOff());
 

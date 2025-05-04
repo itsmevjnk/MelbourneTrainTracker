@@ -24,6 +24,7 @@ public:
 
     /* get address config */
     static const char* getTimeServer();
+    static const char* getMQTTBroker();
 
 private:
     static bool m_initialised;
@@ -39,6 +40,7 @@ private:
 
     /* network address configuration */
     static char m_timeServer[64];
+    static char m_mqttBroker[64];
 
     static const char* kTag; // for logging
 
@@ -70,6 +72,9 @@ private:
 
     static esp_console_cmd_t kSetNTPCommand;
     static esp_err_t cliSetNTP(int argc, char** argv);
+
+    static esp_console_cmd_t kSetMQTTCommand;
+    static esp_err_t cliSetMQTT(int argc, char** argv);
 
     /* utilities for CLI */
     static size_t readString(char* str, size_t maxSize);

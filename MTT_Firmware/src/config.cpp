@@ -47,6 +47,13 @@ esp_err_t Config::init() {
             default: ESP_LOGE(kTag, "cannot read time server address (%s)", esp_err_to_name(ret)); return ret;
         }
 
+        ret = addrHandle.getString("mqtt", m_mqttBroker, sizeof(m_mqttBroker));
+        switch (ret) {
+            case ESP_OK: break;
+            case ESP_ERR_NVS_NOT_FOUND: ESP_LOGW(kTag, "MQTT broker not set in NVS, defaulting to %s", m_mqttBroker); break;
+            default: ESP_LOGE(kTag, "cannot read MQTT server address (%s)", esp_err_to_name(ret)); return ret;
+        }
+
         // addrHandle.close();
     }
 
@@ -110,4 +117,13 @@ char Config::m_timeServer[64] = CONFIG_DEFAULT_TIME_SERVER;
 const char* Config::getTimeServer() {
     verifyInit();
     return m_timeServer;
+}
+
+#ifndef CONFIG_DEFAULT_MQTT_BROKER
+#define CONFIG_DEFAULT_MQTT_BROKER                          "mqtt://broker.hivemq.com" // TODO: change this to an actual MQTT broker once we get the backend on the cloud
+#endif
+char Config::m_mqttBroker[64] = CONFIG_DEFAULT_MQTT_BROKER;
+const char* Config::getMQTTBroker() {
+    verifyInit();
+    return m_mqttBroker;
 }

@@ -1,0 +1,105 @@
+networks:
+  mtt_network:
+    driver: bridge
+
+services:
+  postgres:
+    container_name: mtt_postgres
+    image: postgres
+    hostname: mtt_postgres
+    restart: always
+    environment: # this config lets us connect using the default connection string in database.js
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: melbtrains
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    # ports:
+    #   - "5432:5432"
+    healthcheck:
+      test: pg_isready -U postgres -d melbtrains
+      start_period: 10s # give it some time to initialise
+      interval: 30s
+      timeout: 3s
+      retries: 3
+    networks:
+      - mtt_network
+    
+  initdb:
+    container_name: mtt_gtfs
+    image: itsmevjnk/mtt_backend
+    hostname: mtt_gtfs
+    restart: always
+    environment:
+      CONNECT_STR: postgres://postgres:postgres@mtt_postgres:5432/melbtrains
+      SCRIPT: initdb
+    healthcheck:
+      interval: 1h
+      start_period: 300s # it can take up to 5 mins to download and parse the GTFS dataset
+      start_interval: 10s
+      retries: 3
+    depends_on:
+      postgres:
+        condition: service_healthy
+        restart: true
+    networks:
+      - mtt_network
+  
+  mqtt:
+    container_name: mtt_broker
+    image: eclipse-mosquitto
+    hostname: mtt_broker
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./mqtt_config/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - ./mqtt_config/mosquitto.pwd:/mosquitto/config/mosquitto.pwd:ro
+      - ./mqtt_config/mosquitto.acl:/mosquitto/config/mosquitto.acl:ro
+    # healthcheck:
+    #   test: [ "CMD-SHELL", "timeout 5 mosquitto_sub -t melbtrains -C 1 | grep -v Error || exit 1" ]
+    #   interval: 30s 
+    #   timeout: 10s 
+    #   retries: 3
+    #   start_period: 10s
+    #   start_interval: 10s
+    networks:
+      - mtt_network
+
+  server:
+    container_name: mtt_server
+    image: itsmevjnk/mtt_backend
+    hostname: mtt_server
+    restart: always
+    environment:
+      API_KEY_FILE: /run/secrets/api_key # will have precedence over API_KEY
+      CONNECT_STR: postgres://postgres:postgres@mtt_postgres:5432/melbtrains
+      MQTT_BROKER: mqtt://mtt_broker:1883
+      MQTT_USERNAME: backend
+      MQTT_PASSWORD: mtt_backend # default MQTT password (in the committed passwd file) - MQTT_PASSWORD_FILE will have precedence
+      MQTT_PASSWORD_FILE: /run/secrets/mqtt_password
+      MQTT_TOPIC: melbtrains
+    healthcheck:
+      interval: 1h
+      start_period: 300s # it can take up to 5 mins to download and parse the GTFS dataset
+      start_interval: 10s
+      retries: 3
+    depends_on:
+      postgres:
+        condition: service_healthy
+        restart: true
+      initdb:
+        condition: service_healthy
+        # restart: true
+      # mqtt:
+      #   condition: service_healthy
+    networks:
+      - mtt_network
+    secrets:
+      - api_key
+      - mqtt_password
+
+secrets:
+  mqtt_password:
+    file: ./mqtt_password.txt
+  api_key:
+    file: ./api_key.txt

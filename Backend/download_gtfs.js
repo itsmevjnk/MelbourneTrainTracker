@@ -4,6 +4,7 @@ const stream = require('stream');
 const progress = require('progress-stream');
 const yauzl = require('yauzl');
 const csv = require('csv-parse');
+const schedule = require('node-schedule');
 
 temp.track(); // automatically remove file on completion
 
@@ -291,17 +292,16 @@ const download = () => {
         .catch((err) => {
             console.error(`Error encountered downloading GTFS dataset: ${err}`);
             throw err;
-        });
+        })
+        .finally(() => temp.cleanup()); // clean up after ourselves
 };
 
-module.exports = { download };
-
-if (require.main === module) {
+const updateGTFS = () => {
     const database = require('./database'); // connect to database
     const { TableName, ColumnSet, insert } = database.pgp.helpers;
     const db = database.db;
 
-    download().then((data) => {
+    return download().then((data) => {
         const stops = [];
         const stopIDs = [];
         for (const [key, value] of Object.entries(data.stops)) {
@@ -408,5 +408,23 @@ if (require.main === module) {
             });
     }).then(() => {
         console.log("All operations completed");
+    });
+}
+
+module.exports = { download, updateGTFS };
+
+const HEALTHCHECK_PORT = process.env.HEALTHCHECK_PORT || 3000;
+
+if (require.main === module) {
+    updateGTFS().then(() => {
+        /* schedule weekly schedule update at 9pm on the 15th day of every month - should give us plenty of clearance since each schedule has 90 days of data */
+        schedule.scheduleJob('0 21 15 * *', async () => {
+            console.log('>>> Updating GTFS schedule.');
+            await updateGTFS();
+        });
+
+        /* start healthcheck server */
+        const healthCheck = require('./healthcheck');
+        healthCheck.start(HEALTHCHECK_PORT);
     });
 }

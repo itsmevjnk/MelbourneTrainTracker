@@ -1,8 +1,10 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "main.js",
   "scripts": {
+    "initdb": "node download_gtfs.js",
+    "start": "node main.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
@@ -10,6 +12,7 @@
   "description": "",
   "dependencies": {
     "csv-parse": "^5.6.0",
+    "express": "^5.1.0",
     "gtfs-realtime-bindings": "^1.1.1",
     "mqtt": "^5.12.0",
     "node-schedule": "^2.1.1",

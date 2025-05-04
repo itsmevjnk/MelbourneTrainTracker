@@ -1,9 +1,10 @@
 /* fetch GTFS Realtime feed */
 
 const gtfs = require('gtfs-realtime-bindings');
+const secret = require('./secret');
 
 const API_URL = process.env.API_URL || 'https://data-exchange-api.vicroads.vic.gov.au/opendata/v1/gtfsr/metrotrain-tripupdates';
-const API_KEY = process.env.API_KEY;
+const API_KEY = secret.read(process.env.API_KEY_FILE) || process.env.API_KEY;
 
 const fetchUpdate = () => {
     return fetch(API_URL, {

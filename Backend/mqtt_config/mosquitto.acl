@@ -1,0 +1,6 @@
+# allow unauthenticated users to subscribe only
+topic   read        #
+
+# give publish permission to backend
+user    backend
+topic   readwrite   #

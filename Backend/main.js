@@ -12,6 +12,8 @@ const mqtt = require('./mqtt');
 const daily = require('./daily_init');
 const schedule = require('node-schedule');
 
+const HEALTHCHECK_PORT = process.env.HEALTHCHECK_PORT || 3000;
+
 /* initialisation */
 if (require.main === module) {
     daily.daily_init().then(() => {
@@ -42,6 +44,10 @@ if (require.main === module) {
             });
         };
 
-        return periodicUpdate(); // this will auto reschedule
+        return periodicUpdate().then(() => { // this will auto reschedule
+            /* start healthcheck server */
+            const healthCheck = require('./healthcheck');
+            healthCheck.start(HEALTHCHECK_PORT);
+        }); 
     });
 }

@@ -1,12 +1,13 @@
 /* MQTT communication */
 
 const mqtt = require('mqtt');
+const secret = require('./secret');
 const { pgp, db } = require('./database');
 const { TableName, ColumnSet, select } = pgp.helpers;
 
 const MQTT_BROKER = process.env.MQTT_BROKER || 'mqtt://broker.hivemq.com';
 const MQTT_USERNAME = process.env.MQTT_USERNAME || undefined;
-const MQTT_PASSWORD = process.env.MQTT_PASSWORD || undefined;
+const MQTT_PASSWORD = secret.read(process.env.MQTT_PASSWORD_FILE) || process.env.MQTT_PASSWORD || undefined;
 const MQTT_TOPIC = process.env.MQTT_TOPIC || 'melbtrains';
 
 const client = mqtt.connect(MQTT_BROKER, {

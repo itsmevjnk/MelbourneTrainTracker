@@ -55,7 +55,7 @@ const publish = () => {
 
         const messageStr = JSON.stringify(message);
         if (messageStr != lastMessage) {
-            console.log(`Publishing message with ${message.length} entries`);
+            console.log(`Publishing message with ${message.length} entries (${messageStr.length} bytes)`);
             lastMessage = messageStr;
             return client.publishAsync(MQTT_TOPIC, messageStr, { qos: 1, retain: true })
                 .then((_) => message);

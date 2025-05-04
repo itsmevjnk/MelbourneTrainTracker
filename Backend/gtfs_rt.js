@@ -3,23 +3,37 @@
 const gtfs = require('gtfs-realtime-bindings');
 const secret = require('./secret');
 
-const API_URL = process.env.API_URL || 'https://data-exchange-api.vicroads.vic.gov.au/opendata/v1/gtfsr/metrotrain-tripupdates';
+const UPDATE_API_URL = process.env.UPDATE_API_URL || 'https://data-exchange-api.vicroads.vic.gov.au/opendata/v1/gtfsr/metrotrain-tripupdates';
+const ALERT_API_URL = process.env.ALERT_API_URL || 'https://data-exchange-api.vicroads.vic.gov.au/opendata/v1/gtfsr/metrotrain-servicealerts';
 const API_KEY = secret.read(process.env.API_KEY_FILE) || process.env.API_KEY;
 
 const fetchUpdate = () => {
-    return fetch(API_URL, {
-        method: 'GET',
-        headers: {
-            'Cache-Control': 'no-cache',
-            'Ocp-Apim-Subscription-Key': API_KEY
-        }
+    return Promise.all([
+        fetch(UPDATE_API_URL, {
+            method: 'GET',
+            headers: {
+                'Cache-Control': 'no-cache',
+                'Ocp-Apim-Subscription-Key': API_KEY
+            }
+        }),
+        fetch(ALERT_API_URL, {
+            method: 'GET',
+            headers: {
+                'Cache-Control': 'no-cache',
+                'Ocp-Apim-Subscription-Key': API_KEY
+            }
+        })
+    ])
+    .then((responses) => {
+        const promises = []
+        for (const response of responses) promises.push(response.arrayBuffer());
+        return Promise.all(promises);
     })
-    .then((response) => response.arrayBuffer())
-    .then((buffer) => {
-        const feed = gtfs.transit_realtime.FeedMessage.decode(new Uint8Array(buffer));
-        const timestamp = new Date(feed.header.timestamp.toNumber() * 1000);
+    .then((buffers) => {
+        const updateFeed = gtfs.transit_realtime.FeedMessage.decode(new Uint8Array(buffers[0]));
+        const timestamp = new Date(updateFeed.header.timestamp.toNumber() * 1000);
         const updates = {};
-        for (const entity of feed.entity) {
+        for (const entity of updateFeed.entity) {
             const update = entity.tripUpdate;
             if (update) {
                 const tripID = update.trip.tripId;
@@ -33,9 +47,28 @@ const fetchUpdate = () => {
                 updates[tripID] = entries;
             }
         }
+
+        const alertFeed = gtfs.transit_realtime.FeedMessage.decode(new Uint8Array(buffers[1]));
+        const cancellations = [];
+        for (const entity of alertFeed.entity) {
+            const alert = entity.alert;
+            if (alert) {
+                const effect = alert.effect;
+                if (effect == 1) { // no service - cancelled service
+                    for (const informedEntity of alert.informedEntity) {
+                        cancellations.push(informedEntity.trip.tripId);
+                    }
+                }
+                else {
+                    console.warn(`Unknown alert type ${effect}: ${alert.descriptionText.translation[0].text}`);
+                }
+            }
+        }
+
         return {
             timestamp: timestamp,
-            updates: updates
+            updates: updates,
+            cancellations: cancellations
         };
     });
 };

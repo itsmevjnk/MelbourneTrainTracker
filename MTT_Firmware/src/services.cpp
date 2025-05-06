@@ -33,7 +33,10 @@ void ServiceState::show(time_t now) {
     else {
         size_t numMidLEDs = LSID::getLEDsBetween(m_line, m_station, m_nextStation, midLEDs, sizeof(midLEDs) / sizeof(uint16_t));
         if (numMidLEDs > 0) {
-            size_t ledIndex = (now - m_time) / ((m_nextTime - m_time) / numMidLEDs);
+            int ledIndex = (now - m_time) / ((m_nextTime - m_time) / numMidLEDs);
+            if (ledIndex >= numMidLEDs) ledIndex = numMidLEDs - 1;
+            // ESP_LOGI(kTag, "ledIndex = %d", ledIndex);
+            // assert(ledIndex >= 0 && ledIndex < numMidLEDs);
             ESP_ERROR_CHECK(LEDMatrix::set(midLEDs[ledIndex], lineColour));
         } else ESP_ERROR_CHECK(LEDMatrix::set(stationLED, lineColour)); // fallback, and also used in the FSS -> PAR on Northern group scenario
     }

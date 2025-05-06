@@ -41,3 +41,5 @@
 #include "hwconfig/leds/northern.h"
 #include "hwconfig/leds/sandringham.h"
 #include "hwconfig/leds/vline.h"
+
+#define LMAT_NULL                           0xFFFF

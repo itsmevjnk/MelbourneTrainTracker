@@ -26,12 +26,13 @@ const publish = () => {
         SELECT * FROM daily.timetable
         WHERE NOT (
             (departure < CURRENT_TIMESTAMP - INTERVAL '0:00:15')
-            OR (arrival > CURRENT_TIMESTAMP + INTERVAL '0:05:00')
+            OR (arrival > CURRENT_TIMESTAMP + INTERVAL '0:01:00')
         )
     `).then((rows) => {
         const message = [];
         for (const row of rows) {
             const entryBase = {
+                seq: row.seq,
                 line: row.line,
                 trip: row.trip_id,
                 stn: row.station

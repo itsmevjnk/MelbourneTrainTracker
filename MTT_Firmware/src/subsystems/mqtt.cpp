@@ -1,8 +1,8 @@
 #include "subsystems/mqtt.h"
 #include "subsystems/wifi.h"
-
 #include "subsystems/status_led.h"
 
+#include "message.h"
 #include "config.h"
 
 #include "esp_check.h"
@@ -60,7 +60,7 @@ void MQTT::eventHandler(void* handlerArgs, esp_event_base_t eventBase, int32_t e
             // ESP_LOGI(kTag, "received message (msg_id=%d) from topic %.*s (%d bytes) - offset %d, total length %d", event->msg_id, event->topic_len, event->topic, event->data_len, event->current_data_offset, event->total_data_len);
             if (receiveFragment(event->msg_id, event->total_data_len, event->data, event->current_data_offset, event->data_len)) {
                 /* data received - do something */
-
+                Message::parseMessage(m_buffer, m_msgLength);
                 bufferFinish(); // be sure to call this so that we can receive the next message!
             }
             ESP_ERROR_CHECK(StatusLED::actyOff());

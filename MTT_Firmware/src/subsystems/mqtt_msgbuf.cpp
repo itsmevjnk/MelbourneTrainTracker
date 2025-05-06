@@ -10,7 +10,8 @@ bool MQTT::receiveFragment(int msgID, size_t totalLength, void* fragment, size_t
     if (!isReceiveActive()) { // new message
         ESP_LOGI(kTag, "beginning receiving message with ID %d", msgID);
         m_msgID = msgID; m_msgLength = totalLength; m_receivedBytes = 0;
-        m_buffer = (char*)malloc(totalLength + 1); m_buffer[totalLength] = '\0'; // use malloc to be more explicit, and we'll null-terminate the message in advance so it can be safely passed into cJSON
+        m_buffer = (char*)malloc(totalLength); // use malloc to be more explicit
+        assert(m_buffer != NULL); // make sure that we've got something
     }
     else if (msgID != m_msgID) { // incoming message is different from the one we're receiving
         ESP_LOGW(kTag, "discarding message with ID %d while message with ID %d is still being processed", msgID, m_msgID);

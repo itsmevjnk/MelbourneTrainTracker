@@ -91,6 +91,8 @@ esp_err_t LEDMatrix::init() {
 }
 
 esp_err_t LEDMatrix::set(size_t offset, colour_t colour) {
+    if (offset == LMAT_NULL) return ESP_OK;
+    
     if (offset % 3 != 0) {
         ESP_LOGE(TAG, "offset %u given to LEDMatrix::set() is invalid", offset);
         return ESP_ERR_INVALID_ARG;
@@ -110,6 +112,7 @@ esp_err_t LEDMatrix::setMulti(const size_t* offsets, size_t leds, colour_t colou
     
     for (size_t i = 0; i < leds; i++, offsets++) { // increment to next offset after each iteration
         size_t offset = *offsets;
+        if (offset == LMAT_NULL) continue;
         if (offset % 3 != 0) {
             ESP_LOGE(TAG, "offset %u given to LEDMatrix::setMulti() is invalid", offset);
             return ESP_ERR_INVALID_ARG;

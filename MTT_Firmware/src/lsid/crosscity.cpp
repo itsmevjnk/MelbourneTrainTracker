@@ -97,15 +97,15 @@ uint16_t LSID::werGetLED(infraid_t code) {
 size_t LSID::werGetLEDsBetween(infraid_t fromCode, infraid_t toCode, uint16_t* buffer, size_t maxLength) {
     if (fromCode == INFRAID_NPT && toCode == INFRAID_LAV) { // NPT direct to LAV
         ESP_RETURN_ON_FALSE(maxLength >= 2, 0, kTag, "not enough space to hold Newport - Laverton express LEDs");
-        buffer[0] = LMAT_WERRIBEE_LAV_EX1;
-        buffer[1] = LMAT_WERRIBEE_LAV_EX2;
+        buffer[0] = LMAT_WERRIBEE_LAV_EX2;
+        buffer[1] = LMAT_WERRIBEE_LAV_EX1;
         return 2;
     }
 
     if (fromCode == INFRAID_LAV && toCode == INFRAID_NPT) { // LAV direct to NPT
         ESP_RETURN_ON_FALSE(maxLength >= 2, 0, kTag, "not enough space to hold Newport - Laverton express LEDs");
-        buffer[0] = LMAT_WERRIBEE_LAV_EX2;
-        buffer[1] = LMAT_WERRIBEE_LAV_EX1;
+        buffer[0] = LMAT_WERRIBEE_LAV_EX1;
+        buffer[1] = LMAT_WERRIBEE_LAV_EX2;
         return 2;
     }
 

@@ -21,8 +21,8 @@
 #define LMAT_WERRIBEE_ALT_ALT                           LMAT_BASE(1, 5, 1)
 #define LMAT_WERRIBEE_SHE                               LMAT_BASE(1, 5, 2)
 #define LMAT_WERRIBEE_SHE_ALT                           LMAT_BASE(1, 5, 3)
-#define LMAT_WERRIBEE_LAV_EX1                           LMAT_BASE(1, 5, 4) // Altona Loop bypass
-#define LMAT_WERRIBEE_LAV_EX2                           LMAT_BASE(1, 5, 5)
+#define LMAT_WERRIBEE_LAV_EX1                           LMAT_BASE(1, 5, 4) // Altona Loop bypass <-- Laverton end
+#define LMAT_WERRIBEE_LAV_EX2                           LMAT_BASE(1, 5, 5) //                    <-- Newport end
 
 /* Williamstown line */
 #define LMAT_WILLIAMSTOWN_WIL                           LMAT_BASE(1, 6, 0)

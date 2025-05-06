@@ -55,7 +55,7 @@ size_t LSID::getLEDsBetweenIndices(const station_t** stations, const infraid_t* 
         }
     }
 
-    if (outIndex == 0) ESP_LOGW(kTag, "getLEDsBetweenIndices() returning 0 for index %d (" INFRAID2STR_FMT ") -> %d (" INFRAID2STR_FMT ")", fromIndex, INFRAID2STR(codes[fromIndex]), toIndex, INFRAID2STR(codes[toIndex]));
+    if (outIndex == 0 && fromIndex != toIndex) ESP_LOGW(kTag, "getLEDsBetweenIndices() returning 0 for index %d (" INFRAID2STR_FMT ") -> %d (" INFRAID2STR_FMT ")", fromIndex, INFRAID2STR(codes[fromIndex]), toIndex, INFRAID2STR(codes[toIndex]));
 
     return outIndex;
 }

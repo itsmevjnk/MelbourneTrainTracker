@@ -120,7 +120,5 @@ runCLI:
         Services::release();
         LEDMatrix::update();
         vTaskDelay(1000 / portTICK_PERIOD_MS);
-
-        ESP_LOGI(TAG, "available memory: %lu bytes", esp_get_minimum_free_heap_size());
     }
 }

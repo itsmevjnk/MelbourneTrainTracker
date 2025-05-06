@@ -59,6 +59,9 @@ size_t Services::commitUpdates() {
 
     releaseUpdates();
 
+    m_updatesMap.clear();
+    // ESP_LOGI(kTag, "m_updatesMap has %u elements, available memory: %lu bytes", m_updatesMap.size(), esp_get_minimum_free_heap_size());
+
     return count;
 }
 

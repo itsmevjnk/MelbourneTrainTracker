@@ -12,7 +12,7 @@
 #include "config.h"
 
 #include "esp_log.h"
-static const char* TAG = "main"; // for logging
+static const char* kTag = "main"; // for logging
 
 
 static const size_t burnleyOffsets[] = { LMAT_BURNLEY };
@@ -27,10 +27,10 @@ static const size_t vlineOffsets[] = { LMAT_VLINE };
 
 /* firmware entry point */
 extern "C" void app_main() {
-    // ESP_LOGI(TAG, "waiting");
+    // ESP_LOGI(kTag, "waiting");
     // vTaskDelay(3000 / portTICK_PERIOD_MS);
 
-    ESP_LOGI(TAG, "init begin");
+    ESP_LOGI(kTag, "init begin");
 
     ESP_ERROR_CHECK(UART::init());
     ESP_ERROR_CHECK(StatusLED::init()); ESP_ERROR_CHECK(StatusLED::actyOn()); ESP_ERROR_CHECK(StatusLED::errorOn());
@@ -39,13 +39,13 @@ extern "C" void app_main() {
     /* load config */
     esp_err_t ret = Config::init();
     if (ret != ESP_OK) {
-        ESP_LOGE(TAG, "configuration loading failed (%s), booting into configuration CLI", esp_err_to_name(ret));
+        ESP_LOGE(kTag, "configuration loading failed (%s), booting into configuration CLI", esp_err_to_name(ret));
         goto runCLI;
     } else {
-        ESP_LOGI(TAG, "press any key within 3 seconds to boot into configuration CLI");
+        ESP_LOGI(kTag, "press any key within 3 seconds to boot into configuration CLI");
         uint8_t buf;
         if (UART::read(&buf, 1, 3000 / portTICK_PERIOD_MS) > 0) { // catch incoming byte, and if there's any, we boot into CLI
-            ESP_LOGI(TAG, "booting into configuration CLI");
+            ESP_LOGI(kTag, "booting into configuration CLI");
 runCLI:
             ESP_ERROR_CHECK(Config::cli());
             while (true) { // while CLI is running on another task, we flash the two LEDs alternately
@@ -65,7 +65,7 @@ runCLI:
 
     ESP_ERROR_CHECK(MQTT::init(Config::getMQTTBroker()));
 
-    ESP_LOGI(TAG, "init end"); ESP_ERROR_CHECK(StatusLED::actyOff());
+    ESP_LOGI(kTag, "init end"); ESP_ERROR_CHECK(StatusLED::actyOff());
 
     /* placeholder */
     // while (true) {
@@ -99,7 +99,7 @@ runCLI:
     //                 ESP_ERROR_CHECK(LEDMatrix::setMulti(vlineOffsets, sizeof(vlineOffsets) / sizeof(size_t), kVLine));
     //                 break;
     //             default:
-    //                 ESP_LOGE(TAG, "invalid i=%d", i);
+    //                 ESP_LOGE(kTag, "invalid i=%d", i);
     //                 abort();
     //                 break;
     //         }

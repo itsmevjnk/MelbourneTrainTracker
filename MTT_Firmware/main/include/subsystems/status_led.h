@@ -29,4 +29,7 @@ class StatusLED {
         static inline esp_err_t errorOff() {
             return gpio_set_level(LED_ERROR, 0);
         }
+    
+    private:
+        static const char* kTag;
 };

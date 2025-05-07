@@ -42,4 +42,6 @@ private:
     static size_t m_retries; // retry counter
 
     static bool m_connected;
+
+    static const char* kTag;
 };

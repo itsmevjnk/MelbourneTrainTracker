@@ -52,6 +52,7 @@ esp_err_t LEDMatrix::init() {
     ESP_RETURN_ON_ERROR(enableDrivers(), TAG, "cannot enable driver output");
 
     /* initialise SPI buses */
+#if !defined(SPI3_ONLY)
     ESP_RETURN_ON_ERROR(spi_bus_initialize(
         SPI2_HOST,
         &kSPI2BusConfig,
@@ -63,6 +64,7 @@ esp_err_t LEDMatrix::init() {
         &AW20216S::kSPIDeviceConfig,
         &spi2Handle
     ), TAG, "SPI2 device add failed");
+#endif
 
     ESP_RETURN_ON_ERROR(spi_bus_initialize(
         SPI3_HOST,
@@ -77,7 +79,11 @@ esp_err_t LEDMatrix::init() {
     ), TAG, "SPI3 device add failed");
 
     /* initialise LED drivers */
+#if defined(SPI3_ONLY)
+#define SPI_HANDLE(host)                spi3Handle
+#else
 #define SPI_HANDLE(host)                (((host) == SPI2_HOST) ? spi2Handle : spi3Handle) // macro to select SPI handle
+#endif
     m_drivers[0] = new AW20216S("aw0", SPI_HANDLE(L0_SPI), L0_CS, &m_buffer[kBufferOffsets[0]], L0_ROWS); ESP_RETURN_ON_ERROR(m_drivers[0]->init(), TAG, "L0 init failed");
     m_drivers[1] = new AW20216S("aw1", SPI_HANDLE(L1_SPI), L1_CS, &m_buffer[kBufferOffsets[1]], L1_ROWS); ESP_RETURN_ON_ERROR(m_drivers[1]->init(), TAG, "L1 init failed");
     m_drivers[2] = new AW20216S("aw2", SPI_HANDLE(L2_SPI), L2_CS, &m_buffer[kBufferOffsets[2]], L2_ROWS); ESP_RETURN_ON_ERROR(m_drivers[2]->init(), TAG, "L2 init failed");

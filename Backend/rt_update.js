@@ -58,26 +58,34 @@ const updateTimetable = (lastTimestamp = null) => {
                 });
             }
         }
-        const updateQuery = update(updates, cs)
-            + ' WHERE t.trip_id LIKE v.trip_id AND t.seq = v.seq AND (t.arrival != v.arrival OR t.departure != v.departure)'
-            + ' RETURNING t.trip_id, t.seq, v.arrival, v.departure';
 
         return db.result(deleteQuery).then((deleteResult) => {
-            return db.any(updateQuery).then((rows) => {
-                const updatedRows = {};
-                for (const row of rows) {
-                    if (!updatedRows.hasOwnProperty(row.trip_id)) updatedRows[row.trip_id] = {};
-                    updatedRows[row.trip_id][row.seq] = {
-                        arrival: row.arrival,
-                        departure: row.departure
+            if (updates.length > 0) {
+                const updateQuery = update(updates, cs)
+                    + ' WHERE t.trip_id LIKE v.trip_id AND t.seq = v.seq AND (t.arrival != v.arrival OR t.departure != v.departure)'
+                    + ' RETURNING t.trip_id, t.seq, v.arrival, v.departure';
+                return db.any(updateQuery).then((rows) => { // only update if there are rows available
+                    const updatedRows = {};
+                    for (const row of rows) {
+                        if (!updatedRows.hasOwnProperty(row.trip_id)) updatedRows[row.trip_id] = {};
+                        updatedRows[row.trip_id][row.seq] = {
+                            arrival: row.arrival,
+                            departure: row.departure
+                        };
+                    }
+                    return {
+                        timestamp: data.timestamp,
+                        deletedCount: deleteResult.rowCount,
+                        rows: updatedRows
                     };
-                }
+                });
+            } else {
                 return {
                     timestamp: data.timestamp,
                     deletedCount: deleteResult.rowCount,
-                    rows: updatedRows
+                    rows: {}
                 };
-            });
+            }
         });
     });
 };

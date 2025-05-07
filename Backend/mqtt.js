@@ -24,10 +24,19 @@ let lastMessage = null;
 const publish = () => {
     return db.any(`
         SELECT * FROM daily.timetable
-        WHERE NOT (
-            (departure < CURRENT_TIMESTAMP - INTERVAL '0:00:15')
-            OR (arrival > CURRENT_TIMESTAMP + INTERVAL '0:01:00')
-        )
+        WHERE
+            NOT (
+                (departure < CURRENT_TIMESTAMP - INTERVAL '0:00:15')
+                OR (arrival > CURRENT_TIMESTAMP + INTERVAL '0:01:00')
+            )
+            OR (
+                (departure < CURRENT_TIMESTAMP - INTERVAL '0:00:15')
+                AND (next_arrival > CURRENT_TIMESTAMP + INTERVAL '0:01:00')
+            )
+            OR (
+                (arrival < CURRENT_TIMESTAMP - INTERVAL '0:00:15')
+                AND (departure > CURRENT_TIMESTAMP + INTERVAL '0:01:00')
+            )
     `).then((rows) => {
         const message = [];
         for (const row of rows) {

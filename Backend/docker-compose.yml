@@ -49,6 +49,7 @@ services:
     container_name: mtt_broker
     image: eclipse-mosquitto
     hostname: mtt_broker
+    restart: always
     ports:
       - "1883:1883"
     volumes:

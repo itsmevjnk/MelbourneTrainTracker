@@ -58,11 +58,10 @@ public:
 
     static void clearAndReserve(size_t num);
 
-    static bool updateStates(time_t now); // update service states for the given timestamp
-    // return false if there are updates but none were applied (i.e. they are all in the future) - in this case the caller should keep the last state
-    static inline bool updateStates() {
+    static void updateStates(time_t now); // update service states for the given timestamp
+    static inline void updateStates() {
         time_t now; time(&now);
-        return updateStates(now);
+        updateStates(now);
     }
 
     static void showAllStates(time_t now); 

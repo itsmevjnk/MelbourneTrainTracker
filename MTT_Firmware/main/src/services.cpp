@@ -44,7 +44,7 @@ Services::StatesDict Services::m_states;
 Services::StateUpdateQueue Services::m_updates;
 Services::StateUpdateVector Services::m_updatesBacking;
 
-bool Services::updateStates(time_t now) {
+void Services::updateStates(time_t now) {
     acquire(); acquireUpdates();
 
     bool noUpdates = m_updates.empty(); // set if there are no updates (i.e. no services)
@@ -59,8 +59,8 @@ bool Services::updateStates(time_t now) {
 
         m_updates.pop(); // consume update
         auto state = m_states.find(updateTrip);
-        if (state == m_states.end()) m_states.insert(std::make_pair(updateTrip, update.second)); // state does not exist yet
-        else if (m_allStates[state->second].getTimestamp() < updateTime) state->second = update.second; // update existing state
+        if (state == m_states.end() || m_allStates[state->second].getTimestamp() < updateTime)
+            m_states[updateTrip] = updateState;
 
         updated = true;
     }
@@ -68,8 +68,6 @@ bool Services::updateStates(time_t now) {
     ESP_LOGD(kTag, "available memory after updateStates(): %lu bytes", esp_get_minimum_free_heap_size());
 
     release(); releaseUpdates();
-
-    return noUpdates || updated; // return true if there are no updates - so we can get the caller to reflect this on the display
 }
 
 const char* Services::kTag = "services";

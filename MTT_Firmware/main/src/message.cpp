@@ -32,10 +32,10 @@ static inline time_t getTimestamp(const cJSON* item) {
     return (value == NAN) ? INT64_MIN : static_cast<time_t>(std::floor(value)); // floor just in case
 }
 
-static inline int getInteger(const cJSON* item) {
-    double value = cJSON_GetNumberValue(item);
-    return (value == NAN) ? INT_MIN : static_cast<int>(std::floor(value)); // floor just in case
-}
+// static inline int getInteger(const cJSON* item) {
+//     double value = cJSON_GetNumberValue(item);
+//     return (value == NAN) ? INT_MIN : static_cast<int>(std::floor(value)); // floor just in case
+// }
 
 /* padding duration (in seconds) after service departure at stations */
 #ifndef MSG_STATION_PAD
@@ -55,11 +55,19 @@ void Message::parseMessage(const char* buffer, size_t bufferLength) {
 
     assert(cJSON_IsArray(json)); // make sure that we've got an array and not something else
 
-    ESP_LOGD(kTag, "available memory: %lu bytes", esp_get_minimum_free_heap_size());
-
-    /* iterate through events - this is effectively cJSON_ArrayForEach, but we remove each element after parsing */
+    /* count number of events - hopefully this is fast enough */
     const cJSON* event = NULL;
     size_t numEvents = 0;
+    cJSON_ArrayForEach(event, json) {
+        numEvents++;
+    }
+
+    Services::acquire(); Services::acquireUpdates();
+
+    ESP_LOGI(kTag, "received %u events", numEvents);
+    Services::clearAndReserve(numEvents * 2);
+
+    /* iterate through each event */
     cJSON_ArrayForEach(event, json) {
         assert(cJSON_IsObject(event));
 
@@ -71,15 +79,11 @@ void Message::parseMessage(const char* buffer, size_t bufferLength) {
         const char* adjStation = nullptr;
         time_t adjTimestamp = INT64_MIN;
         const char* tripID = nullptr;
-        int seq = 0;
 
         const cJSON* property = NULL;
         cJSON_ArrayForEach(property, event) {
             const char* key = property->string; // property key
-            if (!strcmp(key, "seq")) {
-                seq = getInteger(property);
-            }
-            else if (!strcmp(key, "line")) {
+            if (!strcmp(key, "line")) {
                 line = cJSON_GetStringValue(property);
             }
             else if (!strcmp(key, "trip")) {
@@ -104,7 +108,7 @@ void Message::parseMessage(const char* buffer, size_t bufferLength) {
             }
         }
 
-        assert(seq >= 0 && line && station && tripID && timestamp >= 0); // make sure that the required properties are valid
+        assert(line && station && tripID && timestamp >= 0); // make sure that the required properties are valid
 
         ESP_LOGV(kTag, "trip %s at %lld: %s %s event at %s", tripID, timestamp, line, (isDeparture) ? "departure" : "arrival", station);
         if (adjStation) ESP_LOGV(kTag, "next %s at %s on %lld", (isDeparture) ? "arrival" : "departure", adjStation, adjTimestamp);
@@ -116,23 +120,20 @@ void Message::parseMessage(const char* buffer, size_t bufferLength) {
         
         if (isDeparture) { // departing station
             time_t departTime = timestamp + MSG_STATION_PAD;
-            if (adjStation == NULL) { // leaving into oblivion (i.e. end of service)
-                Services::insertUpdate(tripHash, seq, ServiceState(lineID, departTime, stationID, departTime, 0)); // signal to Services::updateStates to delete service
-            } else { // departing to another station
-                Services::insertUpdate(tripHash, seq, ServiceState(lineID, departTime, stationID, adjTimestamp, adjStationID)); // in transit
+            if (adjStation != NULL) { // departing to another station
+                Services::insertUpdate(tripHash, ServiceState(lineID, departTime, stationID, adjTimestamp, adjStationID)); // in transit
             }
         } else { // arriving at station
-            Services::insertUpdate(tripHash, seq, ServiceState(lineID, timestamp, stationID)); // stopping
+            Services::insertUpdate(tripHash, ServiceState(lineID, timestamp, stationID)); // stopping
             if (adjStation != NULL) { // arriving from another station
-                Services::insertUpdate(tripHash, seq - 1, ServiceState(lineID, adjTimestamp + MSG_STATION_PAD, adjStationID, timestamp, stationID)); // in transit state from previous station to this one
+                Services::insertUpdate(tripHash, ServiceState(lineID, adjTimestamp + MSG_STATION_PAD, adjStationID, timestamp, stationID)); // in transit state from previous station to this one
             }
         }
-
-        numEvents++;
     }
 
-    size_t numUpdates = Services::commitUpdates();
-    ESP_LOGI(kTag, "created %u state updates from %u received events", numUpdates, numEvents);
+    ESP_LOGD(kTag, "available memory after parseMessage(): %lu bytes", esp_get_minimum_free_heap_size());
+
+    Services::release(); Services::releaseUpdates();
 
     cJSON_Delete(json);
 }

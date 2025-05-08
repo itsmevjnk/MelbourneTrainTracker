@@ -5,11 +5,6 @@
 
 const char* ServiceState::kTag = "service_state";
 
-// ServiceState& ServiceState::operator=(ServiceState&& other) noexcept {
-//     if (this != &other) copy(other);
-//     return *this;
-// }
-
 void ServiceState::copy(const ServiceState& other) {
     m_line = other.m_line;
     m_station = other.m_station;
@@ -20,7 +15,7 @@ void ServiceState::copy(const ServiceState& other) {
 
 static uint16_t midLEDs[75]; // LEDs in the middle - count might be overkill. this is so that we don't have to use the stack and risk overflowing it
 
-void ServiceState::show(time_t now) {
+void ServiceState::show(time_t now) const {
     uint16_t stationLED = LSID::getLED(m_line, m_station);
     if (stationLED == LMAT_NULL) {
         ESP_LOGW(kTag, "invalid station code " INFRAID2STR_FMT " on line " INFRAID2STR_FMT, INFRAID2STR(m_station), INFRAID2STR(m_line));
@@ -45,45 +40,27 @@ void ServiceState::show(time_t now) {
 StaticSemaphore_t Services::m_statesMutexBuf; SemaphoreHandle_t Services::m_statesMutex = xSemaphoreCreateRecursiveMutexStatic(&m_statesMutexBuf);
 StaticSemaphore_t Services::m_updatesMutexBuf; SemaphoreHandle_t Services::m_updatesMutex = xSemaphoreCreateRecursiveMutexStatic(&m_updatesMutexBuf);
 
-std::map<uint32_t, ServiceState> Services::m_states;
-std::map<seq_hash_t, ServiceState, SeqHashComparer> Services::m_updatesMap;
-std::priority_queue<tagged_state_t, std::vector<tagged_state_t>, TimeComparer> Services::m_updates;
-
-size_t Services::commitUpdates() {
-    acquireUpdates();
-
-    std::vector<tagged_state_t> updates; updates.reserve(m_updatesMap.size()); // reserve to avoid heap fragmentation
-    for (const auto& [key, value] : m_updatesMap) updates.push_back({key.second, value});
-    m_updates = std::priority_queue<tagged_state_t, std::vector<tagged_state_t>, TimeComparer>(TimeComparer{}, std::move(updates));
-    size_t count = m_updates.size();
-
-    releaseUpdates();
-
-    m_updatesMap.clear();
-    // ESP_LOGI(kTag, "m_updatesMap has %u elements, available memory: %lu bytes", m_updatesMap.size(), esp_get_minimum_free_heap_size());
-
-    return count;
-}
+Services::StatesDict Services::m_states;
+Services::StateUpdateQueue Services::m_updates;
+Services::StateUpdateVector Services::m_updatesBacking;
 
 void Services::updateStates(time_t now) {
     acquire(); acquireUpdates();
 
-    while (m_updates.size() > 0) {
-        const tagged_state_t& update = m_updates.top();
-        uint32_t updateTrip = update.first; const ServiceState& updateState = update.second;
+    while (!m_updates.empty()) {
+        const TaggedServiceStateIndex& update = m_updates.top();
+        uint32_t updateTrip = update.first; ServiceStateIndex updateState = update.second;
 
-        time_t updateTime = updateState.getTimestamp();
+        time_t updateTime = m_allStates[updateState].getTimestamp();
         if (updateTime > now) break; // future update - stop
 
         m_updates.pop(); // consume update
-
-        if (updateState.isDeleteState()) m_states.erase(updateTrip);
-        else {
-            auto state = m_states.find(updateTrip);
-            if (state == m_states.end()) m_states.insert({updateTrip, updateState}); // state does not exist yet
-            else if (state->second.getTimestamp() < updateTime) state->second = updateState; // update existing state
-        }
+        auto state = m_states.find(updateTrip);
+        if (state == m_states.end()) m_states.insert(std::make_pair(updateTrip, update.second)); // state does not exist yet
+        else if (m_allStates[state->second].getTimestamp() < updateTime) state->second = update.second; // update existing state
     }
+
+    ESP_LOGD(kTag, "available memory after updateStates(): %lu bytes", esp_get_minimum_free_heap_size());
 
     release(); releaseUpdates();
 }
@@ -94,8 +71,52 @@ void Services::showAllStates(time_t now) {
     acquire();
 
     for (auto& [tripHash, state] : m_states) {
-        state.show(now);
+        m_allStates[state].show(now);
     }
 
     release();    
+}
+
+ServiceState* Services::m_allStates = nullptr;
+ServiceStateIndex Services::m_allStatesCount = 0;
+ServiceStateIndex Services::m_allStatesCapacity = 0;
+
+void Services::clearAndReserve(ServiceStateIndex count) {
+    acquire(); acquireUpdates();
+    ESP_LOGD(kTag, "available memory before clearing: %lu bytes", esp_get_minimum_free_heap_size());
+
+    m_states.clear();
+    m_updates.clear();
+
+    m_allStatesCount = 0;
+    if (m_allStates) free(m_allStates);
+    if (count > m_allStatesCapacity) {
+        ESP_LOGD(kTag, "growing m_allStatesCapacity to %u", count);
+        m_allStatesCapacity = count; // increase reserved capacity
+    }
+    size_t allocSize = m_allStatesCapacity * sizeof(ServiceState);
+    ESP_LOGD(kTag, "allocating %u bytes for m_allStates", allocSize);
+    m_allStates = (ServiceState*)malloc(allocSize); // here we can get away with not reallocating since there are no more states
+    assert(m_allStates); // ensure that calloc doesn't die
+
+    ESP_LOGD(kTag, "available memory after clearing: %lu bytes", esp_get_minimum_free_heap_size());
+    release(); releaseUpdates();
+}
+
+#ifndef SERVICES_CAPACITY_GROWTH
+#define SERVICES_CAPACITY_GROWTH                    10
+#endif
+
+ServiceStateIndex Services::insertUpdate(uint32_t tripHash, ServiceState&& state) {
+    acquire(); acquireUpdates();
+    ServiceStateIndex index = m_allStatesCount;
+    if (index == m_allStatesCapacity) {
+        m_allStatesCapacity += SERVICES_CAPACITY_GROWTH;
+        m_allStates = (ServiceState*)realloc(m_allStates, m_allStatesCapacity * sizeof(ServiceState)); // we have to realloc to keep all states
+        assert(m_allStates);
+    }
+    m_allStates[m_allStatesCount++] = state;
+    m_updates.push(std::make_pair(tripHash, index));
+    release(); releaseUpdates();
+    return index;
 }

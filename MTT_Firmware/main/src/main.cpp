@@ -113,12 +113,14 @@ runCLI:
     while (true) {
         // ESP_ERROR_CHECK(LEDMatrix::fill(kOff)); // clear
         Services::acquire();
-        ESP_ERROR_CHECK(LEDMatrix::fill(kOff)); // clear
         time_t now; time(&now);
-        Services::updateStates(now);
-        Services::showAllStates(now);
+        if (Services::updateStates(now)) { // update available
+            ESP_ERROR_CHECK(LEDMatrix::fill(kOff)); // clear
+            Services::showAllStates(now);
+            LEDMatrix::update();
+            ESP_LOGI(kTag, "updated LED matrix, minimum free heap size: %lu bytes", esp_get_minimum_free_heap_size()); // log to detect excessive RAM usage
+        }
         Services::release();
-        LEDMatrix::update();
         vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
 }

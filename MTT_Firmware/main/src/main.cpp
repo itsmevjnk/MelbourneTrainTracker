@@ -112,12 +112,12 @@ runCLI:
     /* blinky blinky testy blinky */
     while (true) {
         // ESP_ERROR_CHECK(LEDMatrix::fill(kOff)); // clear
-        // Services::acquire();
+        Services::acquire();
         ESP_ERROR_CHECK(LEDMatrix::fill(kOff)); // clear
         time_t now; time(&now);
         Services::updateStates(now);
         Services::showAllStates(now);
-        // Services::release();
+        Services::release();
         LEDMatrix::update();
         vTaskDelay(1000 / portTICK_PERIOD_MS);
     }

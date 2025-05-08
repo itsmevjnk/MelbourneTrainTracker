@@ -12,7 +12,7 @@ typedef uint32_t infraid_t;
 
 #define INFRAID(str)                                ((infraid_t)str[0] | ((infraid_t)str[1] << 8 )| ((infraid_t)str[2] << 16)) // convert line/station 3-letter code into unique 24-bit ID
 #define INFRAID2STR_FMT                             "0x%06lx (%c%c%c)" 
-#define INFRAID2STR(id)                             id, (char)(((id) >> 0) & 0x7F), (char)(((id) >> 8) & 0x7F), (char)(((id) >> 16) & 0x7F) // format line/station ID for printf
+#define INFRAID2STR(id)                             (uint32_t)id, (char)(((id) >> 0) & 0x7F), (char)(((id) >> 8) & 0x7F), (char)(((id) >> 16) & 0x7F) // format line/station ID for printf
 
 #define INFRAID_NULL                                0
 #define INFRAID_HLM                                 INFRAID("HLM")
@@ -268,6 +268,16 @@ public:
     static uint16_t getLED(infraid_t line, infraid_t code);
     static size_t getLEDsBetween(infraid_t line, infraid_t fromCode, infraid_t toCode, uint16_t* buffer, size_t maxLength);
     static colour_t getLineColour(infraid_t line);
+
+    static inline bool isValidLine(infraid_t line) {
+        return line == INFRAID_SHM || line == INFRAID_MDD || line == INFRAID_HBE || line == INFRAID_CCL ||
+            line == INFRAID_PKM || line == INFRAID_CBE || line == INFRAID_BEG || line == INFRAID_LIL ||
+            line == INFRAID_GWY || line == INFRAID_ALM || line == INFRAID_STY || line == INFRAID_FKN ||
+            line == INFRAID_WIL || line == INFRAID_WER || line == INFRAID_CGB || line == INFRAID_SUY ||
+            line == INFRAID_RCE || line == INFRAID_UFD || line == INFRAID_ART || line == INFRAID_BAT ||
+            line == INFRAID_MBY || line == INFRAID_BDE || line == INFRAID_TRN || line == INFRAID_vPK ||
+            line == INFRAID_GEL || line == INFRAID_WBL;
+    }
 private:
     static const char* kTag;
 

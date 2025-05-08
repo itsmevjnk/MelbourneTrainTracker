@@ -1,139 +1,124 @@
 #include "message.h"
 #include "services.h"
 
-#include <cJSON.h>
-
 #include "esp_log.h"
 #include "esp_check.h"
 const char* Message::kTag = "msg";
-
-// ===== XXHASH32 COPYRIGHT NOTICE =====
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-
-// The above copyright notice and this permission notice shall be included in all
-// copies or substantial portions of the Software.
-
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
-#include <xxhash32.h>
-
-static inline time_t getTimestamp(const cJSON* item) {
-    double value = cJSON_GetNumberValue(item);
-    return (value == NAN) ? INT64_MIN : static_cast<time_t>(std::floor(value)); // floor just in case
-}
-
-// static inline int getInteger(const cJSON* item) {
-//     double value = cJSON_GetNumberValue(item);
-//     return (value == NAN) ? INT_MIN : static_cast<int>(std::floor(value)); // floor just in case
-// }
 
 /* padding duration (in seconds) after service departure at stations */
 #ifndef MSG_STATION_PAD
 #define MSG_STATION_PAD                         10
 #endif
 
-void Message::parseMessage(const char* buffer, size_t bufferLength) {
-    cJSON* json = cJSON_ParseWithLength(buffer, bufferLength);
-    if (json == NULL) {
-        const char* errorPtr = cJSON_GetErrorPtr();
-        if (errorPtr != NULL) ESP_LOGE(kTag, "error parsing message (m_buffer=0x%x) before (0x%x) %s", (uintptr_t)buffer, (uintptr_t)errorPtr, errorPtr);
-        else ESP_LOGE(kTag, "unspecified error parsing message (m_buffer=0x%x)", (uintptr_t)buffer);
-        ESP_LOGE(kTag, "m_buffer contents: %s", buffer);
-        ESP_LOGE(kTag, "available memory: %lu bytes", esp_get_minimum_free_heap_size());
-        abort();
-    }
+MessageEntry Message::m_entryFragment; // for holding fragmented entry
+int Message::m_entryFragmentSize = 0; // size of the first half of the fragment
 
-    assert(cJSON_IsArray(json)); // make sure that we've got an array and not something else
+size_t Message::m_expectedEntries = 0; // number of expected (from header) and received entries
+size_t Message::m_receivedEntries = 0;
+bool Message::m_started = false;
 
-    /* count number of events - hopefully this is fast enough */
-    const cJSON* event = NULL;
-    size_t numEvents = 0;
-    cJSON_ArrayForEach(event, json) {
-        numEvents++;
-    }
+#define ENTRY_BASE_SIZE                     (sizeof(MessageEntry) - (3 + 8))
+#define ENTRY_ADJ_SIZE                      sizeof(MessageEntry)
 
-    Services::acquire(); Services::acquireUpdates();
-
-    ESP_LOGI(kTag, "received %u events", numEvents);
-    Services::clearAndReserve(numEvents * 2);
-
-    /* iterate through each event */
-    cJSON_ArrayForEach(event, json) {
-        assert(cJSON_IsObject(event));
-
-        /* values we'll read from the object */
-        const char* line = nullptr;
-        const char* station = nullptr;
-        time_t timestamp = INT64_MIN;
-        bool isDeparture = false;
-        const char* adjStation = nullptr;
-        time_t adjTimestamp = INT64_MIN;
-        const char* tripID = nullptr;
-
-        const cJSON* property = NULL;
-        cJSON_ArrayForEach(property, event) {
-            const char* key = property->string; // property key
-            if (!strcmp(key, "line")) {
-                line = cJSON_GetStringValue(property);
-            }
-            else if (!strcmp(key, "trip")) {
-                tripID = cJSON_GetStringValue(property);
-            }
-            else if (!strcmp(key, "stn")) {
-                station = cJSON_GetStringValue(property);
-            }
-            else if (!strcmp(key, "dep")) {
-                isDeparture = true;
-                timestamp = getTimestamp(property);
-            }
-            else if (!strcmp(key, "arr")) {
-                isDeparture = false;
-                timestamp = getTimestamp(property);
-            }
-            else if (!strcmp(key, "adj")) {
-                adjStation = cJSON_GetStringValue(property);
-            }
-            else if (!strcmp(key, "adjt")) {
-                adjTimestamp = getTimestamp(property);
-            }
+void Message::parseFragment(const char* data, int length, bool first) {
+    int offset = 0;
+    if (first) {
+        if (m_started) {
+            ESP_LOGW(kTag, "message parsing restarted - was the previous message not received in full?");
+        } else {
+            Services::acquire(); Services::acquireUpdates();
         }
 
-        assert(line && station && tripID && timestamp >= 0); // make sure that the required properties are valid
+        m_expectedEntries = *((const uint32_t*)data); offset = 4; // read number of entries in message
+        Services::clearAndReserve(m_expectedEntries * 2); // worst-case
+        m_started = true; m_receivedEntries = 0; m_entryFragmentSize = 0;
 
-        ESP_LOGV(kTag, "trip %s at %lld: %s %s event at %s", tripID, timestamp, line, (isDeparture) ? "departure" : "arrival", station);
-        if (adjStation) ESP_LOGV(kTag, "next %s at %s on %lld", (isDeparture) ? "arrival" : "departure", adjStation, adjTimestamp);
+        ESP_LOGD(kTag, "available memory at the beginning of message parsing: %lu bytes", esp_get_minimum_free_heap_size());
+    }
 
-        infraid_t lineID = INFRAID(line);
-        infraid_t stationID = INFRAID(station);
-        infraid_t adjStationID = (adjStation == NULL) ? 0 : INFRAID(adjStation);
-        uint32_t tripHash = XXHash32::hash(tripID, strlen(tripID), 0);
+    while (length - offset >= (int)ENTRY_BASE_SIZE) { // minimum size for an entry
+        ESP_LOGV(kTag, "entry %u, offset %d/%d", m_receivedEntries, offset, length);
+        const MessageEntry* entry = (const MessageEntry*) ((uintptr_t)data + offset);
+
+        if (m_entryFragmentSize) { // there's already a fragment
+            assert(m_entryFragmentSize < ENTRY_ADJ_SIZE);
+
+            size_t bytesToRead = 0;
+            if (m_entryFragmentSize >= ENTRY_BASE_SIZE) { // flags already read
+                assert(m_entryFragment.flags.hasAdjacent);
+                bytesToRead = ENTRY_ADJ_SIZE - m_entryFragmentSize;
+            } else { // flags not read yet
+                if (m_entryFragmentSize + length - offset < ENTRY_BASE_SIZE) break; // cannot reach flags from here
+                const MessageEntry::Flags* flags = (const MessageEntry::Flags*) ((uintptr_t)entry + (ENTRY_BASE_SIZE - 1 - m_entryFragmentSize));
+                bytesToRead = ((flags->hasAdjacent) ? ENTRY_ADJ_SIZE : ENTRY_BASE_SIZE) - m_entryFragmentSize;
+            }
+            assert(bytesToRead > 0);
+
+            if (length - offset < bytesToRead) break; // we cannot process just yet
+            ESP_LOGV(kTag, "fragment end: reading %u bytes (total fragment size: %u bytes)", bytesToRead, m_entryFragmentSize + bytesToRead);
+            memcpy((void*)((uintptr_t)&m_entryFragment + m_entryFragmentSize), entry, bytesToRead);
+            entry = &m_entryFragment;
+            offset += bytesToRead;
+        } else {
+            if (entry->flags.hasAdjacent && length - offset < (int)ENTRY_ADJ_SIZE) break; // incomplete
+        }
+
+        ESP_LOGV(
+            kTag, "trip hash 0x%08lx at %lld: " INFRAID2STR_FMT " %s event at " INFRAID2STR_FMT,
+            entry->tripHash, entry->timestamp, INFRAID2STR(entry->line), (entry->flags.isDeparture) ? "departure" : "arrival", INFRAID2STR(entry->station)
+        );
+        if (entry->flags.hasAdjacent)
+            ESP_LOGV(
+                kTag, "next %s at " INFRAID2STR_FMT " on %lld",
+                (entry->flags.isDeparture) ? "arrival" : "departure", INFRAID2STR(entry->adjStation), entry->adjTimestamp
+            );
         
-        if (isDeparture) { // departing station
-            time_t departTime = timestamp + MSG_STATION_PAD;
-            if (adjStation != NULL) { // departing to another station
-                Services::insertUpdate(tripHash, ServiceState(lineID, departTime, stationID, adjTimestamp, adjStationID)); // in transit
+        assert(LSID::isValidLine(entry->line));
+
+        if (entry->flags.isDeparture) { // departing station
+            time_t departTime = entry->timestamp + MSG_STATION_PAD;
+            if (entry->flags.hasAdjacent) { // departing to another station
+                Services::insertUpdate(entry->tripHash, ServiceState(entry->line, departTime, entry->station, entry->adjTimestamp, entry->adjStation)); // in transit
             }
         } else { // arriving at station
-            Services::insertUpdate(tripHash, ServiceState(lineID, timestamp, stationID)); // stopping
-            if (adjStation != NULL) { // arriving from another station
-                Services::insertUpdate(tripHash, ServiceState(lineID, adjTimestamp + MSG_STATION_PAD, adjStationID, timestamp, stationID)); // in transit state from previous station to this one
+            Services::insertUpdate(entry->tripHash, ServiceState(entry->line, entry->timestamp, entry->station)); // stopping
+            if (entry->flags.hasAdjacent) { // arriving from another station
+                time_t departTime = entry->adjTimestamp + MSG_STATION_PAD;
+                Services::insertUpdate(entry->tripHash, ServiceState(entry->line, departTime, entry->adjStation, entry->timestamp, entry->station)); // in transit state from previous station to this one
             }
         }
+
+        m_receivedEntries++;
+
+        if (m_entryFragmentSize) m_entryFragmentSize = 0; // entire fragment read (offset increment is done above)
+        else offset += (entry->flags.hasAdjacent) ? ENTRY_ADJ_SIZE : ENTRY_BASE_SIZE; // increment offset
     }
 
-    ESP_LOGD(kTag, "available memory after parseMessage(): %lu bytes", esp_get_minimum_free_heap_size());
+    /* copy remains into fragment buffer */
+    if (offset < length) {
+        ESP_LOGV(kTag, "fragment start/continue: reading %d bytes", length - offset);
+        // abort();
+        int bytesToRead = length - offset;
+        assert(m_entryFragmentSize + bytesToRead < (int)sizeof(MessageEntry)); // to prevent corruption
+        memcpy((void*)((uintptr_t)&m_entryFragment + m_entryFragmentSize), &data[offset], bytesToRead);    
+        m_entryFragmentSize += bytesToRead;
+    }
+}
+void Message::finish() {
+    if (!m_started) {
+        ESP_LOGE(kTag, "finish() called without an active message");
+        return;
+    }
+
+    if (m_entryFragmentSize > 0) {
+        ESP_LOGW(kTag, "there is still data fragment at the end of the message - was it not received in full?");
+    }
+
+    ESP_LOGD(kTag, "received %u/%u entries", m_receivedEntries, m_expectedEntries);
+    assert(m_receivedEntries == m_expectedEntries);
+
+    ESP_LOGD(kTag, "available memory at the end of message parsing: %lu bytes", esp_get_minimum_free_heap_size());
 
     Services::release(); Services::releaseUpdates();
-
-    cJSON_Delete(json);
+    m_started = false;
 }

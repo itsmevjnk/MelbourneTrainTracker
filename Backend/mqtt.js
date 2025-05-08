@@ -3,12 +3,16 @@
 const mqtt = require('mqtt');
 const secret = require('./secret');
 const { pgp, db } = require('./database');
+const hash = require('js-xxhash');
 const { TableName, ColumnSet, select } = pgp.helpers;
 
 const MQTT_BROKER = process.env.MQTT_BROKER || 'mqtt://broker.hivemq.com';
 const MQTT_USERNAME = process.env.MQTT_USERNAME || undefined;
 const MQTT_PASSWORD = secret.read(process.env.MQTT_PASSWORD_FILE) || process.env.MQTT_PASSWORD || undefined;
-const MQTT_TOPIC = process.env.MQTT_TOPIC || 'melbtrains';
+const MQTT_JSON_TOPIC = process.env.MQTT_JSON_TOPIC || 'melbtrains';
+const MQTT_BIN_TOPIC = process.env.MQTT_BIN_TOPIC || 'melbtrains/bin';
+const WINDOW_PAST = process.env.WINDOW_PAST || '00:00:30';
+const WINDOW_FUTURE = process.env.WINDOW_FUTURE || '00:03:00';
 
 const client = mqtt.connect(MQTT_BROKER, {
     username: MQTT_USERNAME,
@@ -21,27 +25,82 @@ client.on('connect', () => {
 
 let lastMessage = null;
 
+/* NEW: serialise message to binary for compactness, suitable for the ESP32 */
+const toInfraID = (code) => {
+    const buf = new Uint8Array(3);
+    for (let i = 0; i < buf.length; i++) buf[i] = code[i].charCodeAt(0);
+    return buf;
+};
+
+const toInt64 = (num) => {
+    const buf = Buffer.alloc(8);
+    buf.writeBigInt64LE(BigInt(num));
+    return buf;
+};
+
+const toUInt32 = (num) => {
+    const buf = Buffer.alloc(4);
+    buf.writeUInt32LE(num);
+    return buf;
+};
+
+const toUInt8 = (num) => {
+    const arr = new Uint8Array(1);
+    arr[0] = num;
+    return arr;
+};
+
+const binarySerialise = (message) => {
+    const serialisedEntries = [];
+    for (const entry of message) {
+        const isDeparture = entry.hasOwnProperty('dep') && entry.dep;
+        const hasAdjacent = entry.hasOwnProperty('adj') && entry.adj;
+
+        // console.log(entry);
+
+        let properties = [
+            toUInt32(hash.xxHash32(entry.trip, 0)),
+            toInfraID(entry.line),
+            toInfraID(entry.stn),
+            toInt64(entry.dep || entry.arr),
+            toUInt8((hasAdjacent ? (1 << 1) : 0) | (isDeparture ? (1 << 0) : 0))
+        ];
+        if (hasAdjacent) {
+            properties = properties.concat([
+                toInfraID(entry.adj),
+                toInt64(entry.adjt)
+            ]);
+        }
+        serialisedEntries.push(Buffer.concat(properties));
+    }
+
+    return Buffer.concat([
+        toUInt32(serialisedEntries.length),
+        ...serialisedEntries
+    ]);
+};
+
 const publish = () => {
     return db.any(`
         SELECT * FROM daily.timetable
         WHERE
             NOT (
-                (departure < CURRENT_TIMESTAMP - INTERVAL '0:00:15')
-                OR (arrival > CURRENT_TIMESTAMP + INTERVAL '0:01:00')
+                (departure < CURRENT_TIMESTAMP - INTERVAL '${WINDOW_PAST}')
+                OR (arrival > CURRENT_TIMESTAMP + INTERVAL '${WINDOW_FUTURE}')
             )
             OR (
-                (departure < CURRENT_TIMESTAMP - INTERVAL '0:00:15')
-                AND (next_arrival > CURRENT_TIMESTAMP + INTERVAL '0:01:00')
+                (departure < CURRENT_TIMESTAMP - INTERVAL '${WINDOW_PAST}')
+                AND (next_arrival > CURRENT_TIMESTAMP + INTERVAL '${WINDOW_FUTURE}')
             )
             OR (
-                (arrival < CURRENT_TIMESTAMP - INTERVAL '0:00:15')
-                AND (departure > CURRENT_TIMESTAMP + INTERVAL '0:01:00')
+                (arrival < CURRENT_TIMESTAMP - INTERVAL '${WINDOW_PAST}')
+                AND (departure > CURRENT_TIMESTAMP + INTERVAL '${WINDOW_FUTURE}')
             )
     `).then((rows) => {
         const message = [];
         for (const row of rows) {
             const entryBase = {
-                seq: row.seq,
+                // seq: row.seq,
                 line: row.line,
                 trip: row.trip_id,
                 stn: row.station
@@ -66,12 +125,15 @@ const publish = () => {
             return aTime - bTime;
         }); // sort by ascending timestamp
 
-        const messageStr = JSON.stringify(message);
-        if (messageStr != lastMessage) {
-            console.log(`Publishing message with ${message.length} entries (${messageStr.length} bytes)`);
-            lastMessage = messageStr;
-            return client.publishAsync(MQTT_TOPIC, messageStr, { qos: 1, retain: true })
-                .then((_) => message);
+        const binMessage = binarySerialise(message);
+        if (binMessage != lastMessage) {
+            const messageStr = JSON.stringify(message);
+            console.log(`Publishing message with ${message.length} entries (${messageStr.length} bytes in JSON, ${binMessage.length} bytes in binary)`);
+            lastMessage = binMessage;
+            return Promise.all([
+                client.publishAsync(MQTT_JSON_TOPIC, messageStr, { qos: 1, retain: true }),
+                client.publishAsync(MQTT_BIN_TOPIC, binMessage, { qos: 1, retain: true })
+            ]).then((_) => message);
         } else {
             console.log('Duplicate message, ignoring');
             return null;

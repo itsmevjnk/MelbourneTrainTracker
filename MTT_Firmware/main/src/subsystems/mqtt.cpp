@@ -35,7 +35,7 @@ void MQTT::eventHandler(void* handlerArgs, esp_event_base_t eventBase, int32_t e
     switch ((esp_mqtt_event_id_t)eventID) {
         case MQTT_EVENT_CONNECTED:
             ESP_LOGI(kTag, "connected to MQTT broker, subscribing to topics");
-            esp_mqtt_client_subscribe(client, "melbtrains", 1); // QoS 1
+            esp_mqtt_client_subscribe(client, "melbtrains/bin", 1); // QoS 1
             break;
         case MQTT_EVENT_DISCONNECTED:
             ESP_LOGW(kTag, "disconnected from MQTT broker");
@@ -58,11 +58,8 @@ void MQTT::eventHandler(void* handlerArgs, esp_event_base_t eventBase, int32_t e
         case MQTT_EVENT_DATA:
             ESP_ERROR_CHECK(StatusLED::actyOn());
             // ESP_LOGI(kTag, "received message (msg_id=%d) from topic %.*s (%d bytes) - offset %d, total length %d", event->msg_id, event->topic_len, event->topic, event->data_len, event->current_data_offset, event->total_data_len);
-            if (receiveFragment(event->msg_id, event->total_data_len, event->data, event->current_data_offset, event->data_len)) {
-                /* data received - do something */
-                Message::parseMessage(m_buffer, m_msgLength);
-                bufferFinish(); // be sure to call this so that we can receive the next message!
-            }
+            Message::parseFragment(event->data, event->data_len, (event->current_data_offset == 0));
+            if (event->current_data_offset + event->data_len >= event->total_data_len) Message::finish();
             ESP_ERROR_CHECK(StatusLED::actyOff());
             break;
         default:

@@ -112,6 +112,7 @@ ServiceStateIndex Services::insertUpdate(uint32_t tripHash, ServiceState&& state
     ServiceStateIndex index = m_allStatesCount;
     if (index == m_allStatesCapacity) {
         m_allStatesCapacity += SERVICES_CAPACITY_GROWTH;
+        ESP_LOGW(kTag, "growing m_allStatesCapacity outside of reserved capacity to %u bytes - wrong estimate?",  m_allStatesCapacity * sizeof(ServiceState));
         m_allStates = (ServiceState*)realloc(m_allStates, m_allStatesCapacity * sizeof(ServiceState)); // we have to realloc to keep all states
         assert(m_allStates);
     }

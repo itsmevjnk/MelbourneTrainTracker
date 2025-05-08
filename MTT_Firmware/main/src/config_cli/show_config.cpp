@@ -28,6 +28,7 @@ esp_err_t Config::cliShowConfig(int argc, char** argv) {
 
     printf("Network address configuration:\r\n");
     printf(" - Time server: %s\r\n", m_timeServer);
+    printf(" - MQTT broker: %s\r\n", m_mqttBroker);
     printf("=================\r\n\r\n");
 
     return ESP_OK;

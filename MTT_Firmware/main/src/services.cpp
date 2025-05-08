@@ -28,7 +28,7 @@ void ServiceState::show(time_t now) const {
     else {
         size_t numMidLEDs = LSID::getLEDsBetween(m_line, m_station, m_nextStation, midLEDs, sizeof(midLEDs) / sizeof(uint16_t));
         if (numMidLEDs > 0) {
-            int ledIndex = (now - m_time) / ((m_nextTime - m_time) / numMidLEDs);
+            int ledIndex = (now - m_time) * numMidLEDs / (m_nextTime - m_time);
             if (ledIndex >= numMidLEDs) ledIndex = numMidLEDs - 1;
             // ESP_LOGI(kTag, "ledIndex = %d", ledIndex);
             // assert(ledIndex >= 0 && ledIndex < numMidLEDs);

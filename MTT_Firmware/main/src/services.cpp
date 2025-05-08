@@ -102,7 +102,7 @@ void Services::clearAndReserve(ServiceStateIndex count) {
     size_t allocSize = m_allStatesCapacity * sizeof(ServiceState);
     ESP_LOGD(kTag, "allocating %u bytes for m_allStates", allocSize);
     m_allStates = (ServiceState*)malloc(allocSize); // here we can get away with not reallocating since there are no more states
-    assert(m_allStates); // ensure that calloc doesn't die
+    assert(!m_allStatesCapacity || m_allStates); // ensure that calloc doesn't die (but if there are no entries to begin with then that's okay)
 
     ESP_LOGD(kTag, "available memory after clearing: %lu bytes", esp_get_minimum_free_heap_size());
     release(); releaseUpdates();

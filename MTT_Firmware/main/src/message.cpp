@@ -36,7 +36,7 @@ void Message::parseFragment(const char* data, int length, bool first) {
         ESP_LOGD(kTag, "available memory at the beginning of message parsing: %lu bytes", esp_get_minimum_free_heap_size());
     }
 
-    while (length - offset >= (int)ENTRY_BASE_SIZE) { // minimum size for an entry
+    while (m_entryFragmentSize + length - offset >= (int)ENTRY_BASE_SIZE) { // minimum size for an entry
         ESP_LOGV(kTag, "entry %u, offset %d/%d", m_receivedEntries, offset, length);
         const MessageEntry* entry = (const MessageEntry*) ((uintptr_t)data + offset);
 

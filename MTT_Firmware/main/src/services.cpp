@@ -44,9 +44,10 @@ Services::StatesDict Services::m_states;
 Services::StateUpdateQueue Services::m_updates;
 Services::StateUpdateVector Services::m_updatesBacking;
 
-void Services::updateStates(time_t now) {
+bool Services::updateStates(time_t now) {
     acquire(); acquireUpdates();
 
+    bool noStates = m_states.empty(); // set if there are no states (i.e. just been cleared)
     bool noUpdates = m_updates.empty(); // set if there are no updates (i.e. no services)
     
     bool updated = false; // set when any state update was popped
@@ -68,6 +69,8 @@ void Services::updateStates(time_t now) {
     ESP_LOGD(kTag, "available memory after updateStates(): %lu bytes", esp_get_minimum_free_heap_size());
 
     release(); releaseUpdates();
+
+    return (noStates && !noUpdates && !updated) ? false : true;
 }
 
 const char* Services::kTag = "services";

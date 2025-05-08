@@ -5,31 +5,17 @@ const { TableName, ColumnSet, insert, select } = pgp.helpers;
 
 const daily_init = () => {
     const query = `
-        INSERT INTO daily.timetable (trip_id, line, seq, station, arrival, departure, prev_station, prev_departure, next_station, next_arrival)
+        INSERT INTO daily.timetable (trip_id, line, seq, station, arrival, departure)
         SELECT
             A.trip_id AS trip_id,
             (REGEXP_MATCHES(A.trip_id, '[A-Z]{3}'))[1] AS line,
             A.seq AS seq,
             B.station AS station,
-            CURRENT_DATE + A.arrival AS arrival,
-            CURRENT_DATE + A.departure AS departure,
-            B_prev.station AS prev_station,
-            CURRENT_DATE + A_prev.departure AS prev_departure,
-            B_next.station AS next_station,
-            CURRENT_DATE + A_next.arrival AS next_arrival
+            (CASE WHEN CURRENT_TIME < TIME '03:00' THEN CURRENT_DATE - INTERVAL '1 day' ELSE CURRENT_DATE END) + A.arrival AS arrival,
+            (CASE WHEN CURRENT_TIME < TIME '03:00' THEN CURRENT_DATE - INTERVAL '1 day' ELSE CURRENT_DATE END) + A.departure AS departure
         FROM gtfs.timetable A
         INNER JOIN gtfs.stops B
             ON A.stop_id = B.id
-        -- Join for next station
-        LEFT JOIN gtfs.timetable A_next
-            ON A.trip_id = A_next.trip_id AND A.seq + 1 = A_next.seq
-        LEFT JOIN gtfs.stops B_next
-            ON A_next.stop_id = B_next.id
-        -- Join for previous station
-        LEFT JOIN gtfs.timetable A_prev
-            ON A.trip_id = A_prev.trip_id AND A.seq - 1 = A_prev.seq
-        LEFT JOIN gtfs.stops B_prev
-            ON A_prev.stop_id = B_prev.id
         WHERE A.trip_id IN (
             SELECT id
             FROM (
@@ -38,7 +24,7 @@ const daily_init = () => {
                 WHERE calendar IN (
                     SELECT id FROM gtfs.calendar
                     WHERE
-                        CASE TRIM(TO_CHAR(CURRENT_DATE, 'Day'))
+                        CASE TRIM(TO_CHAR((CASE WHEN CURRENT_TIME < TIME '03:00' THEN CURRENT_DATE - INTERVAL '1 day' ELSE CURRENT_DATE END), 'Day'))
                             WHEN 'Sunday' THEN sunday
                             WHEN 'Monday' THEN monday
                             WHEN 'Tuesday' THEN tuesday
@@ -47,8 +33,8 @@ const daily_init = () => {
                             WHEN 'Friday' THEN friday
                             WHEN 'Saturday' THEN saturday
                         END = TRUE
-                        AND start_date <= CURRENT_DATE
-                        AND end_date >= CURRENT_DATE
+                        AND start_date <= (CASE WHEN CURRENT_TIME < TIME '03:00' THEN CURRENT_DATE - INTERVAL '1 day' ELSE CURRENT_DATE END)
+                        AND end_date >= (CASE WHEN CURRENT_TIME < TIME '03:00' THEN CURRENT_DATE - INTERVAL '1 day' ELSE CURRENT_DATE END)
                 )
             ) filtered_trips
             WHERE line IN (

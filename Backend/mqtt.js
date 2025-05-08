@@ -98,19 +98,42 @@ const publishMessage = (message) => {
 
 const publish = () => {
     return db.any(`
-        SELECT * FROM daily.timetable
+        SELECT
+            t.trip_id AS trip_id,
+            t.line AS line,
+            t.seq AS seq,
+            t.arrival AS arrival,
+            t.departure AS departure,
+            t.station AS station,
+            next.station AS next_station,
+            next.arrival AS next_arrival,
+            prev.station AS prev_station,
+            prev.departure AS prev_departure
+        FROM daily.timetable t
+        LEFT JOIN LATERAL (
+            SELECT station, arrival
+            FROM daily.timetable
+            WHERE trip_id = t.trip_id AND seq = t.seq + 1
+            LIMIT 1
+        ) next ON true
+        LEFT JOIN LATERAL (
+            SELECT station, departure
+            FROM daily.timetable
+            WHERE trip_id = t.trip_id AND seq = t.seq - 1
+            LIMIT 1
+        ) prev ON true
         WHERE
             NOT (
-                (departure < CURRENT_TIMESTAMP - INTERVAL '${WINDOW_PAST}')
-                OR (arrival > CURRENT_TIMESTAMP + INTERVAL '${WINDOW_FUTURE}')
+                (t.departure < CURRENT_TIMESTAMP - INTERVAL '${WINDOW_PAST}')
+                OR (t.arrival > CURRENT_TIMESTAMP + INTERVAL '${WINDOW_FUTURE}')
             )
             OR (
-                (departure < CURRENT_TIMESTAMP - INTERVAL '${WINDOW_PAST}')
-                AND (next_arrival > CURRENT_TIMESTAMP + INTERVAL '${WINDOW_FUTURE}')
+                (t.departure < CURRENT_TIMESTAMP - INTERVAL '${WINDOW_PAST}')
+                AND (next.arrival > CURRENT_TIMESTAMP + INTERVAL '${WINDOW_FUTURE}')
             )
             OR (
-                (arrival < CURRENT_TIMESTAMP - INTERVAL '${WINDOW_PAST}')
-                AND (departure > CURRENT_TIMESTAMP + INTERVAL '${WINDOW_FUTURE}')
+                (t.arrival < CURRENT_TIMESTAMP - INTERVAL '${WINDOW_PAST}')
+                AND (t.departure > CURRENT_TIMESTAMP + INTERVAL '${WINDOW_FUTURE}')
             )
     `).then((rows) => {
         const message = [];

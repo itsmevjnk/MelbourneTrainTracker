@@ -80,6 +80,22 @@ const binarySerialise = (message) => {
     ]);
 };
 
+const publishMessage = (message) => {
+    const binMessage = binarySerialise(message);
+    if (binMessage != lastMessage) {
+        const messageStr = JSON.stringify(message);
+        console.log(`Publishing message with ${message.length} entries (${messageStr.length} bytes in JSON, ${binMessage.length} bytes in binary)`);
+        lastMessage = binMessage;
+        return Promise.all([
+            client.publishAsync(MQTT_JSON_TOPIC, messageStr, { qos: 1, retain: true }),
+            client.publishAsync(MQTT_BIN_TOPIC, binMessage, { qos: 1, retain: true })
+        ]).then((_) => message);
+    } else {
+        console.log('Duplicate message, ignoring');
+        return null;
+    }    
+};
+
 const publish = () => {
     return db.any(`
         SELECT * FROM daily.timetable
@@ -125,23 +141,11 @@ const publish = () => {
             return aTime - bTime;
         }); // sort by ascending timestamp
 
-        const binMessage = binarySerialise(message);
-        if (binMessage != lastMessage) {
-            const messageStr = JSON.stringify(message);
-            console.log(`Publishing message with ${message.length} entries (${messageStr.length} bytes in JSON, ${binMessage.length} bytes in binary)`);
-            lastMessage = binMessage;
-            return Promise.all([
-                client.publishAsync(MQTT_JSON_TOPIC, messageStr, { qos: 1, retain: true }),
-                client.publishAsync(MQTT_BIN_TOPIC, binMessage, { qos: 1, retain: true })
-            ]).then((_) => message);
-        } else {
-            console.log('Duplicate message, ignoring');
-            return null;
-        }
+        return publishMessage(message);
     });
 };
 
-module.exports = { publish };
+module.exports = { publish, publishMessage };
 
 if (require.main === module) {
     client.on('connect', () => {

@@ -82,10 +82,10 @@ const binarySerialise = (message) => {
 
 const publishMessage = (message) => {
     const binMessage = binarySerialise(message);
-    if (binMessage != lastMessage) {
-        const messageStr = JSON.stringify(message);
+    const messageStr = JSON.stringify(message);
+    if (messageStr != lastMessage) {
         console.log(`Publishing message with ${message.length} entries (${messageStr.length} bytes in JSON, ${binMessage.length} bytes in binary)`);
-        lastMessage = binMessage;
+        lastMessage = messageStr;
         return Promise.all([
             client.publishAsync(MQTT_JSON_TOPIC, messageStr, { qos: 1, retain: true }),
             client.publishAsync(MQTT_BIN_TOPIC, binMessage, { qos: 1, retain: true })

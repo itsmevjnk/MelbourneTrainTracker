@@ -99,7 +99,7 @@ void Message::parseFragment(const char* data, int length, bool first) {
         ESP_LOGV(kTag, "fragment start/continue: reading %d bytes", length - offset);
         // abort();
         int bytesToRead = length - offset;
-        assert(m_entryFragmentSize + bytesToRead < (int)sizeof(MessageEntry)); // to prevent corruption
+        assert(m_entryFragmentSize + bytesToRead <= (int)sizeof(MessageEntry)); // to prevent corruption
         memcpy((void*)((uintptr_t)&m_entryFragment + m_entryFragmentSize), &data[offset], bytesToRead);    
         m_entryFragmentSize += bytesToRead;
     }

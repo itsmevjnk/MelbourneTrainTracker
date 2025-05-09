@@ -113,13 +113,15 @@ const publish = () => {
         LEFT JOIN LATERAL (
             SELECT station, arrival
             FROM daily.timetable
-            WHERE trip_id = t.trip_id AND seq = t.seq + 1
+            WHERE trip_id = t.trip_id AND seq > t.seq
+            ORDER BY seq ASC
             LIMIT 1
         ) next ON true
         LEFT JOIN LATERAL (
             SELECT station, departure
             FROM daily.timetable
-            WHERE trip_id = t.trip_id AND seq = t.seq - 1
+            WHERE trip_id = t.trip_id AND seq < t.seq
+            ORDER BY seq DESC
             LIMIT 1
         ) prev ON true
         WHERE

@@ -11,7 +11,7 @@
 
 #include "colours.h"
 
-#define LMAT_STRICT_COLOUR_CHECK // TODO: remove this in prod
+// #define LMAT_STRICT_COLOUR_CHECK // TODO: remove this in prod
 
 class LEDMatrix {
 public:

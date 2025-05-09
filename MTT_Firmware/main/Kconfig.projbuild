@@ -1,0 +1,54 @@
+menu "Firmware Configuration"
+    config CONFIG_DEFAULT_TIME_SERVER
+        string "Default NTP time server"
+        default "pool.ntp.org"
+        help
+            Sets the default NTP time server hostname/IP address to use if it is not configured in the NVS.
+    
+    config CONFIG_DEFAULT_MQTT_BROKER
+        string "Default MQTT broker address"
+        default "mqtt://broker.hivemq.com"
+        help
+            Sets the default MQTT broker address (including the schema) to use if it is not configured in the NVS.
+
+    config MSG_STATION_PAD
+        int "Station departure padding duration"
+        range 0 60
+        default 15
+        help
+            Sets the duration to add to the received departure time of a service in seconds.
+    
+    config CONFIG_PROMPT
+        string "Configuration CLI prompt"
+        default "config>"
+        help
+            Sets the prompt string for the configuration CLI.
+    
+    config CONFIG_MAX_CMDLINE_LENGTH
+        int "Maximum configuration CLI command line length"
+        range 0 512
+        default 128
+        help
+            Sets the maximum command line length in the configuration CLI.
+    
+    config SERVICES_CAPACITY_GROWTH
+        int "Services buffer growth step"
+        range 1 50
+        default 10
+        help
+            Sets the number of additional service objects allocated when Services::m_allStates is grown beyond the reserved size.
+    
+    config LMAT_STRICT_COLOUR_CHECK
+        bool "Enable strict line colour checking"
+        default n
+        help
+            When enabled, the LEDMatrix subsystem will check if the LED's colour matches the expected colour for the line it is on.
+            If the colour does not match, abort() will be invoked, allowing for the detection of illegal memory reads.
+            
+    config SPI3_ONLY
+        bool "Use SPI3 (VSPI) only"
+        default n
+        help
+            Enable this if the board is wired to have all LED matrix drivers' SPI buses connected to SPI3/VSPI (GPIO 18/19/21).
+            This allows the SPI2/HSPI pins to be used for JTAG debugging.
+endmenu

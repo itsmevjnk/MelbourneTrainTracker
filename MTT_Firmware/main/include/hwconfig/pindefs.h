@@ -37,7 +37,7 @@
 #define LED_ACTY                        GPIO_NUM_2
 #define LED_ERROR                       GPIO_NUM_33
 
-#define SPI3_ONLY // only use SPI3 (VSPI), leaving HSPI for JTAG
+// #define SPI3_ONLY // only use SPI3 (VSPI), leaving HSPI for JTAG
 #if defined(SPI3_ONLY)
 #undef L0_SPI
 #define L0_SPI SPI3_HOST

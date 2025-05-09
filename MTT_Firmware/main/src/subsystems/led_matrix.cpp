@@ -40,17 +40,18 @@ const size_t LEDMatrix::kBufferOffsets[8] = { L0_OFFSET, L1_OFFSET, L2_OFFSET, L
 AW20216S* LEDMatrix::m_drivers[8];
 uint8_t* LEDMatrix::m_buffer; // LED matrix frame buffer
 
+const size_t LEDMatrix::kBurnleyOffsets[] = { LMAT_BURNLEY };
+const size_t LEDMatrix::kCliftonOffsets[] = { LMAT_CLIFTON };
+const size_t LEDMatrix::kCrossCityOffsets[] = { LMAT_CROSSCITY };
+const size_t LEDMatrix::kDandenongOffsets[] = { LMAT_DANDENONG };
+const size_t LEDMatrix::kMunnelOffsets[] = { LMAT_MUNNEL };
+const size_t LEDMatrix::kFlemingtonOffsets[] = { LMAT_FLEMINGTON };
+const size_t LEDMatrix::kNorthernOffsets[] = { LMAT_NORTHERN };
+const size_t LEDMatrix::kSandringhamOffsets[] = { LMAT_SANDRINGHAM };
+const size_t LEDMatrix::kVLineOffsets[] = { LMAT_VLINE };
+
 #ifdef LMAT_STRICT_COLOUR_CHECK
 const uint8_t* LEDMatrix::m_expectedColours;
-static const size_t kBurnleyOffsets[] = { LMAT_BURNLEY };
-static const size_t kCliftonOffsets[] = { LMAT_CLIFTON };
-static const size_t kCrossCityOffsets[] = { LMAT_CROSSCITY };
-static const size_t kDandenongOffsets[] = { LMAT_DANDENONG };
-static const size_t kMunnelOffsets[] = { LMAT_MUNNEL };
-static const size_t kFlemingtonOffsets[] = { LMAT_FLEMINGTON };
-static const size_t kNorthernOffsets[] = { LMAT_NORTHERN };
-static const size_t kSandringhamOffsets[] = { LMAT_SANDRINGHAM };
-static const size_t kVLineOffsets[] = { LMAT_VLINE };
 #endif
 
 esp_err_t LEDMatrix::init() {

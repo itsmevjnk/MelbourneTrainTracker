@@ -10,4 +10,7 @@ set(SDKCONFIG "${CMAKE_BINARY_DIR}/sdkconfig")
 #set(EXTRA_COMPONENT_DIRS <projectname>/components/)
 
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
+
+idf_build_set_property(LINK_OPTIONS "-Wl,--wrap=esp_panic_handler" APPEND) # wrap esp_panic_handler
+
 project(mtt_firmware)

@@ -37,6 +37,14 @@ void ServiceState::show(time_t now) const {
     }
 }
 
+void ServiceState::printInfo() const {
+    if (isInTransit()) {
+        esp_rom_printf(" - at %lld: " INFRAID2STR_FMT " line in transit from " INFRAID2STR_FMT " to " INFRAID2STR_FMT " (arriving at %lld)\r\n", m_time, INFRAID2STR(m_line), INFRAID2STR(m_station), INFRAID2STR(m_nextStation), m_nextTime);
+    } else {
+        esp_rom_printf(" - at %lld: " INFRAID2STR_FMT " line stopping at " INFRAID2STR_FMT "\r\n", m_time, INFRAID2STR(m_line), INFRAID2STR(m_station));
+    }
+}
+
 StaticSemaphore_t Services::m_statesMutexBuf; SemaphoreHandle_t Services::m_statesMutex = xSemaphoreCreateRecursiveMutexStatic(&m_statesMutexBuf);
 StaticSemaphore_t Services::m_updatesMutexBuf; SemaphoreHandle_t Services::m_updatesMutex = xSemaphoreCreateRecursiveMutexStatic(&m_updatesMutexBuf);
 
@@ -128,4 +136,22 @@ ServiceStateIndex Services::insertUpdate(uint32_t tripHash, ServiceState&& state
     m_updates.push(std::make_pair(tripHash, index));
     release(); releaseUpdates();
     return index;
+}
+
+void Services::printInfo() {
+    acquire();
+    printInfoWithoutMutex();
+    release(); 
+}
+
+void Services::printInfoWithoutMutex() {
+    esp_rom_printf("current service states:\r\n");
+    for (auto& [tripHash, state] : m_states) {
+        m_allStates[state].printInfo();
+    }
+    // TODO: dump available updates
+}
+
+extern "C" void printServicesWithoutMutex() {
+    Services::printInfoWithoutMutex();
 }

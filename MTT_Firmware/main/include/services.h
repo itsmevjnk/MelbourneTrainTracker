@@ -28,6 +28,8 @@ public:
     inline time_t getTimestamp() const { return m_time; }
     inline bool isInTransit() const { return m_nextStation != 0; }
 
+    void printInfo() const; // dump information
+
 protected:
     infraid_t m_line; // train line
     infraid_t m_station; // current or departing station
@@ -71,6 +73,9 @@ public:
         time_t now; time(&now);
         showAllStates(now);
     }
+
+    static void printInfo(); // dump all states and updates
+    static void printInfoWithoutMutex(); // for use in crashes
 
 private:
     static const char* kTag;

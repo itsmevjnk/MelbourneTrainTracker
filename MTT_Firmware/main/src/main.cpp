@@ -14,16 +14,20 @@
 #include "esp_log.h"
 static const char* kTag = "main"; // for logging
 
-
-static const size_t burnleyOffsets[] = { LMAT_BURNLEY };
-static const size_t cliftonOffsets[] = { LMAT_CLIFTON };
-static const size_t crosscityOffsets[] = { LMAT_CROSSCITY };
-static const size_t dandenongOffsets[] = { LMAT_DANDENONG };
-static const size_t munnelOffsets[] = { LMAT_MUNNEL };
-static const size_t flemingtonOffsets[] = { LMAT_FLEMINGTON };
-static const size_t northernOffsets[] = { LMAT_NORTHERN };
-static const size_t sandringhamOffsets[] = { LMAT_SANDRINGHAM };
-static const size_t vlineOffsets[] = { LMAT_VLINE };
+/* update LED states */
+void update() {
+    StatusLED::actyOn();
+    Services::acquire();
+    time_t now; time(&now);
+    if (Services::updateStates(now)) { // update available
+        ESP_ERROR_CHECK(LEDMatrix::fill(kOff)); // clear
+        Services::showAllStates(now);
+        LEDMatrix::update();
+        ESP_LOGI(kTag, "updated LED matrix, minimum free heap size: %lu bytes", esp_get_minimum_free_heap_size()); // log to detect excessive RAM usage
+    }
+    Services::release();
+    StatusLED::actyOff();
+}
 
 /* firmware entry point */
 extern "C" void app_main() {
@@ -67,60 +71,8 @@ runCLI:
 
     ESP_LOGI(kTag, "init end"); ESP_ERROR_CHECK(StatusLED::actyOff());
 
-    /* placeholder */
-    // while (true) {
-    //     for (int i = 0; i < 8; i++) {
-    //         ESP_ERROR_CHECK(LEDMatrix::fill(kOff));
-    //         switch (i) {
-    //             case 0:
-    //                 ESP_ERROR_CHECK(LEDMatrix::setMulti(burnleyOffsets, sizeof(burnleyOffsets) / sizeof(size_t), kBurnley));
-    //                 break;
-    //             case 1:
-    //                 ESP_ERROR_CHECK(LEDMatrix::set(LMAT_CLIFTON_FSS_CIRC, kSpecial));
-    //                 ESP_ERROR_CHECK(LEDMatrix::setMulti(cliftonOffsets, sizeof(cliftonOffsets) / sizeof(size_t), kClifton));
-    //                 break;
-    //             case 2:
-    //                 ESP_ERROR_CHECK(LEDMatrix::setMulti(crosscityOffsets, sizeof(crosscityOffsets) / sizeof(size_t), kCrossCity));
-    //                 break;
-    //             case 3:
-    //                 ESP_ERROR_CHECK(LEDMatrix::setMulti(dandenongOffsets, sizeof(dandenongOffsets) / sizeof(size_t), kDandenong));
-    //                 break;
-    //             case 4:
-    //                 ESP_ERROR_CHECK(LEDMatrix::setMulti(munnelOffsets, sizeof(munnelOffsets) / sizeof(size_t), kDandenong));
-    //                 break;
-    //             case 5:
-    //                 ESP_ERROR_CHECK(LEDMatrix::setMulti(flemingtonOffsets, sizeof(flemingtonOffsets) / sizeof(size_t), kFlemington));
-    //                 ESP_ERROR_CHECK(LEDMatrix::setMulti(northernOffsets, sizeof(northernOffsets) / sizeof(size_t), kNorthern));
-    //                 break;
-    //             case 6:
-    //                 ESP_ERROR_CHECK(LEDMatrix::setMulti(sandringhamOffsets, sizeof(sandringhamOffsets) / sizeof(size_t), kSandringham));
-    //                 break;
-    //             case 7:
-    //                 ESP_ERROR_CHECK(LEDMatrix::setMulti(vlineOffsets, sizeof(vlineOffsets) / sizeof(size_t), kVLine));
-    //                 break;
-    //             default:
-    //                 ESP_LOGE(kTag, "invalid i=%d", i);
-    //                 abort();
-    //                 break;
-    //         }
-
-    //         ESP_ERROR_CHECK(LEDMatrix::update());
-    //         vTaskDelay(1000 / portTICK_PERIOD_MS);
-    //     }
-    // }
-
-    /* blinky blinky testy blinky */
     while (true) {
-        // ESP_ERROR_CHECK(LEDMatrix::fill(kOff)); // clear
-        Services::acquire();
-        time_t now; time(&now);
-        if (Services::updateStates(now)) { // update available
-            ESP_ERROR_CHECK(LEDMatrix::fill(kOff)); // clear
-            Services::showAllStates(now);
-            LEDMatrix::update();
-            ESP_LOGI(kTag, "updated LED matrix, minimum free heap size: %lu bytes", esp_get_minimum_free_heap_size()); // log to detect excessive RAM usage
-        }
-        Services::release();
+        update();
         vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
 }

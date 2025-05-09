@@ -25,6 +25,7 @@
 #define L6_OFFSET                           (L5_OFFSET + 12 * L5_ROWS)
 #define L7_OFFSET                           (L6_OFFSET + 12 * L6_ROWS)
 #define L_OFFSET(x)                         L##x##_OFFSET
+#define LMAT_SIZE                           (L7_OFFSET + 12 * L7_ROWS)
 
 /* addressing macros */
 #define LMAT_BASE(chip, col, row)           (L_OFFSET(chip) + L_ROWS(chip) * (col) + 3 * (row))
@@ -43,3 +44,4 @@
 #include "hwconfig/leds/vline.h"
 
 #define LMAT_NULL                           0xFFFF
+

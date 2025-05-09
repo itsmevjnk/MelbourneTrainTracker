@@ -39,13 +39,39 @@ const size_t LEDMatrix::kBufferOffsets[8] = { L0_OFFSET, L1_OFFSET, L2_OFFSET, L
 
 AW20216S* LEDMatrix::m_drivers[8];
 uint8_t* LEDMatrix::m_buffer; // LED matrix frame buffer
-const size_t LEDMatrix::kBufferSize = 12 * (L0_ROWS + L1_ROWS + L2_ROWS + L3_ROWS + L4_ROWS + L5_ROWS + L6_ROWS + L7_ROWS); // size of m_buffer
+
+#ifdef LMAT_STRICT_COLOUR_CHECK
+const uint8_t* LEDMatrix::m_expectedColours;
+static const size_t kBurnleyOffsets[] = { LMAT_BURNLEY };
+static const size_t kCliftonOffsets[] = { LMAT_CLIFTON };
+static const size_t kCrossCityOffsets[] = { LMAT_CROSSCITY };
+static const size_t kDandenongOffsets[] = { LMAT_DANDENONG };
+static const size_t kMunnelOffsets[] = { LMAT_MUNNEL };
+static const size_t kFlemingtonOffsets[] = { LMAT_FLEMINGTON };
+static const size_t kNorthernOffsets[] = { LMAT_NORTHERN };
+static const size_t kSandringhamOffsets[] = { LMAT_SANDRINGHAM };
+static const size_t kVLineOffsets[] = { LMAT_VLINE };
+#endif
 
 esp_err_t LEDMatrix::init() {
     /* allocate framebuffer */
-    m_buffer = new uint8_t[kBufferSize];
-    memset(m_buffer, 0, kBufferSize); // clear framebuffer here too
-    ESP_LOGV(kTag, "%u byte framebuffer allocated at 0x%x", kBufferSize, (uintptr_t)m_buffer);
+    m_buffer = new uint8_t[LMAT_SIZE];
+#ifdef LMAT_STRICT_COLOUR_CHECK
+    // populate expected colours buffer
+    m_expectedColours = m_buffer;
+    setMulti(kBurnleyOffsets, sizeof(kBurnleyOffsets) / sizeof(size_t), kBurnley);
+    setMulti(kCliftonOffsets, sizeof(kCliftonOffsets) / sizeof(size_t), kClifton);
+    setMulti(kCrossCityOffsets, sizeof(kCrossCityOffsets) / sizeof(size_t), kCrossCity);
+    setMulti(kDandenongOffsets, sizeof(kDandenongOffsets) / sizeof(size_t), kDandenong);
+    setMulti(kMunnelOffsets, sizeof(kMunnelOffsets) / sizeof(size_t), kDandenong);
+    setMulti(kFlemingtonOffsets, sizeof(kFlemingtonOffsets) / sizeof(size_t), kFlemington);
+    setMulti(kNorthernOffsets, sizeof(kNorthernOffsets) / sizeof(size_t), kNorthern);
+    setMulti(kSandringhamOffsets, sizeof(kSandringhamOffsets) / sizeof(size_t), kSandringham);
+    setMulti(kVLineOffsets, sizeof(kVLineOffsets) / sizeof(size_t), kVLine);
+    m_buffer = new uint8_t[LMAT_SIZE]; // reallocate new buffer
+#endif
+    memset(m_buffer, 0, LMAT_SIZE); // clear framebuffer here too
+    ESP_LOGV(kTag, "%u byte framebuffer allocated at 0x%x", LMAT_SIZE, (uintptr_t)m_buffer);
 
     /* initialise DRV_EN pin */
     ESP_RETURN_ON_ERROR(gpio_set_direction(DRV_EN, GPIO_MODE_OUTPUT), kTag, "cannot set pin %u direction", DRV_EN);
@@ -99,7 +125,7 @@ esp_err_t LEDMatrix::init() {
 esp_err_t LEDMatrix::set(size_t offset, colour_t colour) {
     if (offset == LMAT_NULL) return ESP_OK;
     
-    if (offset % 3 != 0) {
+    if (offset % 3 != 0 || offset >= LMAT_SIZE) {
         ESP_LOGE(kTag, "offset %u given to LEDMatrix::set() is invalid", offset);
         return ESP_ERR_INVALID_ARG;
     }
@@ -108,24 +134,30 @@ esp_err_t LEDMatrix::set(size_t offset, colour_t colour) {
     m_buffer[LMAT_G(offset)] = (colour >> 8) & 0xFF; // green
     m_buffer[LMAT_B(offset)] = (colour >> 0) & 0xFF; // blue
 
+#ifdef LMAT_STRICT_COLOUR_CHECK
+    assert(colour == kOff || (!memcmp(&m_buffer[offset], &m_expectedColours[offset], 3)));
+#endif
+
     return ESP_OK;
 }
 
 esp_err_t LEDMatrix::setMulti(const size_t* offsets, size_t leds, colour_t colour) {
-    uint8_t r = (colour >> 16) & 0xFF, // red
-            g = (colour >> 8) & 0xFF, // green
-            b = (colour >> 0) & 0xFF; // blue
+    // uint8_t r = (colour >> 16) & 0xFF, // red
+    //         g = (colour >> 8) & 0xFF, // green
+    //         b = (colour >> 0) & 0xFF; // blue
     
     for (size_t i = 0; i < leds; i++, offsets++) { // increment to next offset after each iteration
         size_t offset = *offsets;
-        if (offset == LMAT_NULL) continue;
-        if (offset % 3 != 0) {
-            ESP_LOGE(kTag, "offset %u given to LEDMatrix::setMulti() is invalid", offset);
-            return ESP_ERR_INVALID_ARG;
-        }
-        m_buffer[LMAT_R(offset)] = r;
-        m_buffer[LMAT_G(offset)] = g;
-        m_buffer[LMAT_B(offset)] = b;
+        esp_err_t ret = set(offset, colour); // NOTE: the commented out code causes weird corruption??????
+        if (ret != ESP_OK) return ret;
+        // if (offset == LMAT_NULL) continue;
+        // if (offset % 3 != 0) {
+        //     ESP_LOGE(kTag, "offset %u given to LEDMatrix::setMulti() is invalid", offset);
+        //     return ESP_ERR_INVALID_ARG;
+        // }
+        // m_buffer[LMAT_R(offset)] = r;
+        // m_buffer[LMAT_G(offset)] = g;
+        // m_buffer[LMAT_B(offset)] = b;
     }
 
     return ESP_OK;
@@ -136,9 +168,9 @@ esp_err_t LEDMatrix::fill(colour_t colour) {
             g = (colour >> 8) & 0xFF, // green
             b = (colour >> 0) & 0xFF; // blue
             
-    if (r == g && g == b) memset(m_buffer, r, kBufferSize); // use memset if possible because it's faster
+    if (r == g && g == b) memset(m_buffer, r, LMAT_SIZE); // use memset if possible because it's faster
     else {
-        for (size_t offset = 0; offset < kBufferSize; offset += 3) {
+        for (size_t offset = 0; offset < LMAT_SIZE; offset += 3) {
             m_buffer[LMAT_R(offset)] = r;
             m_buffer[LMAT_G(offset)] = g;
             m_buffer[LMAT_B(offset)] = b;

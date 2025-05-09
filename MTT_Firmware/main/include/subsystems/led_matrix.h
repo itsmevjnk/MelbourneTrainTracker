@@ -11,6 +11,8 @@
 
 #include "colours.h"
 
+#define LMAT_STRICT_COLOUR_CHECK // TODO: remove this in prod
+
 class LEDMatrix {
 public:
     static esp_err_t init(); // initialise LED matrix drivers
@@ -34,8 +36,10 @@ public:
 private:
     static AW20216S* m_drivers[8]; // LED driver objects - initialised in init()
     static uint8_t* m_buffer; // LED matrix frame buffer - within a driver: (CS1,SW1) .. (CSn,SW1), (CS1, SW2) .. (CSn, SWm)
-    static const size_t kBufferSize; // size of m_buffer
     static const size_t kBufferOffsets[8]; // offsets into the buffer for each LED driver
-    
+#ifdef LMAT_STRICT_COLOUR_CHECK
+    static const uint8_t* m_expectedColours; // expected colours for each LED - basically a copy of m_buffer with all LEDs set to line colours
+#endif
+
     static const char* kTag;
 };

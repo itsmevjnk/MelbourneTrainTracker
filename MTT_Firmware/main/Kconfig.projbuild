@@ -12,7 +12,7 @@ menu "Firmware Configuration"
             Sets the default MQTT broker address (including the schema) to use if it is not configured in the NVS.
 
     config MSG_STATION_PAD
-        int "Station departure padding duration"
+        int "Station departure padding duration (sec)"
         range 0 60
         default 15
         help
@@ -51,4 +51,18 @@ menu "Firmware Configuration"
         help
             Enable this if the board is wired to have all LED matrix drivers' SPI buses connected to SPI3/VSPI (GPIO 18/19/21).
             This allows the SPI2/HSPI pins to be used for JTAG debugging.
+    
+    config UPDATE_FLASH_LED
+        bool "Flash activity LED during LED state updates"
+        default y
+        help
+            When enabled, the activity LED will flash during the duration of LED state updates, in addition to MQTT message retrieval.
+            This can be turned off if it is too distrcting.
+    
+    config UPDATE_INTERVAL
+        int "LED state update interval (msec)"
+        range 0 10000
+        default 1000
+        help
+            The LED state update interval in milliseconds. This should be a multiple of 1000 (i.e. steps of 1 second).
 endmenu

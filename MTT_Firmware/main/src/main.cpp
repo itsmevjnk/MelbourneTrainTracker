@@ -16,7 +16,9 @@ static const char* kTag = "main"; // for logging
 
 /* update LED states */
 void update() {
+#ifdef UPDATE_FLASH_LED
     StatusLED::actyOn();
+#endif
     Services::acquire();
     time_t now; time(&now);
     if (Services::updateStates(now)) { // update available
@@ -26,8 +28,14 @@ void update() {
         ESP_LOGI(kTag, "updated LED matrix, minimum free heap size: %lu bytes", esp_get_minimum_free_heap_size()); // log to detect excessive RAM usage
     }
     Services::release();
+#ifdef UPDATE_FLASH_LED
     StatusLED::actyOff();
+#endif
 }
+
+#ifndef UPDATE_INTERVAL
+#define UPDATE_INTERVAL                 1000
+#endif
 
 /* firmware entry point */
 extern "C" void app_main() {
@@ -73,6 +81,6 @@ runCLI:
 
     while (true) {
         update();
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
+        vTaskDelay(UPDATE_INTERVAL / portTICK_PERIOD_MS);
     }
 }

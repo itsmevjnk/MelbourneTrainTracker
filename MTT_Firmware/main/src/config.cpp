@@ -120,7 +120,7 @@ const char* Config::getTimeServer() {
 }
 
 #ifndef CONFIG_DEFAULT_MQTT_BROKER
-#define CONFIG_DEFAULT_MQTT_BROKER                          "mqtt://broker.hivemq.com" // TODO: change this to an actual MQTT broker once we get the backend on the cloud
+#define CONFIG_DEFAULT_MQTT_BROKER                          "mqtt://melbtrains.mooo.com" // TODO: change this to an actual MQTT broker once we get the backend on the cloud
 #endif
 char Config::m_mqttBroker[64] = CONFIG_DEFAULT_MQTT_BROKER;
 const char* Config::getMQTTBroker() {

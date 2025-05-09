@@ -7,7 +7,7 @@ menu "Firmware Configuration"
     
     config CONFIG_DEFAULT_MQTT_BROKER
         string "Default MQTT broker address"
-        default "mqtt://broker.hivemq.com"
+        default "mqtt://melbtrains.mooo.com"
         help
             Sets the default MQTT broker address (including the schema) to use if it is not configured in the NVS.
 

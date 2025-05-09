@@ -60,7 +60,7 @@ size_t LSID::rmdGetLEDsBetween(
             outIndex,
             kTag, "not enough space to hold the %s -> RMD leg", (fromLoop) ? "FSS" : "PAR"
         );
-        buffer[outIndex + 0] = cityCCWStations[(fromLoop) ? 0 : (count - 1)]->led; // FSS/PAR
+        buffer[outIndex + 0] = cityCCWStations[(fromLoop) ? 0 : 4]->led; // FSS/PAR
         buffer[outIndex + 1] = rmdStation->nextLED; // RMD alt
         buffer[outIndex + 2] = rmdStation->led; // RMD
         outIndex += 3;
@@ -82,7 +82,7 @@ size_t LSID::rmdGetLEDsBetween(
             outIndex,
             kTag, "not enough space to hold %s", (toLoop) ? "PAR" : "FSS"
         );
-        buffer[outIndex++] = cityCCWStations[(toLoop) ? 0 : (count - 1)]->led; // FSS/PAR
+        buffer[outIndex++] = cityCCWStations[(toLoop) ? 0 : 4]->led; // FSS/PAR
         return outIndex + rmdCityGetLEDsBetween(cityCCWCodes, cityCCWStations, cityCWStations, (toLoop) ? INFRAID_PAR : INFRAID_FSS, toCode, &buffer[outIndex], maxLength - outIndex);
     }
     else return getLEDsBetweenCodes(stations, codes, count, fromCode, toCode, buffer, maxLength); // both source and destination are outside city

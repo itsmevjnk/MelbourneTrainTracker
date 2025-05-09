@@ -39,11 +39,14 @@ void MQTT::eventHandler(void* handlerArgs, esp_event_base_t eventBase, int32_t e
             break;
         case MQTT_EVENT_DISCONNECTED:
             ESP_LOGW(kTag, "disconnected from MQTT broker");
+            StatusLED::errorOn();
             break;
         case MQTT_EVENT_SUBSCRIBED:
             ESP_LOGI(kTag, "subscribed to topic, msg_id=%d", event->msg_id);
+            StatusLED::errorOff();
             break;
         case MQTT_EVENT_ERROR:
+            StatusLED::errorOn();
             ESP_LOGE(kTag, "error event received, error type %d", event->error_handle->error_type);
             if (event->error_handle->error_type == MQTT_ERROR_TYPE_TCP_TRANSPORT) {
                 if (event->error_handle->esp_tls_last_esp_err != 0)

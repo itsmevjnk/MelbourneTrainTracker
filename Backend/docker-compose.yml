@@ -81,7 +81,7 @@ services:
       MQTT_TOPIC: melbtrains
     healthcheck:
       interval: 1h
-      start_period: 300s # it can take up to 5 mins to download and parse the GTFS dataset
+      start_period: 15m # it can take up to 5 mins to download and parse the GTFS dataset
       start_interval: 10s
       retries: 3
     depends_on:

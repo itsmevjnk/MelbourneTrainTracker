@@ -402,9 +402,23 @@ const updateGTFS = () => {
                         });
                     }
                 }
+                console.log(`${timetable.length} rows will be inserted!`);
                 return db.none('TRUNCATE TABLE gtfs.timetable CASCADE')
-                    .then(() => db.none(insert(timetable, cs)))
-                    .then(() => console.log('Timetable has been updated'));
+                    .then(() => db.tx('timetable-insert', (t) => {
+                        const processData = (data) => {
+                            if (data) {
+                                const query = insert(data, cs);
+                                return t.none(query);
+                            }
+                        };
+                        return t.sequence((page) => {
+                            const index = page * 5000;
+                            const maxIndex = Math.min(index + 1000, timetable.length);
+                            console.log(`Inserting page ${page + 1} (${index}-${maxIndex-1}/${timetable.length}).`);
+                            return processData((index >= timetable.length) ? undefined : timetable.slice(index, maxIndex));
+                        });
+                    }))
+                    .then((data) => console.log(`Timetable has been updated (${data.total} batches, ${data.duration} msec)`));
             });
     }).then(() => {
         console.log("All operations completed");

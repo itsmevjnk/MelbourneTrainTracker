@@ -33,7 +33,7 @@ static const station_t kDandenongHUG = { LMAT_DANDENONG_HUG, LMAT_DANDENONG_HUG_
 static const station_t kDandenongMRB = { LMAT_DANDENONG_MRB, LMAT_DANDENONG_MRB_ALT };
 static const station_t kDandenongCNE = { LMAT_DANDENONG_CNE, LMAT_DANDENONG_CNE_ALT };
 static const station_t kDandenongCFD = { LMAT_DANDENONG_CFD, LMAT_DANDENONG_CFD_ALT };
-// NOTE: apparently some services terminate at Malvern???????
+static const station_t kDandenongMAL = { LMAT_DANDENONG_CFD_ALT, LMAT_DANDENONG_CFD_ALT }; // use CFD alt (towards SYR) to represent MAL
 static const station_t kDandenongSYR = { LMAT_DANDENONG_SYR, LMAT_DANDENONG_SYR_ALT };
 static const station_t kDandenongRMD = { LMAT_DANDENONG_RMD, LMAT_DANDENONG_RMD_ALT };
 
@@ -79,11 +79,11 @@ uint16_t LSID::dngCityGetLED(infraid_t code) {
 }
 static const station_t* kPakenhamStations[] = {
     &kPakenhamEPH, &kPakenhamPKM, &kPakenhamCDA, &kPakenhamOFC, &kPakenhamBFD, &kPakenhamBEW, &kPakenhamNWA, &kPakenhamHLM,
-    &kDandenongDNG, &kDandenongYMN, &kDandenongNPK, &kDandenongSNP, &kDandenongSPG, &kDandenongWTL, &kDandenongCLA, &kDandenongHUN, &kDandenongOAK, &kDandenongHUG, &kDandenongMRB, &kDandenongCNE, &kDandenongCFD, &kDandenongSYR, &kDandenongRMD
+    &kDandenongDNG, &kDandenongYMN, &kDandenongNPK, &kDandenongSNP, &kDandenongSPG, &kDandenongWTL, &kDandenongCLA, &kDandenongHUN, &kDandenongOAK, &kDandenongHUG, &kDandenongMRB, &kDandenongCNE, &kDandenongCFD, &kDandenongMAL, &kDandenongSYR, &kDandenongRMD
 };
 static const infraid_t kPakenhamCodes[] = { 
     INFRAID_EPH, INFRAID_PKM, INFRAID_CDA, INFRAID_OFC, INFRAID_BFD, INFRAID_BEW, INFRAID_NWA, INFRAID_HLM,
-    INFRAID_DNG, INFRAID_YMN, INFRAID_NPK, INFRAID_SNP, INFRAID_SPG, INFRAID_WTL, INFRAID_CLA, INFRAID_HUN, INFRAID_OAK, INFRAID_HUG, INFRAID_MRB, INFRAID_CNE, INFRAID_CFD, INFRAID_SYR, INFRAID_RMD
+    INFRAID_DNG, INFRAID_YMN, INFRAID_NPK, INFRAID_SNP, INFRAID_SPG, INFRAID_WTL, INFRAID_CLA, INFRAID_HUN, INFRAID_OAK, INFRAID_HUG, INFRAID_MRB, INFRAID_CNE, INFRAID_CFD, INFRAID_MAL, INFRAID_SYR, INFRAID_RMD
 };
 static const size_t kPakenhamCount = sizeof(kPakenhamStations) / sizeof(station_t*);
 
@@ -102,11 +102,11 @@ size_t LSID::pkmGetLEDsBetween(infraid_t fromCode, infraid_t toCode, uint16_t* b
 
 static const station_t* kCranbourneStations[] = {
     &kCranbourneCBE, &kCranbourneMPK, &kCranbourneLBK,
-    &kDandenongDNG, &kDandenongYMN, &kDandenongNPK, &kDandenongSNP, &kDandenongSPG, &kDandenongWTL, &kDandenongCLA, &kDandenongHUN, &kDandenongOAK, &kDandenongHUG, &kDandenongMRB, &kDandenongCNE, &kDandenongCFD, &kDandenongSYR, &kDandenongRMD
+    &kDandenongDNG, &kDandenongYMN, &kDandenongNPK, &kDandenongSNP, &kDandenongSPG, &kDandenongWTL, &kDandenongCLA, &kDandenongHUN, &kDandenongOAK, &kDandenongHUG, &kDandenongMRB, &kDandenongCNE, &kDandenongCFD, &kDandenongMAL, &kDandenongSYR, &kDandenongRMD
 };
 static const infraid_t kCranbourneCodes[] = { 
     INFRAID_CBE, INFRAID_MPK, INFRAID_LBK,
-    INFRAID_DNG, INFRAID_YMN, INFRAID_NPK, INFRAID_SNP, INFRAID_SPG, INFRAID_WTL, INFRAID_CLA, INFRAID_HUN, INFRAID_OAK, INFRAID_HUG, INFRAID_MRB, INFRAID_CNE, INFRAID_CFD, INFRAID_SYR, INFRAID_RMD
+    INFRAID_DNG, INFRAID_YMN, INFRAID_NPK, INFRAID_SNP, INFRAID_SPG, INFRAID_WTL, INFRAID_CLA, INFRAID_HUN, INFRAID_OAK, INFRAID_HUG, INFRAID_MRB, INFRAID_CNE, INFRAID_CFD, INFRAID_MAL, INFRAID_SYR, INFRAID_RMD
 };
 static const size_t kCranbourneCount = sizeof(kCranbourneStations) / sizeof(station_t*);
 

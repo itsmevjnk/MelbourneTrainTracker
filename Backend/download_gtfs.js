@@ -101,8 +101,11 @@ const parseStops = (stream) => {
                 const stationCodeMatch = record.parent_station.match(/[A-Z]{3}/);
                 const stationCode = (stationCodeMatch === null) ? resolveVLineStation(record.stop_name) : stationCodeMatch[0];
                 if (stationCode === undefined) continue; // station code not in metropolitan V/Line stations - skip
-                if (!entries.hasOwnProperty(stationCode)) entries[stationCode] = []; // create array of stop IDs
-                entries[stationCode].push(stopID); // convert string to number for more compact storage
+                if (!entries.hasOwnProperty(stationCode)) entries[stationCode] = {
+                    name: record.stop_name.replace('Station', '').replace('Rail Replacement Bus Stop', '').split('Railway')[0].trim(),
+                    ids: []
+                }; // create array of stop IDs
+                entries[stationCode].ids.push(stopID); // convert string to number for more compact storage
             }
         });
         parser.on('end', () => {
@@ -277,7 +280,7 @@ const download = () => {
                                     ret.tripCalendar[key] = `${i}_${value}`;
                                 }
                                 for (const [key, value] of Object.entries(results[i].stops)) {
-                                    if (ret.stops.hasOwnProperty(key)) ret.stops[key] = ret.stops[key].concat(value);
+                                    if (ret.stops.hasOwnProperty(key)) ret.stops[key].ids = ret.stops[key].ids.concat(value.ids);
                                     else ret.stops[key] = value;
                                 }
                                 ret.times = { ...ret.times, ...results[i].times };
@@ -304,8 +307,10 @@ const updateGTFS = () => {
     return download().then((data) => {
         const stops = [];
         const stopIDs = [];
+        const stopNames = [];
         for (const [key, value] of Object.entries(data.stops)) {
-            for (const id of value) {
+            stopNames.push({ code: key, name: value.name });
+            for (const id of value.ids) {
                 stops.push({
                     id: id,
                     station: key
@@ -313,6 +318,7 @@ const updateGTFS = () => {
                 stopIDs.push(id);
             }
         }
+
         console.log('Updating database.');
         return Promise.all([
                 (() => { // calendar 
@@ -344,7 +350,21 @@ const updateGTFS = () => {
                         .then(() => db.none(insert(calendar, cs)))
                         .then(() => console.log('Calendar has been updated'));
                 })(),
-                (() => { // stops
+                (() => { // stop names
+                    const cs = new ColumnSet(
+                        ['code', 'name'],
+                        { 
+                            table: new TableName({
+                                schema: 'gtfs',
+                                table: 'stop_names'
+                            }) 
+                        }
+                    );
+                    /* stops iterated above */
+                    return db.none('TRUNCATE TABLE gtfs.stop_names CASCADE')
+                        .then(() => db.none(insert(stopNames, cs)))
+                        .then(() => console.log('Stops have been updated'));
+                })().then(() => { // stops
                     const cs = new ColumnSet(
                         ['id', 'station'],
                         { 
@@ -358,7 +378,7 @@ const updateGTFS = () => {
                     return db.none('TRUNCATE TABLE gtfs.stops CASCADE')
                         .then(() => db.none(insert(stops, cs)))
                         .then(() => console.log('Stops have been updated'));
-                })()
+                })
             ]).then(() => { // trips
                 const cs = new ColumnSet(
                     ['id', 'calendar'],

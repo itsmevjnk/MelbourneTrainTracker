@@ -33,6 +33,7 @@ const fetchUpdate = () => {
         const updateFeed = gtfs.transit_realtime.FeedMessage.decode(new Uint8Array(buffers[0]));
         const timestamp = new Date(updateFeed.header.timestamp.toNumber() * 1000);
         const updates = {};
+        const trips = {};
         for (const entity of updateFeed.entity) {
             const update = entity.tripUpdate;
             if (update) {
@@ -45,6 +46,14 @@ const fetchUpdate = () => {
                     }
                 }
                 updates[tripID] = entries;
+                
+                const tripDesc = update.trip;
+                const startDate = tripDesc.startDate;
+                const startTime = tripDesc.startTime.split(':');
+                trips[update.trip.tripId] = new Date(
+                    startDate.slice(0, 4), startDate.slice(4, 6) - 1, startDate.slice(6, 8),
+                    startTime[0], startTime[1], startTime[2]
+                );
             }
         }
 
@@ -67,6 +76,7 @@ const fetchUpdate = () => {
 
         return {
             timestamp: timestamp,
+            tripStart: trips,
             updates: updates,
             cancellations: cancellations
         };

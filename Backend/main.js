@@ -11,16 +11,26 @@ const rtUpdate = require('./rt_update');
 const mqtt = require('./mqtt');
 const daily = require('./daily_init');
 const schedule = require('node-schedule');
+const ptvapi = require('./ptvapi');
 
 const HEALTHCHECK_PORT = process.env.HEALTHCHECK_PORT || 3000;
 
 /* initialisation */
 if (require.main === module) {
-    daily.daily_init().then(() => {
+    Promise.all([
+        daily.daily_init(),
+        ptvapi.saveDepartures()
+    ]).then(() => {
         /* schedule daily database update at 3am every day */
         schedule.scheduleJob('0 3 * * *', async () => {
             console.log('>>> Reinitialising daily database.');
             await daily.daily_init();
+        });
+
+        /* schedule daily PTV API fetch at 12:15am every day */
+        schedule.scheduleJob('15 12 * * *', async () => {
+            console.log('>>> Fetching from PTV Timetable API.');
+            await ptvapi.saveDepartures();
         });
         
         const periodicUpdate = async () => {

@@ -125,16 +125,20 @@ const saveDepartures = () => {
             });
         }
 
-        const runs = results[0].runs.concat(results[1].runs);
-
-        // const duplicates = runs.reduce((acc, run) => {
-        //     const key = `${run.line}-${run.stop}-${run.time.toISOString()}`;
-        //     if (!acc[key]) {
-        //     acc[key] = [];
-        //     }
-        //     acc[key].push(run);
-        //     return acc;
-        // }, {});
+        const runs = Object.values(results[0].runs.concat(results[1].runs).reduce((acc, run) => {
+            const key = `${run.rtype}-${run.line}-${run.stop}-${run.time.toISOString()}`;
+            if (!acc[key]) {
+                acc[key] = {
+                    rtype: run.rtype,
+                    ref: [],
+                    line: run.line,
+                    stop: run.stop,
+                    time: run.time
+                }
+            }
+            acc[key].ref.push(run.ref);
+            return acc;
+        }, {}));
 
         // const duplicateRuns = Object.values(duplicates).filter(group => group.length > 1);
 
@@ -170,7 +174,27 @@ const saveDepartures = () => {
     });
 };
 
-module.exports = { generateURL, discoverDepartures, saveDepartures };
+const fetchPattern = (routeType, runRef) => {
+    return fetch(generateURL(`/v3/pattern/run/${runRef}/route_type/${routeType}?expand=All`)).then((resp) => resp.text())
+        .then((respString) => {
+            const ret = [];
+            const result = JSON.parse(respString);
+            
+            for (const departure of result.departures) {
+                const departureTime = new Date(departure.estimated_departure_utc || departure.scheduled_departure_utc);
+                ret.push({
+                    seq: departure.departure_sequence,
+                    arrival: departureTime, // PTV API does not provide arrival time
+                    departure: departureTime,
+                    station_name: result.stops[departure.stop_id].stop_name // will need to translate to station code
+                });
+            }
+
+            return ret;
+        });
+};
+
+module.exports = { generateURL, discoverDepartures, saveDepartures, fetchPattern };
 
 const HEALTHCHECK_PORT = process.env.HEALTHCHECK_PORT || 3000;
 

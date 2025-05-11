@@ -27,10 +27,12 @@ static const station_t kNewportSEN = { LMAT_NEWPORT_SEN, LMAT_NEWPORT_SEN_ALT };
 static const station_t kNewportFSY = { LMAT_NEWPORT_FSY, LMAT_NEWPORT_FSY_ALT };
 static const station_t kNewportSKN = { LMAT_NEWPORT_SKN, LMAT_NEWPORT_SKN_ALT };
 static const station_t kNewportNME = { LMAT_NEWPORT_NME, LMAT_NEWPORT_NME_ALT };
-static const station_t kNewportSSS = { LMAT_NEWPORT_SSS, LMAT_NEWPORT_SSS_ALT };
+
+/* Southern Cross Station */
+static const station_t kCrossCitySSS = { LMAT_NEWPORT_SSS, LMAT_NEWPORT_SSS_ALT };
 
 /* Flinders Street Station */
-static const station_t kCrossCityFSS = { LMAT_FRANKSTON_FSS, LMAT_NULL };
+static const station_t kCrossCityFSS = { LMAT_FRANKSTON_FSS, LMAT_NEWPORT_SSS_ALT }; // alt LED for Frankston services running up to SSS (as reported by PTV API?)
 
 /* Frankston line */
 static const station_t kFrankstonFKN = { LMAT_FRANKSTON_FKN, LMAT_FRANKSTON_FKN_ALT };
@@ -79,7 +81,7 @@ static const station_t* kWerribeeStations[] = {
     &kWerribeeWER, &kWerribeeHCG, &kWerribeeWLD, &kWerribeeACF, &kWerribeeLAV,
     &kWerribeeWTO, &kWerribeeALT, &kWerribeeSHE, // Altona Loop - NOTE: special case for LAV and NPT on WBE line
     &kNewportNPT, &kNewportSPT, &kNewportYVE, &kNewportSEN, &kNewportFSY, &kNewportSKN, &kNewportNME,
-    &kNewportSSS, &kCrossCityFSS,
+    &kCrossCitySSS, &kCrossCityFSS,
 };
 static const infraid_t kWerribeeCodes[] = {
     INFRAID_WER, INFRAID_HCG, INFRAID_WLD, INFRAID_ACF, INFRAID_LAV, INFRAID_WTO, INFRAID_ALT, INFRAID_SHE,
@@ -115,7 +117,7 @@ size_t LSID::werGetLEDsBetween(infraid_t fromCode, infraid_t toCode, uint16_t* b
 static const station_t* kWilliamstownStations[] = {
     &kWilliamstownWIL, &kWilliamstownWBH, &kWilliamstownNWN,
     &kNewportNPT, &kNewportSPT, &kNewportYVE, &kNewportSEN, &kNewportFSY, &kNewportSKN, &kNewportNME,
-    &kNewportSSS, &kCrossCityFSS,
+    &kCrossCitySSS, &kCrossCityFSS,
 };
 static const infraid_t kWilliamstownCodes[] = {
     INFRAID_WIL, INFRAID_WBH, INFRAID_NWN,
@@ -137,13 +139,13 @@ static const station_t* kFrankstonStations[] = {
     &kFrankstonASP, &kFrankstonMOR, &kFrankstonPKD, &kFrankstonMEN, &kFrankstonCTM, &kFrankstonSOU, &kFrankstonHIG, 
     &kFrankstonMRN, &kFrankstonPAT, &kFrankstonBEN, &kFrankstonMCK, &kFrankstonOMD, &kFrankstonGHY, &kFrankstonCFD, 
     &kFrankstonMAL, &kFrankstonARM, &kFrankstonTOR, &kFrankstonHKN, &kFrankstonSYR, &kFrankstonRMD,
-    &kCrossCityFSS,
+    &kCrossCityFSS, &kCrossCitySSS
 };
 static const infraid_t kFrankstonCodes[] = {
     INFRAID_FKN, INFRAID_KAN, INFRAID_SEA, INFRAID_CAR, INFRAID_BON, INFRAID_CSA, INFRAID_EDI, INFRAID_ASP, INFRAID_MOR, 
     INFRAID_PKD, INFRAID_MEN, INFRAID_CTM, INFRAID_SOU, INFRAID_HIG, INFRAID_MRN, INFRAID_PAT, INFRAID_BEN, INFRAID_MCK, 
     INFRAID_OMD, INFRAID_GHY, INFRAID_CFD, INFRAID_MAL, INFRAID_ARM, INFRAID_TOR, INFRAID_HKN, INFRAID_SYR, INFRAID_RMD, 
-    INFRAID_FSS,
+    INFRAID_FSS, INFRAID_SSS
 };
 static const size_t kFrankstonCount = sizeof(kFrankstonStations) / sizeof(station_t*);
 

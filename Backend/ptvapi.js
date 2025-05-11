@@ -49,11 +49,14 @@ const discoverDepartures = async (routeType = 0) => { // 0 for metropolitan trai
     let stations = [1071, 1181]; // list of stations to query (we'll start out with FSS and SSS)
     if (routeType == 0) stations = stations.concat([
         1002, // Alamein
+        1032, // Camberwell (some Alamein services stop here - not sure if this is needed to be honest)
         1018, // Belgrave
         1163, // Ringwood (just in case)
         1023, // Blackburn (also just in case)
         1044, // Craigieburn
+        1144, // North Melbourne (just in case)
         1045, // Cranbourne
+        1036, // Caulfield (just in case)
         1049, // Dandenong (just in case)
         1228, // Mernda
         1073, // Frankston

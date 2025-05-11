@@ -46,7 +46,33 @@ const VLINE_STATIONS = [
 
 /* gather all services and their departures from termini */
 const discoverDepartures = async (routeType = 0) => { // 0 for metropolitan trains, 3 for V/Line
-    const stations = [1071, 1181]; // list of stations to query (we'll start out with FSS and SSS)
+    let stations = [1071, 1181]; // list of stations to query (we'll start out with FSS and SSS)
+    if (routeType == 0) stations = stations.concat([
+        1002, // Alamein
+        1018, // Belgrave
+        1163, // Ringwood (just in case)
+        1023, // Blackburn (also just in case)
+        1044, // Craigieburn
+        1045, // Cranbourne
+        1049, // Dandenong (just in case)
+        1228, // Mernda
+        1073, // Frankston
+        1078, // Glen Waverley
+        1100, // Hurstbridge
+        1115, // Lilydale
+        1230, // East Pakenham
+        1153, // Pakenham (in case there are still services that terminate there)
+        1173, // Sandringham
+        1185, // Stony Point
+        1187, // Sunbury
+        1198, // Upfield
+        1205, // Werribee
+        1113, // Laverton (just in case)
+        1141, // Newport (also just in case)
+        1211, // Williamstown
+        1070, // Flemington Racecourse
+        1177, // Showgrounds (just in case)
+    ]); // add known termini
     const queriedStations = []; // list of stations that have been queried
     const ret = {
         stations: {}, // stop ID to station name (for translating to GTFS)
@@ -114,9 +140,9 @@ const saveDepartures = () => {
     const { TableName, ColumnSet, insert, select } = pgp.helpers;
     return Promise.all([
         discoverDepartures(0),
-        discoverDepartures(3)
+        // discoverDepartures(3)
     ]).then((results) => {
-        const stations = { ...results[0].stations, ...results[1].stations };
+        const stations = results[0].stations;
         const stationRows = [];
         for (const [id, name] of Object.entries(stations)) {
             stationRows.push({
@@ -125,7 +151,7 @@ const saveDepartures = () => {
             });
         }
 
-        const runs = Object.values(results[0].runs.concat(results[1].runs).reduce((acc, run) => {
+        const runs = Object.values(results[0].runs.reduce((acc, run) => {
             const key = `${run.rtype}-${run.line}-${run.stop}-${run.time.toISOString()}`;
             if (!acc[key]) {
                 acc[key] = {

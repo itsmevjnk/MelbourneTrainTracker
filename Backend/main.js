@@ -28,7 +28,7 @@ if (require.main === module) {
         });
 
         /* schedule daily PTV API fetch at 12:15am every day */
-        schedule.scheduleJob('15 12 * * *', async () => {
+        schedule.scheduleJob('15 0 * * *', async () => {
             console.log('>>> Fetching from PTV Timetable API.');
             await ptvapi.saveDepartures();
         });

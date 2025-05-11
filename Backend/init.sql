@@ -83,7 +83,7 @@ ALTER TABLE gtfs.trips OWNER TO postgres;
 
 CREATE TABLE ptvapi.departures (
     rtype integer NOT NULL,
-    ref character varying(8) NOT NULL,
+    ref text[],
     line character varying(3) NOT NULL,
     stop integer NOT NULL,
     "time" timestamp with time zone NOT NULL

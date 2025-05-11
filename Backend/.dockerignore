@@ -2,5 +2,6 @@ init.sql
 node_modules/
 .gitignore
 mqtt_config/
-mqtt_password.txt
-api_key.txt
+*.txt
+.vscode/
+

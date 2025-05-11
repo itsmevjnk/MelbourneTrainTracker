@@ -72,13 +72,15 @@ services:
     hostname: mtt_server
     restart: always
     environment:
-      API_KEY_FILE: /run/secrets/api_key # will have precedence over API_KEY
+      API_KEY_FILE: /run/secrets/gtfs_key # will have precedence over API_KEY
       CONNECT_STR: postgres://postgres:postgres@mtt_postgres:5432/melbtrains
       MQTT_BROKER: mqtt://mtt_broker:1883
       MQTT_USERNAME: backend
       MQTT_PASSWORD: mtt_backend # default MQTT password (in the committed passwd file) - MQTT_PASSWORD_FILE will have precedence
       MQTT_PASSWORD_FILE: /run/secrets/mqtt_password
       MQTT_TOPIC: melbtrains
+      PTV_ID_FILE: /run/secrets/ptv_id
+      PTV_KEY_FILE: /run/secrets/ptv_key
     healthcheck:
       interval: 1h
       start_period: 15m # it can take up to 5 mins to download and parse the GTFS dataset
@@ -96,11 +98,17 @@ services:
     networks:
       - mtt_network
     secrets:
-      - api_key
+      - gtfs_key
       - mqtt_password
+      - ptv_id
+      - ptv_key
 
 secrets:
   mqtt_password:
     file: ./mqtt_password.txt
-  api_key:
-    file: ./api_key.txt
+  gtfs_key:
+    file: ./gtfs_key.txt
+  ptv_id:
+    file: ./ptv_id.txt
+  ptv_key:
+    file: ./ptv_key.txt

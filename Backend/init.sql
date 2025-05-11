@@ -1,6 +1,8 @@
 SELECT 'CREATE DATABASE melbtrains'
 WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname='melbtrains')\gexec
 
+ALTER DATABASE melbtrains SET TIMEZONE TO 'Australia/Melbourne';
+
 \c melbtrains
 
 CREATE SCHEMA daily;

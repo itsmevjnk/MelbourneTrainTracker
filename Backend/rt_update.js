@@ -72,30 +72,31 @@ const updateTimetable = (lastTimestamp = null) => {
         const deleteQuery = `DELETE FROM daily.timetable WHERE trip_id SIMILAR TO '${cancelPatterns.join('|')}'`;
         // console.log(deleteQuery);
 
-        const updates = [];
+        const updates = {};
         const ids = {};
         for (const [ tripID, tripUpdates ] of Object.entries(data.updates)) {
             const tripIDPattern = getTripIDPattern(tripID);
             ids[tripID] = tripIDPattern;
             for (const [ seq, seqUpdate ] of Object.entries(tripUpdates)) {
-                updates.push({
+                updates[`${tripIDPattern}-${seq}`] = {
                     trip_id: tripIDPattern,
                     seq: seq,
                     arrival: seqUpdate.arrival,
                     departure: seqUpdate.departure,
                     last_updated: data.timestamp
-                });
+                };
             }
         }
 
         return db.result(deleteQuery).then((deleteResult) => {
-            if (updates.length > 0) {
-                const updateQuery = update(updates, cs)
+            if (Object.keys(updates).length > 0) {
+                const updateQuery = update(Object.values(updates), cs)
                     + ' WHERE t.trip_id LIKE v.trip_id AND t.seq = v.seq'
-                    + ' RETURNING t.trip_id';
+                    + ' RETURNING t.trip_id, v.trip_id AS trip_id_pattern, t.seq';
                 return db.any(updateQuery).then((rows) => {
                     for (const row of rows) {
                         delete ids[row.trip_id];
+                        delete updates[`${row.trip_id_pattern}-${row.seq}`];
                     }
 
                     // let rowCount = rows.length;
@@ -104,6 +105,17 @@ const updateTimetable = (lastTimestamp = null) => {
                         deletedCount: deleteResult.rowCount,
                         rowCount: rows.length
                     }; // nothing else to do
+
+                    if (Object.keys(updates).length > 0) console.warn(`These IDs and sequences were not updated: ` + Object.keys(updates).join(', '));
+
+                    const idPatterns = Object.values(ids); // remaining patterns
+                    const updateEntries = Object.entries(updates);
+                    for (const [key, value] of updateEntries) {
+                        if (!idPatterns.includes(value.trip_id)) {
+                            // console.warn(`${key} is part of a partial update failure`);
+                            delete updates[key]; // exclude from retry so that we do not overwrite PTV API
+                        }
+                    }
 
                     console.log(`${Object.keys(ids).length} remaining IDs`);
                     const queryIDs = {};
@@ -164,7 +176,8 @@ const updateTimetable = (lastTimestamp = null) => {
                                     SELECT src.trip_id, src.line, src.seq, src.arrival, src.departure, sn.code AS station
                                     FROM (VALUES ${values(pattern, csTripInsert)}) AS src(trip_id, line, seq, arrival, departure, station_name)
                                     JOIN gtfs.stop_names AS sn ON src.station_name = sn.name
-                                    ON CONFLICT DO NOTHING
+                                    ON CONFLICT (trip_id, seq) DO UPDATE
+                                    SET arrival=EXCLUDED.arrival, departure=EXCLUDED.departure
                                 `);
 
                             // console.log(pattern);
@@ -203,7 +216,8 @@ const updateTimetable = (lastTimestamp = null) => {
                                         SELECT src.trip_id, src.line, src.seq, src.arrival, src.departure, sn.code AS station
                                         FROM (VALUES ${values(pattern, csTripInsert)}) AS src(trip_id, line, seq, arrival, departure, station_name)
                                         JOIN gtfs.stop_names AS sn ON src.station_name = sn.name
-                                        ON CONFLICT DO NOTHING
+                                        ON CONFLICT (trip_id, seq) DO UPDATE
+                                        SET arrival=EXCLUDED.arrival, departure=EXCLUDED.departure
                                     `);
 
                                 p2Count++;
@@ -212,8 +226,8 @@ const updateTimetable = (lastTimestamp = null) => {
                         }
                         console.log(`Pass 2 (ID translation): successfully resolved ${p2Count} IDs to PTV refs`);
                     })
-                    .then(() => {
-                        if (Object.values(queryIDs).length == 0) return; // done
+                    .then((ret) => {
+                        if (Object.values(queryIDs).length == 0) return ret; // done
                         return db.any(`
                             WITH input(trip_id, line, time, id_pattern) AS (VALUES ${values(Object.values(queryIDs), csRefQuery)})
                             SELECT input.line, input.trip_id, t.rtype, t.ref FROM input
@@ -245,7 +259,8 @@ const updateTimetable = (lastTimestamp = null) => {
                                         SELECT src.trip_id, src.line, src.seq, src.arrival, src.departure, sn.code AS station
                                         FROM (VALUES ${values(pattern, csTripInsert)}) AS src(trip_id, line, seq, arrival, departure, station_name)
                                         JOIN gtfs.stop_names AS sn ON src.station_name = sn.name 
-                                        ON CONFLICT DO NOTHING
+                                        ON CONFLICT (trip_id, seq) DO UPDATE
+                                        SET arrival=EXCLUDED.arrival, departure=EXCLUDED.departure
                                     `);
     
                                 // console.log(pattern);
@@ -254,7 +269,13 @@ const updateTimetable = (lastTimestamp = null) => {
                             }
                         });
                     })
-                    .then(() => {
+                    .then((ret) => {
+                        if (ret) return ret;
+                        return db.none(update(Object.values(updates), cs) + ' WHERE t.trip_id LIKE v.trip_id AND t.seq = v.seq');
+                    })
+                    .then((ret) => {
+                        if (ret) return ret;
+
                         if (Object.values(queryIDs).length > 0) console.warn(`Unresolvable trip IDs: ${Object.keys(queryIDs)}`);
                         return db.any(updateQuery).then((rows) => {
                             return {

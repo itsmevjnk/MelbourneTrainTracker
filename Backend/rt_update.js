@@ -121,20 +121,36 @@ const updateTimetable = (lastTimestamp = null) => {
                         SELECT input.line, input.trip_id, t.rtype, t.ref FROM input
                         JOIN ptvapi.departures t ON t.time = input.time AND t.line = input.line AND true = ANY (ARRAY(SELECT unnest(t.ref) ILIKE input.id_pattern))
                     `).then(async (rows) => {
+                        const prefixes = {}; // mapping from GTFS ID to PTV API trip ID prefix
+
                         console.log(`Pass 1 (run ref match): resolved ${rows.length} IDs to PTV refs`);
                         for (const row of rows) {
-                            delete queryIDs[row.trip_id];
-
                             let ref;
                             if (row.ref.length == 1) ref = row.ref[0]; // only one ref to choose from
                             else {
                                 for (const x of row.ref) {
                                     ref = x;
-                                    if (ref.slice(ref.length - 3) == row.trip_id.slice(ref.length - 3)) break; // best match (last 3 digits in run ID match GTFS)
+                                    if (ref.slice(ref.length - 3) == row.trip_id.slice(row.trip_id.length - 3)) break; // best match (last 3 digits in run ID match GTFS)
                                 }
                             }
-                            const pattern = await ptvapi.fetchPattern(row.rtype, ref);
+
+                            const pattern = await ptvapi.fetchPattern(row.rtype, ref, row.line); // NOTE: data from PTV API may have dubious timestamp!
+                            if (pattern == null) {
+                                console.error(`Run ${ref} does not correlate to GTFS ID ${row.trip_id}`);
+                                continue;
+                            }
+
+                            if (ref.slice(ref.length - 3) == row.trip_id.slice(row.trip_id.length - 3)) {
+                                /* log prefix into lookup table */
+                                const gtfsPrefix = row.trip_id.slice(0, row.trip_id.length - 3);
+                                const refPrefix = ref.slice(0, ref.length - 3);
+                                if (!prefixes.hasOwnProperty(gtfsPrefix)) prefixes[gtfsPrefix] = [];
+                                if (!prefixes[gtfsPrefix].includes(refPrefix)) prefixes[gtfsPrefix].push(refPrefix);
+                            }
+
                             console.log(`Run ${ref} (${row.trip_id}) has ${pattern.length} stops`);
+
+                            delete queryIDs[row.trip_id];
                             
                             if (pattern.length == 0) continue;
 
@@ -155,39 +171,90 @@ const updateTimetable = (lastTimestamp = null) => {
 
                             // rowCount++;
                         }
-                    }).then(() => db.any(`
-                        WITH input(trip_id, line, time, id_pattern) AS (VALUES ${values(Object.values(queryIDs), csRefQuery)})
-                        SELECT input.line, input.trip_id, t.rtype, t.ref FROM input
-                        JOIN ptvapi.departures t ON t.time = input.time AND t.line = input.line
-                    `)).then(async (rows) => {
-                        console.log(`Pass 2 (non-matching): resolved ${rows.length} IDs to PTV refs`);
-                        for (const row of rows) {
-                            delete queryIDs[row.trip_id];
 
-                            const ref = row.ref[0]; // TODO: what about multiple refs?
-                            const pattern = await ptvapi.fetchPattern(row.rtype, ref);
-                            console.log(`Run ${ref} (${row.trip_id}) has ${pattern.length} stops`);
-                            
-                            for (const item of pattern) {
-                                item.trip_id = row.trip_id;
-                                item.line = row.line;
+                        let p2Count = 0; // count for pass 2
+                        for (const id of Object.keys(queryIDs)) {
+                            const gtfsPrefix = id.slice(0, id.length - 3), suffix = id.slice(id.length - 3);
+                            if (!prefixes.hasOwnProperty(gtfsPrefix)) continue;
+
+                            const departureTime = queryIDs[id].time;
+                            const line = id.match(/[A-Z]{3}/)[0];
+                            for (const refPrefix of prefixes[gtfsPrefix]) {
+                                const ref = refPrefix.concat(suffix);
+                                const pattern = await ptvapi.fetchPattern(0, ref, line);
+                                if (pattern == null) {
+                                    console.error(`Run ${ref} does not correlate to GTFS ID ${id}`);
+                                    continue;
+                                }
+
+                                console.log(`Run ${ref} (${id}) has ${pattern.length} stops`);
+
+                                delete queryIDs[id];
+                                
+                                if (pattern.length == 0) continue;
+
+                                for (const item of pattern) {
+                                    item.trip_id = id;
+                                    item.line = line;
+                                }
+
+                                await db.none(`
+                                        INSERT INTO daily.timetable (trip_id, line, seq, arrival, departure, station)
+                                        SELECT src.trip_id, src.line, src.seq, src.arrival, src.departure, sn.code AS station
+                                        FROM (VALUES ${values(pattern, csTripInsert)}) AS src(trip_id, line, seq, arrival, departure, station_name)
+                                        JOIN gtfs.stop_names AS sn ON src.station_name = sn.name
+                                        ON CONFLICT DO NOTHING
+                                    `);
+
+                                p2Count++;
+                                break;
                             }
-
-                            if (pattern.length == 0) continue;
-                            
-                            await db.none(`
-                                    INSERT INTO daily.timetable (trip_id, line, seq, arrival, departure, station)
-                                    SELECT src.trip_id, src.line, src.seq, src.arrival, src.departure, sn.code AS station
-                                    FROM (VALUES ${values(pattern, csTripInsert)}) AS src(trip_id, line, seq, arrival, departure, station_name)
-                                    JOIN gtfs.stop_names AS sn ON src.station_name = sn.name 
-                                    ON CONFLICT DO NOTHING
-                                `);
-
-                            // console.log(pattern);
-
-                            // rowCount++;
                         }
-                    }).then(() => {
+                        console.log(`Pass 2 (ID translation): successfully resolved ${p2Count} IDs to PTV refs`);
+                    })
+                    .then(() => {
+                        if (Object.values(queryIDs).length == 0) return; // done
+                        return db.any(`
+                            WITH input(trip_id, line, time, id_pattern) AS (VALUES ${values(Object.values(queryIDs), csRefQuery)})
+                            SELECT input.line, input.trip_id, t.rtype, t.ref FROM input
+                            JOIN ptvapi.departures t ON t.time = input.time AND t.line = input.line
+                        `).then(async (rows) => {
+                            console.log(`Pass 3 (non-matching): resolved ${rows.length} IDs to PTV refs`);
+                            for (const row of rows) {
+    
+                                const ref = row.ref[0]; // TODO: what about multiple refs?
+                                const pattern = await ptvapi.fetchPattern(row.rtype, ref, row.line);
+                                if (pattern == null) {
+                                    console.error(`Run ${ref} does not correlate to GTFS ID ${row.trip_id}`);
+                                    continue;
+                                }
+    
+                                delete queryIDs[row.trip_id];
+    
+                                console.log(`Run ${ref} (${row.trip_id}) has ${pattern.length} stops`);
+                                
+                                for (const item of pattern) {
+                                    item.trip_id = row.trip_id;
+                                    item.line = row.line;
+                                }
+    
+                                if (pattern.length == 0) continue;
+                                
+                                await db.none(`
+                                        INSERT INTO daily.timetable (trip_id, line, seq, arrival, departure, station)
+                                        SELECT src.trip_id, src.line, src.seq, src.arrival, src.departure, sn.code AS station
+                                        FROM (VALUES ${values(pattern, csTripInsert)}) AS src(trip_id, line, seq, arrival, departure, station_name)
+                                        JOIN gtfs.stop_names AS sn ON src.station_name = sn.name 
+                                        ON CONFLICT DO NOTHING
+                                    `);
+    
+                                // console.log(pattern);
+    
+                                // rowCount++;
+                            }
+                        });
+                    })
+                    .then(() => {
                         if (Object.values(queryIDs).length > 0) console.warn(`Unresolvable trip IDs: ${Object.keys(queryIDs)}`);
                         return db.any(updateQuery).then((rows) => {
                             return {

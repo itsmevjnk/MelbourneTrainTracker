@@ -203,12 +203,41 @@ const saveDepartures = () => {
     });
 };
 
-const fetchPattern = (routeType, runRef) => {
+const fetchPattern = (routeType, runRef, expectedLine = null, expectedDeparture = null) => {
     return fetch(generateURL(`/v3/pattern/run/${runRef}/route_type/${routeType}?expand=All`)).then((resp) => resp.text())
         .then((respString) => {
             const ret = [];
             const result = JSON.parse(respString);
-            
+
+            if (result.departures.length == 0) {
+                console.warn(`Run ${runRef} is empty`);
+                return null;
+            }
+
+            if (expectedLine) {
+                const routes = Object.values(result.routes);
+                const line = routes[0].route_gtfs_id.split('-')[1]; // e.g. 2-BEG
+                if (line != expectedLine) return null;
+            }
+
+            if (expectedDeparture) {
+                if (result.departures.length == 0) return null;
+                if (new Date(result.departures[0].scheduled_departure_utc).getTime() != new Date(expectedDeparture).getTime()) { // possible mismatch
+                    if (result.departures.length == 1)
+                        return null; // can't look further
+
+                    // sometimes the first entry is not FSS, and the expected trip start time is from FSS - we'll look into it here
+                    for (let i = 1; i < result.departures.length; i++) {
+                        const departure = result.departures[i];
+                        if (departure.stop_id == 1071) {
+                            if (new Date(departure.scheduled_departure_utc).getTime() != new Date(expectedDeparture).getTime())
+                                return null;
+                            break;
+                        }
+                    }
+                }
+            }
+
             for (const departure of result.departures) {
                 const departureTime = new Date(departure.estimated_departure_utc || departure.scheduled_departure_utc);
                 ret.push({

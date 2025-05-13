@@ -11,6 +11,12 @@ public:
 
     static esp_err_t sendLEDBufferAsync(); // trigger sending LED buffer over WebSockets (asynchronously)
 private:
+    struct StaticData {
+        const void* start;
+        size_t length;
+        const char* mimeType;
+    };
+
     /* HTTP endpoints */
     static const httpd_uri_t kGetDriverState;
     static esp_err_t getDriverState(httpd_req_t* req); 
@@ -24,6 +30,11 @@ private:
     static const httpd_uri_t kLEDBufferWS;
     static esp_err_t wsLEDBuffer(httpd_req_t* req);
     static void sendLEDBufferWorker(void* arg); // worker function called by httpd
+
+    static esp_err_t serveStaticData(httpd_req_t* req);
+
+    static const StaticData kBoardImage;
+    static const httpd_uri_t kGetBoardImage;
 
     static httpd_handle_t m_server;
     static const httpd_uri_t* kHandlers[];

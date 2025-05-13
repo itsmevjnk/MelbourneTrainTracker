@@ -13,7 +13,8 @@ httpd_handle_t WebServer::m_server = NULL;
 const httpd_uri_t* WebServer::kHandlers[] = {
     &kGetDriverState, &kSetDriverState,
     &kGetLEDBuffer,
-    &kLEDBufferWS
+    &kLEDBufferWS,
+    &kGetBoardImage
 };
 
 mdns_txt_item_t WebServer::kMDNSServiceTXT[] = {

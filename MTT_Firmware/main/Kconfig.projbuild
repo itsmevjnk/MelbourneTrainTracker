@@ -65,4 +65,12 @@ menu "Firmware Configuration"
         default 1000
         help
             The LED state update interval in milliseconds. This should be a multiple of 1000 (i.e. steps of 1 second).
+
+    config HTTP_PORT
+        int "HTTP server port"
+        range 1 65535
+        default 80
+        help
+            The status/management HTTP server's port.
+
 endmenu

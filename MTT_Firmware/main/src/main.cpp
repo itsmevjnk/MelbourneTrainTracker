@@ -5,6 +5,7 @@
 #include "subsystems/uart.h"
 #include "subsystems/ntp.h"
 #include "subsystems/mqtt.h"
+#include "subsystems/webserver.h"
 
 #include "message.h"
 #include "services.h"
@@ -76,6 +77,8 @@ runCLI:
     ESP_ERROR_CHECK(NTP::init(Config::getTimeServer()));
 
     ESP_ERROR_CHECK(MQTT::init(Config::getMQTTBroker()));
+
+    ESP_ERROR_CHECK(WebServer::init());
 
     ESP_LOGI(kTag, "init end"); ESP_ERROR_CHECK(StatusLED::actyOff());
 

@@ -39,6 +39,7 @@ const size_t LEDMatrix::kBufferOffsets[8] = { L0_OFFSET, L1_OFFSET, L2_OFFSET, L
 
 AW20216S* LEDMatrix::m_drivers[8];
 uint8_t* LEDMatrix::m_buffer; // LED matrix frame buffer
+bool LEDMatrix::m_driverState = false;
 
 const size_t LEDMatrix::kBurnleyOffsets[] = { LMAT_BURNLEY };
 const size_t LEDMatrix::kCliftonOffsets[] = { LMAT_CLIFTON };

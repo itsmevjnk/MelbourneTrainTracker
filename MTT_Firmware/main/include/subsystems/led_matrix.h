@@ -19,12 +19,18 @@ public:
 
     /* enable driver output */
     static inline esp_err_t enableDrivers() {
+        m_driverState = true;
         return gpio_set_level(DRV_EN, 1);
     }
     
     /* disable driver output */
     static inline esp_err_t disableDrivers() {
+        m_driverState = false;
         return gpio_set_level(DRV_EN, 0);
+    }
+
+    static inline bool getState() {
+        return m_driverState;
     }
 
     static esp_err_t update(); // update all changed LEDs to display on the board
@@ -47,6 +53,8 @@ private:
     static AW20216S* m_drivers[8]; // LED driver objects - initialised in init()
     static uint8_t* m_buffer; // LED matrix frame buffer - within a driver: (CS1,SW1) .. (CSn,SW1), (CS1, SW2) .. (CSn, SWm)
     static const size_t kBufferOffsets[8]; // offsets into the buffer for each LED driver
+
+    static bool m_driverState;
 
 #ifdef LMAT_STRICT_COLOUR_CHECK
     static const uint8_t* m_expectedColours; // expected colours for each LED - basically a copy of m_buffer with all LEDs set to line colours

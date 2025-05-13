@@ -26,6 +26,10 @@ public:
     static const char* getTimeServer();
     static const char* getMQTTBroker();
 
+    /* get mDNS config */
+    static const char* getMDNSHostname();
+    static const char* getMDNSInstanceName();
+
 private:
     static bool m_initialised;
 
@@ -41,6 +45,10 @@ private:
     /* network address configuration */
     static char m_timeServer[64];
     static char m_mqttBroker[64];
+
+    /* mDNS configuration */
+    static char m_mdnsHostname[32];
+    static char m_mdnsInstanceName[64];
 
     static const char* kTag; // for logging
 
@@ -75,6 +83,9 @@ private:
 
     static esp_console_cmd_t kSetMQTTCommand;
     static esp_err_t cliSetMQTT(int argc, char** argv);
+
+    static esp_console_cmd_t kSetMDNSCommand;
+    static esp_err_t cliSetMDNS(int argc, char** argv);
 
     /* utilities for CLI */
     static size_t readString(char* str, size_t maxSize);

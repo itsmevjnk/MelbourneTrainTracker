@@ -1,5 +1,6 @@
 #include "subsystems/webserver.h"
 
+
 #include "esp_check.h"
 const char* WebServer::kTag = "webserver";
 
@@ -13,7 +14,19 @@ const httpd_uri_t* WebServer::kHandlers[] = {
     &WebServer::kGetDriverState, &WebServer::kSetDriverState
 };
 
-esp_err_t WebServer::init() {
+mdns_txt_item_t WebServer::kMDNSServiceTXT[] = {
+    { "device", "melbtrains" },
+    { "board", "esp32" }
+};
+
+esp_err_t WebServer::init(const char* hostname, const char* instance) {
+    ESP_RETURN_ON_ERROR(mdns_init(), kTag, "cannot initialise mDNS service");
+    mdns_hostname_set(hostname);
+    if (instance) mdns_instance_name_set(instance);
+    ESP_RETURN_ON_ERROR(mdns_service_add(NULL, "_http", "_tcp", HTTP_PORT, kMDNSServiceTXT, sizeof(kMDNSServiceTXT) / sizeof(mdns_txt_item_t)), kTag, "cannot add HTTP service to mDNS");
+
+    ESP_LOGI(kTag, "initialised mDNS service");
+
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
     config.server_port = HTTP_PORT;
     config.lru_purge_enable = true;

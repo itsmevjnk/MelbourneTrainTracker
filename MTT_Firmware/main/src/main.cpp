@@ -78,7 +78,7 @@ runCLI:
 
     ESP_ERROR_CHECK(MQTT::init(Config::getMQTTBroker()));
 
-    ESP_ERROR_CHECK(WebServer::init());
+    ESP_ERROR_CHECK(WebServer::init(Config::getMDNSHostname(), Config::getMDNSInstanceName()));
 
     ESP_LOGI(kTag, "init end"); ESP_ERROR_CHECK(StatusLED::actyOff());
 

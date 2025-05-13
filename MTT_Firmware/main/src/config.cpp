@@ -57,6 +57,29 @@ esp_err_t Config::init() {
         // addrHandle.close();
     }
 
+    /* load mDNS config */
+    NVSHandle mdnsHandle = NVS::open("mdns", NVS_READONLY);
+    if (mdnsHandle.isClosed()) {
+        ESP_LOGW(kTag, "cannot open mDNS configuration from NVS - using default values");
+        // TODO: maybe we'll need to make this fatal
+    } else {
+        esp_err_t ret = mdnsHandle.getString("host", m_mdnsHostname, sizeof(m_mdnsHostname));
+        switch (ret) {
+            case ESP_OK: break;
+            case ESP_ERR_NVS_NOT_FOUND: ESP_LOGW(kTag, "mDNS hostname not set in NVS, defaulting to %s", m_mdnsHostname); break;
+            default: ESP_LOGE(kTag, "cannot read mDNS hostname (%s)", esp_err_to_name(ret)); return ret;
+        }
+
+        ret = mdnsHandle.getString("inst", m_mdnsInstanceName, sizeof(m_mdnsInstanceName));
+        switch (ret) {
+            case ESP_OK: break;
+            case ESP_ERR_NVS_NOT_FOUND: ESP_LOGW(kTag, "mDNS instance name not set in NVS, defaulting to %s", m_mdnsInstanceName); break;
+            default: ESP_LOGE(kTag, "cannot read mDNS instance name (%s)", esp_err_to_name(ret)); return ret;
+        }
+
+        // addrHandle.close();
+    }
+
     /* success */
     ESP_LOGI(kTag, "configuration has been read successfully");
     m_initialised = true;
@@ -126,4 +149,22 @@ char Config::m_mqttBroker[64] = CONFIG_DEFAULT_MQTT_BROKER;
 const char* Config::getMQTTBroker() {
     verifyInit();
     return m_mqttBroker;
+}
+
+#ifndef CONFIG_DEFAULT_MDNS_HOSTNAME
+#define CONFIG_DEFAULT_MDNS_HOSTNAME                        "melbtrains"
+#endif
+char Config::m_mdnsHostname[32] = CONFIG_DEFAULT_MDNS_HOSTNAME;
+const char* Config::getMDNSHostname() {
+    verifyInit();
+    return m_mdnsHostname;
+}
+
+#ifndef CONFIG_DEFAULT_MDNS_INSTANCE_NAME
+#define CONFIG_DEFAULT_MDNS_INSTANCE_NAME                   "Melbourne Train Tracker"
+#endif
+char Config::m_mdnsInstanceName[64] = CONFIG_DEFAULT_MDNS_INSTANCE_NAME;
+const char* Config::getMDNSInstanceName() {
+    verifyInit();
+    return m_mdnsInstanceName;
 }

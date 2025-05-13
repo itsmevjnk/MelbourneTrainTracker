@@ -3,10 +3,11 @@
 #pragma once
 
 #include "esp_http_server.h"
+#include "mdns.h"
 
 class WebServer {
 public:
-    static esp_err_t init();
+    static esp_err_t init(const char* hostname, const char* instance = nullptr);
 
 private:
     /* HTTP endpoints */
@@ -18,6 +19,8 @@ private:
 
     static httpd_handle_t m_server;
     static const httpd_uri_t* kHandlers[];
+
+    static mdns_txt_item_t kMDNSServiceTXT[];
 
     static const char* kTag;
 };

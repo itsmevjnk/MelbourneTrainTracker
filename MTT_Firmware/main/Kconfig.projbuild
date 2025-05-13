@@ -11,6 +11,18 @@ menu "Firmware Configuration"
         help
             Sets the default MQTT broker address (including the schema) to use if it is not configured in the NVS.
 
+    config CONFIG_DEFAULT_MDNS_HOSTNAME
+        string "Default mDNS hostname"
+        default "melbtrains"
+        help
+            Sets the default mDNS hostname to use if it is not configured in the NVS.
+    
+    config CONFIG_DEFAULT_MDNS_INSTANCE_NAME
+        string "Default mDNS instance name"
+        default "Melbourne Train Tracker"
+        help
+            Sets the default mDNS instance name (user-friendly description) to use if it is not configured in the NVS.
+
     config MSG_STATION_PAD
         int "Station departure padding duration (sec)"
         range 0 60

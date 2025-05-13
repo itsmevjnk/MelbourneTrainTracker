@@ -55,6 +55,9 @@ const size_t LEDMatrix::kVLineOffsets[] = { LMAT_VLINE };
 const uint8_t* LEDMatrix::m_expectedColours;
 #endif
 
+StaticSemaphore_t LEDMatrix::m_bufferMutexBuf;
+SemaphoreHandle_t LEDMatrix::m_bufferMutex = xSemaphoreCreateRecursiveMutexStatic(&m_bufferMutexBuf);
+
 esp_err_t LEDMatrix::init() {
     /* allocate framebuffer */
     m_buffer = new uint8_t[LMAT_SIZE];
@@ -132,6 +135,7 @@ esp_err_t LEDMatrix::set(size_t offset, colour_t colour) {
         return ESP_ERR_INVALID_ARG;
     }
 
+    acquireBuffer();
     m_buffer[LMAT_R(offset)] = (colour >> 16) & 0xFF; // red
     m_buffer[LMAT_G(offset)] = (colour >> 8) & 0xFF; // green
     m_buffer[LMAT_B(offset)] = (colour >> 0) & 0xFF; // blue
@@ -140,6 +144,7 @@ esp_err_t LEDMatrix::set(size_t offset, colour_t colour) {
     assert(colour == kOff || (!memcmp(&m_buffer[offset], &m_expectedColours[offset], 3)));
 #endif
 
+    releaseBuffer();
     return ESP_OK;
 }
 
@@ -148,10 +153,13 @@ esp_err_t LEDMatrix::setMulti(const size_t* offsets, size_t leds, colour_t colou
     //         g = (colour >> 8) & 0xFF, // green
     //         b = (colour >> 0) & 0xFF; // blue
     
-    for (size_t i = 0; i < leds; i++, offsets++) { // increment to next offset after each iteration
+    esp_err_t ret = ESP_OK;
+    acquireBuffer();
+    
+    for (size_t i = 0; i < leds && ret == ESP_OK; i++, offsets++) { // increment to next offset after each iteration
         size_t offset = *offsets;
-        esp_err_t ret = set(offset, colour); // NOTE: the commented out code causes weird corruption??????
-        if (ret != ESP_OK) return ret;
+        ret = set(offset, colour); // NOTE: the commented out code causes weird corruption??????
+
         // if (offset == LMAT_NULL) continue;
         // if (offset % 3 != 0) {
         //     ESP_LOGE(kTag, "offset %u given to LEDMatrix::setMulti() is invalid", offset);
@@ -162,14 +170,16 @@ esp_err_t LEDMatrix::setMulti(const size_t* offsets, size_t leds, colour_t colou
         // m_buffer[LMAT_B(offset)] = b;
     }
 
-    return ESP_OK;
+    releaseBuffer();
+    return ret;
 }
 
 esp_err_t LEDMatrix::fill(colour_t colour) {
     uint8_t r = (colour >> 16) & 0xFF, // red
             g = (colour >> 8) & 0xFF, // green
             b = (colour >> 0) & 0xFF; // blue
-            
+    
+    acquireBuffer();
     if (r == g && g == b) memset(m_buffer, r, LMAT_SIZE); // use memset if possible because it's faster
     else {
         for (size_t offset = 0; offset < LMAT_SIZE; offset += 3) {
@@ -178,15 +188,18 @@ esp_err_t LEDMatrix::fill(colour_t colour) {
             m_buffer[LMAT_B(offset)] = b;
         }
     }
+    releaseBuffer();
 
     return ESP_OK;
 }
 
 esp_err_t LEDMatrix::update() {
     /* TODO: more intelligent updating */
+    acquireBuffer();
     for (int i = 0; i < 8; i++) {
         ESP_RETURN_ON_ERROR(m_drivers[i]->update(), kTag, "updating L%d failed", i);
     }
+    releaseBuffer();
 
     return ESP_OK;
 }

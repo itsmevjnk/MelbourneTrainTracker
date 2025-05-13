@@ -17,6 +17,9 @@ private:
     static const httpd_uri_t kSetDriverState;
     static esp_err_t setDriverState(httpd_req_t* req);
 
+    static const httpd_uri_t kGetLEDBuffer;
+    static esp_err_t getLEDBuffer(httpd_req_t* req);
+
     static httpd_handle_t m_server;
     static const httpd_uri_t* kHandlers[];
 

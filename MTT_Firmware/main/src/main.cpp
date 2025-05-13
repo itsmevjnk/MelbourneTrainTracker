@@ -24,8 +24,10 @@ void update() {
     time_t now; time(&now);
     if (Services::updateStates(now)) { // update available
         ESP_ERROR_CHECK(LEDMatrix::fill(kOff)); // clear
+        LEDMatrix::acquireBuffer();
         Services::showAllStates(now);
         LEDMatrix::update();
+        LEDMatrix::releaseBuffer();
         ESP_LOGI(kTag, "updated LED matrix, minimum free heap size: %lu bytes", esp_get_minimum_free_heap_size()); // log to detect excessive RAM usage
     }
     Services::release();

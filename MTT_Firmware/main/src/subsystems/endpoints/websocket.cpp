@@ -30,7 +30,7 @@ void WebServer::sendLEDBufferWorker(void* arg) {
 esp_err_t WebServer::sendLEDBufferAsync() {
     /* get all FDs of connected clients */
     int clientFDs[CONFIG_LWIP_MAX_LISTENING_TCP];
-    size_t fds;
+    size_t fds = CONFIG_LWIP_MAX_LISTENING_TCP;
     ESP_RETURN_ON_ERROR(httpd_get_client_list(m_server, &fds, clientFDs), kTag, "cannot obtain client list");
 
     for (size_t i = 0; i < fds; i++) {

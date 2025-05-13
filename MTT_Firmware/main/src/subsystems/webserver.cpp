@@ -11,8 +11,9 @@ httpd_handle_t WebServer::m_server = NULL;
 #endif
 
 const httpd_uri_t* WebServer::kHandlers[] = {
-    &WebServer::kGetDriverState, &WebServer::kSetDriverState,
-    &WebServer::kGetLEDBuffer
+    &kGetDriverState, &kSetDriverState,
+    &kGetLEDBuffer,
+    &kLEDBufferWS
 };
 
 mdns_txt_item_t WebServer::kMDNSServiceTXT[] = {

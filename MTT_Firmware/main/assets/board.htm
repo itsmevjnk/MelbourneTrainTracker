@@ -20,6 +20,20 @@
             for (const [name, pos] of Object.entries(components)) {
                 board.innerHTML += `<div class="led" id="${name}" style="left:${pos[0]/423.5*100-2.3}cqw;top:${pos[1]/423.5*100-5.75}cqw;"></div>`;
             }
+            const rows = [3 * 6, 3 * 6, 3 * 6, 3 * 6, 3 * 6, 3 * 6, 3 * 6, 3 * 4];
+            const chipOffsets = [0]; for (let i = 1; i < 8; i++) chipOffsets.push(chipOffsets[chipOffsets.length - 1] + rows[i - 1]);
+            const offset = (chip, col, row) => chipOffsets[chip] + rows[chip] * col + row * 3;
+            const ledOffsets = {"D514":offset(7,11,3),"D515":offset(7,9,3)};
+            for (const [col, led] of Object.entries([505, 511, 517, 523, 529, 535, 541, 547, 553, 559, 565, 571])) {
+                for (let i = 0; i < 3; i++) ledOffsets[`D${led+i}`] = offset(7,col*1,i);
+            }
+            for (let chip = 0; chip < 7; chip++) {
+                for (let col = 0; col < 12; col++) {
+                    for (let row = 0; row < 6; row++) ledOffsets[`D${chip*72+col*6+row+1}`] = offset(chip, col, row);
+                }
+            }
+            delete ledOffsets['D470'];
+            // TODO: get buffer from WebSockets
         </script>
     </body>
 </html>

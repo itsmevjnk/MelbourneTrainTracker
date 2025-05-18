@@ -29,7 +29,11 @@
             }
             for (let chip = 0; chip < 7; chip++) {
                 for (let col = 0; col < 12; col++) {
-                    for (let row = 0; row < 6; row++) ledOffsets[`D${chip*72+col*6+row+1}`] = offset(chip, col, row);
+                    for (let row = 0; row < 6; row++) {
+                        let index = ((chip == 5) ? 357 : (chip*72+1))+col*6+row;
+                        if (chip == 4 && index >= 357 && index <= 360) index = index - 357 + 429;
+                        ledOffsets[`D${index}`] = offset(chip, col, row);
+                    }
                 }
             }
             delete ledOffsets['D470'];

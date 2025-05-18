@@ -35,6 +35,8 @@ private:
 
     static const StaticData kBoardImage;
     static const httpd_uri_t kGetBoardImage;
+    static const StaticData kBoardView;
+    static const httpd_uri_t kGetBoardView;
 
     static httpd_handle_t m_server;
     static const httpd_uri_t* kHandlers[];

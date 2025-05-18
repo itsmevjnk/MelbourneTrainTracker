@@ -26,3 +26,17 @@ const httpd_uri_t WebServer::kGetBoardImage = {
     .handler = serveStaticData,
     .user_ctx = (void*)&kBoardImage
 };
+
+extern const uint8_t board_htm_start[] asm("_binary_board_htm_start");
+extern const uint8_t board_htm_end[] asm("_binary_board_htm_end");
+const WebServer::StaticData WebServer::kBoardView = {
+    board_htm_start,
+    (uintptr_t)board_htm_end - (uintptr_t)board_htm_start,
+    "text/html"
+};
+const httpd_uri_t WebServer::kGetBoardView = {
+    .uri = "/board.htm",
+    .method = HTTP_GET,
+    .handler = serveStaticData,
+    .user_ctx = (void*)&kBoardView
+};

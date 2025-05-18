@@ -6,7 +6,7 @@
         <style>
             body { margin:0; }
             #board { background-image:url('board.jpg');background-size:contain;background-repeat:no-repeat;width:100%;height:0;padding-top:92.6644%; }
-            #board .led { background-color:#000;width:calc(2/423.5*100cqw);height:calc(2/423.5*100cqw);position:absolute; }
+            #board .led { background-color:#000;width:calc(2/423.5*100cqw);height:calc(2/423.5*100cqw);position:absolute;border:1px solid white; }
         </style>
     </head>
 
@@ -21,7 +21,7 @@
                 board.innerHTML += `<div class="led" id="${name}" style="left:${pos[0]/423.5*100-2.3}cqw;top:${pos[1]/423.5*100-5.75}cqw;"></div>`;
             }
             const rows = [3 * 6, 3 * 6, 3 * 6, 3 * 6, 3 * 6, 3 * 6, 3 * 6, 3 * 4];
-            const chipOffsets = [0]; for (let i = 1; i < 8; i++) chipOffsets.push(chipOffsets[chipOffsets.length - 1] + rows[i - 1]);
+            const chipOffsets = [0]; for (let i = 1; i < 8; i++) chipOffsets.push(chipOffsets[chipOffsets.length - 1] + 12 * rows[i - 1]);
             const offset = (chip, col, row) => chipOffsets[chip] + rows[chip] * col + row * 3;
             const ledOffsets = {"D514":offset(7,11,3),"D515":offset(7,9,3)};
             for (const [col, led] of Object.entries([505, 511, 517, 523, 529, 535, 541, 547, 553, 559, 565, 571])) {
@@ -33,7 +33,25 @@
                 }
             }
             delete ledOffsets['D470'];
-            // TODO: get buffer from WebSockets
+            const socket = new WebSocket(`ws://${window.location.hostname}/ws/buffer`);
+            const colours = {
+                "160,5,10": "#f178af",
+                "0,128,0": "#028430",
+                "24,24,128": "#279fd5",
+                "0,0,128": "#152c6b",
+                "128,64,0": "#ffbe00",
+                "128,0,0": "#be1014",
+                "96,96,96": "#95979a",
+                "64,0,128": "#7f0d82",
+                "0,0,0": "black"
+            }; // colour map
+            socket.onmessage = async (event) => {
+                const buf = new Uint8Array(await event.data.arrayBuffer());
+                for (const [led, offset] of Object.entries(ledOffsets)) {
+                    const rgb = `${buf[offset]},${buf[offset+1]},${buf[offset+2]}`;
+                    document.getElementById(led).style.backgroundColor = colours[rgb] || `rgb(${rgb})`;
+                }
+            };
         </script>
     </body>
 </html>

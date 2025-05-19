@@ -1,3 +1,6 @@
+#define USING_TIM_DIV256 true // we don't need accurate timers here (since we're just using this to blink LEDs)
+#include "ESP8266TimerInterrupt.h" // https://github.com/khoih-prog/ESP8266TimerInterrupt
+
 #include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
 #include <Preferences.h>
@@ -12,6 +15,14 @@ volatile uint32_t sensorActivateTime;
 void ICACHE_RAM_ATTR onSensorActivation() {
   sensorActivated = true;
   sensorActivateTime = millis();
+}
+
+ESP8266Timer timer;
+bool blinkState = false;
+void IRAM_ATTR onBlinkTimer() {
+  digitalWrite(LED_ACTY, blinkState);
+  digitalWrite(LED_STATE, !blinkState);
+  blinkState = !blinkState;
 }
 
 Preferences prefs;
@@ -80,6 +91,11 @@ uint32_t readIntegerInput() {
 #define DEFAULT_DURATION                      30 // default sensor activation duration (from last trigger)
 
 void configPrefs() {
+  if (!timer.attachInterruptInterval(500 * 1000, onBlinkTimer)) {
+    Serial.println("Cannot set up blink timer - halting");
+    while (true);
+  }
+
   if (!prefs.begin(PREFS_NAMESPACE, false)) {
     Serial.println("Cannot open preferences namespace " PREFS_NAMESPACE " in RW mode - halting");
     while (true); // fatal error
@@ -154,6 +170,9 @@ void configPrefs() {
     Serial.println("Cannot open preferences namespace " PREFS_NAMESPACE " in RO mode - halting");
     while (true); // fatal error
   }
+
+  timer.detachInterrupt();
+  digitalWrite(LED_ACTY, HIGH); digitalWrite(LED_STATE, HIGH);
 }
 
 char url[4 + 3 + 64 + 7 + 3 + 1] = "http://" DEFAULT_HOST; // http://[address]/driver?s=(0/1)

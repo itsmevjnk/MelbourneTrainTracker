@@ -1,5 +1,7 @@
 #include <ESP8266WiFi.h>
+#include <ESP8266HTTPClient.h>
 #include <Preferences.h>
+#include <mDNSResolver.h> // https://github.com/lbussy/mDNSResolver
 
 #define LED_ACTY                  D4 // activity LED
 #define LED_STATE                 D3 // sensing state LED
@@ -46,6 +48,8 @@ size_t readStringInput(char* buf, size_t len) {
   return offset;
 }
 
+#define DEFAULT_HOST                          "melbtrains.local" // default tracker address (IP address/mDNS hostname)
+
 void configPrefs() {
   if (!prefs.begin(PREFS_NAMESPACE, false)) {
     Serial.println("Cannot open preferences namespace " PREFS_NAMESPACE " in RW mode - halting");
@@ -90,12 +94,34 @@ void configPrefs() {
     while (true);
   }
 
+  /* tracker hostname */
+  bufLength = prefs.getBytesLength("host");
+  strcpy(stringBuf, DEFAULT_HOST);
+  if (bufLength > 0 && bufLength <= sizeof(stringBuf)) {
+    if (!prefs.getBytes("host", stringBuf, bufLength))
+      Serial.println("Error reading tracker address, using default value.");
+  }
+  else Serial.println("Tracker address is not set, using default value.");
+  Serial.print("The currently set tracker address/hostname is: "); Serial.println(stringBuf);
+  Serial.print("Enter the tracker address (for mDNS hostname, enter the hostname followed by .local): ");
+  bufLength = readStringInput(stringBuf, sizeof(stringBuf));
+  if (!prefs.putBytes("host", stringBuf, bufLength + 1)) { // write terminator char too
+    Serial.println("Cannot write tracker address - halting");
+    while (true);
+  }
+
   prefs.end();
   if (!prefs.begin(PREFS_NAMESPACE, true)) {
     Serial.println("Cannot open preferences namespace " PREFS_NAMESPACE " in RO mode - halting");
     while (true); // fatal error
   }
 }
+
+char url[4 + 3 + 64 + 7 + 3 + 1] = "http://" DEFAULT_HOST; // http://[address]/driver?s=(0/1)
+size_t urlQueryOffset; // offset to insert state
+
+WiFiUDP udp;
+mDNSResolver::Resolver resolver(udp);
 
 void setup() {
   // put your setup code here, to run once:
@@ -138,6 +164,36 @@ readConfig:
     Serial.print('.');
   }
   Serial.println("done.");
+  Serial.print("Local IP address: "); Serial.println(WiFi.localIP());
+  resolver.setLocalIP(WiFi.localIP());
+
+  bufLength = prefs.getBytesLength("host");
+  char* address = &url[7];
+  if (bufLength > 0 && bufLength <= 64) {
+    if (!prefs.getBytes("host", address, bufLength)) 
+      Serial.println("Cannot read tracker address - using default value");
+  }
+  else Serial.println("Tracker address is not set - using default value");
+
+  bufLength = strlen(address); // reuse for address length
+  if (bufLength > 6 && !strcmp(&address[bufLength - 6], ".local")) { // mDNS hostname detected
+    Serial.print("Resolving mDNS hostname "); Serial.print(address); Serial.print("...");
+    while (true) {
+      IPAddress ip = resolver.search(address);
+      if (ip == INADDR_NONE) {
+        Serial.print('.');
+        delay(1000); // try again
+        continue;
+      }
+
+      strcpy(address, ip.toString().c_str()); // copy IP address to address field
+      Serial.print("done ("); Serial.print(address); Serial.println(')');
+      break;
+    }
+  }
+  strcpy(&url[strlen(url)], "/driver?s=0"); // add API endpoint
+  Serial.print("API endpoint: "); Serial.println(url);
+  urlQueryOffset = strlen(url) - 1; // last character (0/1) - see above
 
   digitalWrite(LED_STATE, LOW);
 
@@ -148,13 +204,42 @@ readConfig:
 
 bool state = false; // sensing state (timed)
 uint32_t stateUpdate;
+bool update = true; // set when it's time to update driver state
+
+WiFiClient client;
+HTTPClient http;
 
 void loop() {
-  // put your main code here, to run repeatedly:
+  resolver.loop();
+
   if (sensorActivated) {
     Serial.print("Sensor activated at "); Serial.println(sensorActivateTime);
     sensorActivated = false;
-    state = true;
+    if (!state) update = true; // only update on state change
+    state = true; digitalWrite(LED_STATE, HIGH);
     stateUpdate = sensorActivateTime;
+  }
+
+  if (state && millis() - stateUpdate > 30000) {
+    state = false; digitalWrite(LED_STATE, LOW);
+    update = true;
+  }
+
+  if (update) {
+    digitalWrite(LED_ACTY, HIGH);
+    url[urlQueryOffset] = (state) ? '1' : '0';
+    http.begin(client, url);
+    Serial.print("Updating LED driver state ("); Serial.print(url); Serial.print(")...");
+    int httpCode = http.POST("");
+    if (httpCode <= 0) {
+      Serial.print("failed ("); Serial.print(http.errorToString(httpCode)); Serial.println(").");
+    } else if (httpCode == HTTP_CODE_OK) {
+      Serial.println("done.");
+    } else {
+      Serial.print("failed (HTTP "); Serial.print(httpCode); Serial.println(").");
+    }
+    http.end();
+    update = false;
+    digitalWrite(LED_ACTY, LOW);
   }
 }

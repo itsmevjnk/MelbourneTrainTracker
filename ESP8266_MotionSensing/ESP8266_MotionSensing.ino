@@ -48,7 +48,36 @@ size_t readStringInput(char* buf, size_t len) {
   return offset;
 }
 
+uint32_t readIntegerInput() {
+  uint32_t value = 0;
+  size_t chars = 0;
+  while (true) {
+    while (!Serial.available()); // wait until there's a character
+    char c = Serial.read(); 
+    switch (c) {
+      case '\b': // backspace
+        if (chars > 0) {
+          value /= 10;
+          chars--;
+          Serial.print("\b \b"); // clear character
+        }
+        break;
+      case '\n': // new line - terminate
+        Serial.println();
+        return value;
+      default:
+        if (c >= '0' && c <= '9') {
+          value = value * 10 + (c - '0');
+          Serial.write(c);
+          chars++;
+        }
+        break;
+    }
+  }
+}
+
 #define DEFAULT_HOST                          "melbtrains.local" // default tracker address (IP address/mDNS hostname)
+#define DEFAULT_DURATION                      30 // default sensor activation duration (from last trigger)
 
 void configPrefs() {
   if (!prefs.begin(PREFS_NAMESPACE, false)) {
@@ -110,6 +139,16 @@ void configPrefs() {
     while (true);
   }
 
+  /* activation duration */
+  uint32_t duration = prefs.getUInt("dur", DEFAULT_DURATION);
+  Serial.print("The currently set sensor activation duration is: "); Serial.print(duration); Serial.println(" sec");
+  Serial.print("Enter the sensor activation duration in seconds: ");
+  duration = readIntegerInput();
+  if (!prefs.putUInt("dur", duration)) {
+    Serial.println("Cannot write sensor activation duration - halting");
+    while (true);
+  }
+
   prefs.end();
   if (!prefs.begin(PREFS_NAMESPACE, true)) {
     Serial.println("Cannot open preferences namespace " PREFS_NAMESPACE " in RO mode - halting");
@@ -122,6 +161,8 @@ size_t urlQueryOffset; // offset to insert state
 
 WiFiUDP udp;
 mDNSResolver::Resolver resolver(udp);
+
+uint32_t activationDuration; // activation duration - in milliseconds
 
 void setup() {
   // put your setup code here, to run once:
@@ -156,6 +197,8 @@ readConfig:
     Serial.println("Cannot read Wi-Fi password - entering config mode");
     prefs.end(); configPrefs(); goto readConfig;
   }
+
+  activationDuration = prefs.getUInt("dur", DEFAULT_DURATION) * 1000;
 
   WiFi.begin(wifiSSID, (wifiPassword[0] == '\0') ? NULL : wifiPassword); // open network if password is empty
   Serial.print("Connecting to Wi-Fi SSID "); Serial.print(wifiSSID); Serial.print("...");
@@ -220,7 +263,8 @@ void loop() {
     stateUpdate = sensorActivateTime;
   }
 
-  if (state && millis() - stateUpdate > 30000) {
+  if (state && millis() - stateUpdate > activationDuration) {
+    Serial.println("Deactivating sensor");
     state = false; digitalWrite(LED_STATE, LOW);
     update = true;
   }

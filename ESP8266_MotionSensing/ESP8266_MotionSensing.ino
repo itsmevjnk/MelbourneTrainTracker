@@ -200,6 +200,18 @@ readConfig:
 
   activationDuration = prefs.getUInt("dur", DEFAULT_DURATION) * 1000;
 
+  Serial.println("Press any key within the next 3 seconds to enter config mode...");
+  uint32_t tStart = millis();
+  while (millis() - tStart <= 3000) {
+    if (Serial.available()) {
+      delay(500); // in case there's any more stuff (e.g. \r\n)
+      while (Serial.available()) Serial.read(); // flush serial buffer
+      prefs.end(); configPrefs(); goto readConfig;
+    }
+  }
+
+  digitalWrite(LED_STATE, LOW);
+
   WiFi.begin(wifiSSID, (wifiPassword[0] == '\0') ? NULL : wifiPassword); // open network if password is empty
   Serial.print("Connecting to Wi-Fi SSID "); Serial.print(wifiSSID); Serial.print("...");
   while (WiFi.status() != WL_CONNECTED) {
@@ -237,8 +249,6 @@ readConfig:
   strcpy(&url[strlen(url)], "/driver?s=0"); // add API endpoint
   Serial.print("API endpoint: "); Serial.println(url);
   urlQueryOffset = strlen(url) - 1; // last character (0/1) - see above
-
-  digitalWrite(LED_STATE, LOW);
 
   attachInterrupt(digitalPinToInterrupt(PIR_OUTPUT), onSensorActivation, RISING);
 

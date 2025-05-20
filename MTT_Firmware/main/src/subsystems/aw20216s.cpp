@@ -75,6 +75,7 @@ esp_err_t AW20216S::init() {
     vTaskDelay(3 / portTICK_PERIOD_MS); // docs said we need to wait for at least 2 msec, but let's wait for 3
     
     /* configure chip - adapted from QMK AW20216S driver */
+    writeSingle(AW20216S_REG_PCCR, 0b10); // PSEL = 11 (three-phase mode) - to reduce ripple
     writeSingle(AW20216S_REG_GCCR, 150); // set global maximum current
     uint8_t scaling[216]; memset(scaling, 150, sizeof(scaling)); ESP_RETURN_ON_ERROR(write(AW20216S_REG_SL(0), sizeof(scaling), scaling), m_tag, "cannot initialise SLx"); // set scaling regs
     writeSingle(AW20216S_REG_GCR, 0b10110001); // SW1-12 active, OSDE=0, CHIPEN=1 - enable chip

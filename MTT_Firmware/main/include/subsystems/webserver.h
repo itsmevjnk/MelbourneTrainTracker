@@ -31,6 +31,15 @@ private:
     static esp_err_t wsLEDBuffer(httpd_req_t* req);
     static void sendLEDBufferWorker(void* arg); // worker function called by httpd
 
+    static size_t getLinesString(char* result, size_t resultLen);
+
+    static const httpd_uri_t kGetLines;
+    static esp_err_t getLines(httpd_req_t* req);
+
+    static const httpd_uri_t kEnableLines;
+    static const httpd_uri_t kDisableLines;
+    static esp_err_t setLines(httpd_req_t* req);
+
     static esp_err_t serveStaticData(httpd_req_t* req);
 
     static const StaticData kBoardImage;

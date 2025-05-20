@@ -14,6 +14,7 @@ const httpd_uri_t* WebServer::kHandlers[] = {
     &kGetDriverState, &kSetDriverState,
     &kGetLEDBuffer,
     &kLEDBufferWS,
+    &kGetLines, &kEnableLines, &kDisableLines,
     &kGetBoardImage, &kGetBoardView, &kGetIndex, &kGetRoot
 };
 
@@ -33,11 +34,12 @@ esp_err_t WebServer::init(const char* hostname, const char* instance) {
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
     config.server_port = HTTP_PORT;
     config.lru_purge_enable = true;
+    config.max_uri_handlers = sizeof(kHandlers) / sizeof(httpd_uri_t*);
 
     ESP_RETURN_ON_ERROR(httpd_start(&m_server, &config), kTag, "cannot initialise HTTP server");
 
     /* register URI handlers */
-    for (size_t i = 0; i < sizeof(kHandlers) / sizeof(httpd_uri_t*); i++) {
+    for (size_t i = 0; i < config.max_uri_handlers; i++) {
         ESP_RETURN_ON_ERROR(
             httpd_register_uri_handler(m_server, kHandlers[i]),
             kTag, "cannot register URI handler for %s type %d", kHandlers[i]->uri, kHandlers[i]->method

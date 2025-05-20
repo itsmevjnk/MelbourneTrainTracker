@@ -27,6 +27,7 @@ public:
 
     inline time_t getTimestamp() const { return m_time; }
     inline bool isInTransit() const { return m_nextStation != 0; }
+    inline infraid_t getLine() const { return m_line; }
 
     void printInfo() const; // dump information
 
@@ -68,7 +69,10 @@ public:
         return updateStates(now);
     }
 
-    static void showAllStates(time_t now); 
+    static void showAllStates(time_t now, uint32_t lines);
+    static inline void showAllStates(time_t now) {
+        showAllStates(now, m_lines);
+    }
     static inline void showAllStates() {
         time_t now; time(&now);
         showAllStates(now);
@@ -77,6 +81,16 @@ public:
     static void printInfo(); // dump all states and updates
     static void printInfoWithoutMutex(); // for use in crashes
 
+    static uint32_t getLineBitmask(infraid_t line);
+
+    static const infraid_t kLineIDs[]; // line IDs to match with m_lines flag
+    static const size_t kNumLines;
+
+    static inline uint32_t getEnabledLines() { return m_lines; }
+    static esp_err_t enableLine(infraid_t line);
+    static esp_err_t disableLine(infraid_t line);
+    static inline void enableAllLines() { m_lines = kAllLines; }
+    static inline void disableAllLines() { m_lines = 0; }
 private:
     static const char* kTag;
 
@@ -106,4 +120,7 @@ private:
     static StateUpdateQueue m_updates;
     static StateUpdateVector m_updatesBacking; // backing container for m_updates; this should not shrink in size (and will thus get the aggressive reserve() treatment)
     static StaticSemaphore_t m_updatesMutexBuf; static SemaphoreHandle_t m_updatesMutex;
+
+    static const uint32_t kAllLines;
+    static uint32_t m_lines;
 };

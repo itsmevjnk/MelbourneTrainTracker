@@ -83,11 +83,16 @@ bool Services::updateStates(time_t now) {
 
 const char* Services::kTag = "services";
 
-void Services::showAllStates(time_t now) {
+void Services::showAllStates(time_t now, uint32_t lines) {
     acquire();
 
     for (auto& [tripHash, state] : m_states) {
-        m_allStates[state].show(now);
+        const ServiceState& stateObj = m_allStates[state];
+
+        uint32_t mask = getLineBitmask(stateObj.getLine());
+        assert(mask);
+
+        if (lines & mask) stateObj.show(now);
     }
 
     release();    
@@ -154,4 +159,64 @@ void Services::printInfoWithoutMutex() {
 
 extern "C" void printServicesWithoutMutex() {
     Services::printInfoWithoutMutex();
+}
+
+const infraid_t Services::kLineIDs[] = {
+    /* metropolitan lines */
+    INFRAID_SHM,
+    INFRAID_MDD,
+    INFRAID_HBE,
+    INFRAID_CCL,
+    INFRAID_PKM,
+    INFRAID_CBE,
+    INFRAID_BEG,
+    INFRAID_LIL,
+    INFRAID_GWY,
+    INFRAID_ALM,
+    INFRAID_STY,
+    INFRAID_FKN,
+    INFRAID_WIL,
+    INFRAID_WER,
+    INFRAID_CGB,
+    INFRAID_SUY,
+    INFRAID_RCE,
+    INFRAID_UFD,
+
+    /* country lines */
+    INFRAID_ART, // Ararat
+    INFRAID_BAT, // Ballarat
+    INFRAID_MBY, // Maryborough
+
+    INFRAID_BDE, // Bairnsdale
+    INFRAID_TRN, // Traralgon
+    INFRAID_vPK, // Pakenham
+
+    INFRAID_GEL, // Geelong
+    INFRAID_WBL  // Warrnambool
+}; // line IDs to match with m_lines flag
+const size_t Services::kNumLines = (sizeof(kLineIDs) / sizeof(infraid_t));
+const uint32_t Services::kAllLines = (1 << kNumLines) - 1;
+uint32_t Services::m_lines = kAllLines; // all lines on by default
+
+uint32_t Services::getLineBitmask(infraid_t line) {
+    for (size_t i = 0; i < kNumLines; i++) {
+        if (line == kLineIDs[i]) return (1 << i);
+    }
+
+    ESP_LOGE(kTag, "invalid line ID " INFRAID2STR_FMT, INFRAID2STR(line));
+    return 0;
+}
+
+esp_err_t Services::enableLine(infraid_t line) {
+    uint32_t mask = getLineBitmask(line);
+    if (!mask) return ESP_ERR_INVALID_ARG;
+    m_lines |= mask;
+    return ESP_OK;
+}
+
+esp_err_t Services::disableLine(infraid_t line) {
+    uint32_t mask = getLineBitmask(line);
+    if (!mask) return ESP_ERR_INVALID_ARG;
+    m_lines &= ~mask;
+    return ESP_OK;
 }

@@ -40,3 +40,23 @@ const httpd_uri_t WebServer::kGetBoardView = {
     .handler = serveStaticData,
     .user_ctx = (void*)&kBoardView
 };
+
+extern const uint8_t index_htm_start[] asm("_binary_index_min_htm_start");
+extern const uint8_t index_htm_end[] asm("_binary_index_min_htm_end");
+const WebServer::StaticData WebServer::kIndex = {
+    index_htm_start,
+    (uintptr_t)index_htm_end - (uintptr_t)index_htm_start,
+    "text/html"
+};
+const httpd_uri_t WebServer::kGetIndex = {
+    .uri = "/index.htm",
+    .method = HTTP_GET,
+    .handler = serveStaticData,
+    .user_ctx = (void*)&kIndex
+};
+const httpd_uri_t WebServer::kGetRoot = {
+    .uri = "/",
+    .method = HTTP_GET,
+    .handler = serveStaticData,
+    .user_ctx = (void*)&kIndex
+};

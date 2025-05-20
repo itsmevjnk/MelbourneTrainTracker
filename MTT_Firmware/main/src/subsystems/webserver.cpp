@@ -14,7 +14,7 @@ const httpd_uri_t* WebServer::kHandlers[] = {
     &kGetDriverState, &kSetDriverState,
     &kGetLEDBuffer,
     &kLEDBufferWS,
-    &kGetBoardImage, &kGetBoardView
+    &kGetBoardImage, &kGetBoardView, &kGetIndex, &kGetRoot
 };
 
 mdns_txt_item_t WebServer::kMDNSServiceTXT[] = {

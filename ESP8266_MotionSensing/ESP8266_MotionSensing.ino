@@ -8,7 +8,7 @@
 
 #define LED_ACTY                  D4 // activity LED
 #define LED_STATE                 D3 // sensing state LED
-#define PIR_OUTPUT                D7 // HC-SR501 output pin (trigger time should be set to min)
+#define PIR_OUTPUT                D1 // HC-SR501 output pin (trigger time should be set to min)
 
 volatile bool sensorActivated = false;
 volatile uint32_t sensorActivateTime;

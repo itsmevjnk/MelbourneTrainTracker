@@ -40,10 +40,27 @@ const fetchUpdate = () => {
                 const tripID = update.trip.tripId;
                 const entries = {};
                 for (const entry of update.stopTimeUpdate) {
-                    entries[entry.stopSequence] = {
-                        arrival: new Date(entry.arrival.time.toNumber() * 1000),
-                        departure: new Date(entry.departure.time.toNumber() * 1000)
+                    let stopID;
+                    if (isNaN(entry.stopId)) { // 3-letter code
+                        const idSplit = entry.stopId.split(':');
+                        stopID = idSplit[idSplit.length - 1]; // e.g. vic:rail:SGS
+                    } else stopID = entry.stopId * 1;
+                    const outputEntry = { stop: stopID };
+                    if (entry.arrival) {
+                        outputEntry.arrival = new Date(entry.arrival.time.toNumber() * 1000);
+                        if (!entry.departure) outputEntry.departure = outputEntry.arrival;
                     }
+                    if (entry.departure) {
+                        outputEntry.departure = new Date(entry.departure.time.toNumber() * 1000);
+                        if (!entry.arrival) outputEntry.arrival = outputEntry.departure;
+                    }
+                    if (outputEntry.departure.getTime() < outputEntry.arrival.getTime()) {
+                        /* swap departure and arrival - not sure why this happens though */
+                        let t = outputEntry.departure;
+                        outputEntry.departure = outputEntry.arrival;
+                        outputEntry.arrival = t;
+                    }
+                    entries[entry.stopSequence] = outputEntry;
                 }
                 updates[tripID] = entries;
                 

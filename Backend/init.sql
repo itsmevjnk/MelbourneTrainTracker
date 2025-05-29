@@ -13,16 +13,12 @@ CREATE SCHEMA gtfs;
 
 ALTER SCHEMA gtfs OWNER TO postgres;
 
-CREATE SCHEMA ptvapi;
-
-ALTER SCHEMA ptvapi OWNER TO postgres;
-
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
 
 CREATE TABLE daily.timetable (
-    trip_id character varying(32) NOT NULL,
+    trip_id character varying(48) NOT NULL,
     line character(3) NOT NULL,
     seq integer NOT NULL,
     arrival timestamp with time zone NOT NULL,
@@ -83,24 +79,6 @@ CREATE TABLE gtfs.trips (
 
 ALTER TABLE gtfs.trips OWNER TO postgres;
 
-CREATE TABLE ptvapi.departures (
-    rtype integer NOT NULL,
-    ref text[],
-    line character varying(3) NOT NULL,
-    stop integer NOT NULL,
-    "time" timestamp with time zone NOT NULL
-);
-
-
-ALTER TABLE ptvapi.departures OWNER TO postgres;
-
-CREATE TABLE ptvapi.stops (
-    id integer NOT NULL,
-    name character varying(32) NOT NULL
-);
-
-ALTER TABLE ptvapi.stops OWNER TO postgres;
-
 ALTER TABLE ONLY daily.timetable
     ADD CONSTRAINT timetable_pkey PRIMARY KEY (trip_id, seq);
 
@@ -122,23 +100,11 @@ ALTER TABLE ONLY gtfs.timetable
 ALTER TABLE ONLY gtfs.trips
     ADD CONSTRAINT trips_pkey PRIMARY KEY (id);
 
-ALTER TABLE ONLY ptvapi.departures
-    ADD CONSTRAINT departures_pkey PRIMARY KEY (stop, "time", line);
-
-ALTER TABLE ONLY ptvapi.stops
-    ADD CONSTRAINT stops_pkey PRIMARY KEY (id);
-
 CREATE INDEX fki_stops_station ON gtfs.stops USING btree (station);
 
 CREATE INDEX fki_timetable_stop ON gtfs.timetable USING btree (stop_id);
 
 CREATE INDEX fki_trips_calendar ON gtfs.trips USING btree (calendar);
-
-CREATE INDEX fki_d ON ptvapi.stops USING btree (name);
-
-CREATE INDEX fki_stops_name ON ptvapi.stops USING btree (name);
-
-CREATE INDEX fki_stops_names ON ptvapi.stops USING btree (name);
 
 ALTER TABLE ONLY gtfs.stops
     ADD CONSTRAINT stops_station FOREIGN KEY (station) REFERENCES gtfs.stop_names(code);
@@ -152,5 +118,3 @@ ALTER TABLE ONLY gtfs.timetable
 ALTER TABLE ONLY gtfs.trips
     ADD CONSTRAINT trips_calendar FOREIGN KEY (calendar) REFERENCES gtfs.calendar(id);
 
-ALTER TABLE ONLY ptvapi.departures
-    ADD CONSTRAINT departures_stop FOREIGN KEY (stop) REFERENCES ptvapi.stops(id);

@@ -79,8 +79,8 @@ services:
       MQTT_PASSWORD: mtt_backend # default MQTT password (in the committed passwd file) - MQTT_PASSWORD_FILE will have precedence
       MQTT_PASSWORD_FILE: /run/secrets/mqtt_password
       MQTT_TOPIC: melbtrains
-      PTV_ID_FILE: /run/secrets/ptv_id
-      PTV_KEY_FILE: /run/secrets/ptv_key
+      # PTV_ID_FILE: /run/secrets/ptv_id
+      # PTV_KEY_FILE: /run/secrets/ptv_key
     healthcheck:
       interval: 1h
       start_period: 15m # it can take up to 5 mins to download and parse the GTFS dataset
@@ -108,7 +108,7 @@ secrets:
     file: ./mqtt_password.txt
   gtfs_key:
     file: ./gtfs_key.txt
-  ptv_id:
-    file: ./ptv_id.txt
-  ptv_key:
-    file: ./ptv_key.txt
+  # ptv_id:
+  #   file: ./ptv_id.txt
+  # ptv_key:
+  #   file: ./ptv_key.txt

@@ -4,4 +4,4 @@ node_modules/
 mqtt_config/
 *.txt
 .vscode/
-
+*.sh

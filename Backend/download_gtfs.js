@@ -8,7 +8,7 @@ const schedule = require('node-schedule');
 
 temp.track(); // automatically remove file on completion
 
-const GTFS_DATASET_URL = process.env.GTFS_DATASET_URL || 'https://opendata.transport.vic.gov.au/dataset/3f4e292e-7f8a-4ffe-831f-1953be0fe448/resource/e4966d78-dc64-4a1d-a751-2470c9eaf034/download/gtfs.zip';
+const GTFS_DATASET_URL = process.env.GTFS_DATASET_URL || 'https://opendata.transport.vic.gov.au/dataset/3f4e292e-7f8a-4ffe-831f-1953be0fe448/resource/120e70d2-2781-4123-9d09-ddf9434dbfd3/download/gtfs.zip';
 // const GTFS_DATASET_URL = 'http://192.168.42.69/gtfs.zip';
 
 const createProgressStream = (length) => {
@@ -531,19 +531,20 @@ const updateGTFS = () => {
     const db = database.db;
 
     return download().then((data) => {
-        const stops = [];
+        const stopsDict = {};
         const stopIDs = [];
         const stopNames = [];
         for (const [key, value] of Object.entries(data.stops)) {
             stopNames.push({ code: key, name: value.name });
             for (const id of value.ids) {
-                stops.push({
-                    id: id,
-                    station: key
-                });
+                stopsDict[id] = key;
                 stopIDs.push(id);
             }
         }
+        const stops = Object.entries(stopsDict).map(([key, value]) => ({
+            id: key,
+            station: value
+        }));
 
         console.log('Updating database.');
         return Promise.all([

@@ -3,8 +3,8 @@
 const gtfs = require('gtfs-realtime-bindings');
 const secret = require('./secret');
 
-const UPDATE_API_URL = process.env.UPDATE_API_URL || 'https://data-exchange-api.vicroads.vic.gov.au/opendata/v1/gtfsr/metrotrain-tripupdates';
-const ALERT_API_URL = process.env.ALERT_API_URL || 'https://data-exchange-api.vicroads.vic.gov.au/opendata/v1/gtfsr/metrotrain-servicealerts';
+const UPDATE_API_URL = process.env.UPDATE_API_URL || 'https://api.opendata.transport.vic.gov.au/opendata/public-transport/gtfs/realtime/v1/metro/trip-updates';
+const ALERT_API_URL = process.env.ALERT_API_URL || 'https://api.opendata.transport.vic.gov.au/opendata/public-transport/gtfs/realtime/v1/metro/service-alerts';
 const API_KEY = secret.read(process.env.API_KEY_FILE) || process.env.API_KEY;
 
 const fetchUpdate = () => {
@@ -12,15 +12,17 @@ const fetchUpdate = () => {
         fetch(UPDATE_API_URL, {
             method: 'GET',
             headers: {
-                'Cache-Control': 'no-cache',
-                'Ocp-Apim-Subscription-Key': API_KEY
+                // 'Cache-Control': 'no-cache',
+                'accept': '*/*',
+                'KeyId': API_KEY
             }
         }),
         fetch(ALERT_API_URL, {
             method: 'GET',
             headers: {
-                'Cache-Control': 'no-cache',
-                'Ocp-Apim-Subscription-Key': API_KEY
+                // 'Cache-Control': 'no-cache',
+                'accept': '*/*',
+                'KeyId': API_KEY
             }
         })
     ])

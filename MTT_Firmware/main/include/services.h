@@ -48,7 +48,9 @@ typedef std::pair<uint32_t, ServiceStateIndex> TaggedServiceStateIndex;
 class Services {
 public:
     /* acquire/release access to m_states - to be used by renderer */
-    static inline void acquire() { xSemaphoreTakeRecursive(m_statesMutex, portMAX_DELAY); }
+    static inline void acquire() {
+        while (!xSemaphoreTakeRecursive(m_statesMutex, portMAX_DELAY));
+    }
     static inline void release() { xSemaphoreGiveRecursive(m_statesMutex); }
     
     using StatesDict = std::map<uint32_t, ServiceStateIndex>;

@@ -6,6 +6,7 @@
 #include "subsystems/ntp.h"
 #include "subsystems/mqtt.h"
 #include "subsystems/webserver.h"
+#include "subsystems/gtfsr.h"
 
 #include "message.h"
 #include "services.h"
@@ -79,9 +80,11 @@ runCLI:
 
     ESP_ERROR_CHECK(NTP::init(Config::getTimeServer()));
 
-    ESP_ERROR_CHECK(MQTT::init(Config::getMQTTBroker()));
+    // ESP_ERROR_CHECK(MQTT::init(Config::getMQTTBroker()));
 
     ESP_ERROR_CHECK(WebServer::init(Config::getMDNSHostname(), Config::getMDNSInstanceName()));
+
+    ESP_ERROR_CHECK(GTFSR::init(Config::getAPIKey()));
 
     ESP_LOGI(kTag, "init end"); ESP_ERROR_CHECK(StatusLED::actyOff());
 
@@ -90,7 +93,12 @@ runCLI:
 #endif
 
     while (true) {
-        update();
-        vTaskDelay(CONFIG_UPDATE_INTERVAL / portTICK_PERIOD_MS);
+        GTFSR::getMetroTripUpdates([](){});
+        vTaskDelay(pdMS_TO_TICKS(30000));
     }
+
+    // while (true) {
+    //     update();
+    //     vTaskDelay(CONFIG_UPDATE_INTERVAL / portTICK_PERIOD_MS);
+    // }
 }

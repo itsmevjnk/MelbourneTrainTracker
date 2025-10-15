@@ -26,6 +26,9 @@ public:
     static const char* getTimeServer();
     static const char* getMQTTBroker();
 
+    /* get API config */
+    static const char* getAPIKey();
+
     /* get mDNS config */
     static const char* getMDNSHostname();
     static const char* getMDNSInstanceName();
@@ -45,6 +48,9 @@ private:
     /* network address configuration */
     static char m_timeServer[64];
     static char m_mqttBroker[64];
+
+    /* API configuration */
+    static char m_apiKey[37]; // base64 string
 
     /* mDNS configuration */
     static char m_mdnsHostname[32];
@@ -86,6 +92,9 @@ private:
 
     static esp_console_cmd_t kSetMDNSCommand;
     static esp_err_t cliSetMDNS(int argc, char** argv);
+
+    static esp_console_cmd_t kSetAPIKeyCommand;
+    static esp_err_t cliSetAPIKey(int argc, char** argv);
 
     /* utilities for CLI */
     static size_t readString(char* str, size_t maxSize);

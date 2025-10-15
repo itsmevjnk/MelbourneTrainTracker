@@ -411,6 +411,11 @@ CONFIG_PARTITION_TABLE_MD5=y
 #
 CONFIG_DEFAULT_TIME_SERVER="pool.ntp.org"
 CONFIG_DEFAULT_MQTT_BROKER="mqtt://melbtrains.mooo.com"
+CONFIG_METRO_UPDATES_FEED="https://api.opendata.transport.vic.gov.au/opendata/public-transport/gtfs/realtime/v1/metro/trip-updates"
+CONFIG_VLINE_UPDATES_FEED="https://api.opendata.transport.vic.gov.au/opendata/public-transport/gtfs/realtime/v1/vline/trip-updates"
+CONFIG_GTFSR_RESPBUF_INIT_LEN=65536
+CONFIG_GTFSR_RESPBUF_TEMP_LEN=4096
+CONFIG_GTFSR_RESPBUF_GROWTH=4096
 CONFIG_MSG_STATION_PAD=15
 CONFIG_PROMPT="config>"
 CONFIG_MAX_CMDLINE_LENGTH=128
@@ -586,7 +591,9 @@ CONFIG_ESP_TLS_USING_MBEDTLS=y
 # CONFIG_ESP_TLS_SERVER_CERT_SELECT_HOOK is not set
 # CONFIG_ESP_TLS_SERVER_MIN_AUTH_MODE_OPTIONAL is not set
 # CONFIG_ESP_TLS_PSK_VERIFICATION is not set
-# CONFIG_ESP_TLS_INSECURE is not set
+CONFIG_ESP_TLS_INSECURE=y
+CONFIG_ESP_TLS_SKIP_SERVER_CERT_VERIFY=y
+# TODO: server certificate verification so API keys cannot be stolen
 # end of ESP-TLS
 
 #

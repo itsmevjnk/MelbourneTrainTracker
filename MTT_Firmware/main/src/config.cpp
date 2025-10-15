@@ -57,6 +57,14 @@ esp_err_t Config::init() {
         // addrHandle.close();
     }
 
+    /* load API config */
+    NVSHandle gtfsHandle = NVS::open("api", NVS_READONLY);
+    if (gtfsHandle.isClosed()) {
+        ESP_LOGE(kTag, "cannot open API configuration from NVS");
+        return ESP_ERR_INVALID_STATE;
+    }
+    ESP_RETURN_ON_ERROR(gtfsHandle.getString("key", m_apiKey, sizeof(m_apiKey)), kTag, "cannot read GTFS-R API key");
+
     /* load mDNS config */
     NVSHandle mdnsHandle = NVS::open("mdns", NVS_READONLY);
     if (mdnsHandle.isClosed()) {
@@ -167,4 +175,10 @@ char Config::m_mdnsInstanceName[64] = CONFIG_DEFAULT_MDNS_INSTANCE_NAME;
 const char* Config::getMDNSInstanceName() {
     verifyInit();
     return m_mdnsInstanceName;
+}
+
+char Config::m_apiKey[37] = "";
+const char* Config::getAPIKey() {
+    verifyInit();
+    return m_apiKey;
 }

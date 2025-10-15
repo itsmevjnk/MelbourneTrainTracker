@@ -31,5 +31,9 @@ esp_err_t Config::cliShowConfig(int argc, char** argv) {
     printf(" - MQTT broker: %s\r\n", m_mqttBroker);
     printf("=================\r\n\r\n");
 
+    printf("API configuration:\r\n");
+    printf(" - GTFS Realtime API key: %s\r\n", m_apiKey);
+    printf("=================\r\n\r\n");
+
     return ESP_OK;
 }

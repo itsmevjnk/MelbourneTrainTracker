@@ -10,6 +10,36 @@ menu "Firmware Configuration"
         default "mqtt://melbtrains.mooo.com"
         help
             Sets the default MQTT broker address (including the schema) to use if it is not configured in the NVS.
+    
+    config METRO_UPDATES_FEED
+        string "Metro train trip updates URL"
+        default "https://api.opendata.transport.vic.gov.au/opendata/public-transport/gtfs/realtime/v1/metro/trip-updates"
+        help
+            Sets the GTFS Realtime feed URL for metropolitan train trip updates.
+    
+    config VLINE_UPDATES_FEED
+        string "V/Line train trip updates URL"
+        default "https://api.opendata.transport.vic.gov.au/opendata/public-transport/gtfs/realtime/v1/vline/trip-updates"
+        help
+            Sets the GTFS Realtime feed URL for regional (V/Line) train trip updates.
+
+    config GTFSR_RESPBUF_INIT_LEN
+        int "Initial GTFS Realtime API response buffer length"
+        default 65536
+        help
+            Sets the initial size for the GTFS Realtime API response buffer.
+    
+    config GTFSR_RESPBUF_GROWTH
+        int "GTFS Realtime API response buffer growth increment"
+        default 4096
+        help
+            Sets the GTFS Realtime API response buffer growth increment in bytes.
+
+    config GTFSR_RESPBUF_TEMP_LEN
+        int "GTFS Realtime API response fragment buffer length"
+        default 4096
+        help
+            Sets the GTFS Realtime API response fragment buffer length.
 
     config DEFAULT_MDNS_HOSTNAME
         string "Default mDNS hostname"

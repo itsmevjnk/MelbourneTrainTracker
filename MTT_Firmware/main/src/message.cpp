@@ -6,8 +6,8 @@
 const char* Message::kTag = "msg";
 
 /* padding duration (in seconds) after service departure at stations */
-#ifndef MSG_STATION_PAD
-#define MSG_STATION_PAD                         10
+#ifndef CONFIG_MSG_STATION_PAD
+#define CONFIG_MSG_STATION_PAD                         10
 #endif
 
 MessageEntry Message::m_entryFragment; // for holding fragmented entry
@@ -76,14 +76,14 @@ void Message::parseFragment(const char* data, int length, bool first) {
         assert(LSID::isValidLine(entry->line));
 
         if (entry->flags.isDeparture) { // departing station
-            time_t departTime = entry->timestamp + MSG_STATION_PAD;
+            time_t departTime = entry->timestamp + CONFIG_MSG_STATION_PAD;
             if (entry->flags.hasAdjacent) { // departing to another station
                 Services::insertUpdate(entry->tripHash, ServiceState(entry->line, departTime, entry->station, entry->adjTimestamp, entry->adjStation)); // in transit
             }
         } else { // arriving at station
             Services::insertUpdate(entry->tripHash, ServiceState(entry->line, entry->timestamp, entry->station)); // stopping
             if (entry->flags.hasAdjacent) { // arriving from another station
-                time_t departTime = entry->adjTimestamp + MSG_STATION_PAD;
+                time_t departTime = entry->adjTimestamp + CONFIG_MSG_STATION_PAD;
                 Services::insertUpdate(entry->tripHash, ServiceState(entry->line, departTime, entry->adjStation, entry->timestamp, entry->station)); // in transit state from previous station to this one
             }
         }

@@ -51,7 +51,7 @@ const size_t LEDMatrix::kNorthernOffsets[] = { LMAT_NORTHERN };
 const size_t LEDMatrix::kSandringhamOffsets[] = { LMAT_SANDRINGHAM };
 const size_t LEDMatrix::kVLineOffsets[] = { LMAT_VLINE };
 
-#ifdef LMAT_STRICT_COLOUR_CHECK
+#ifdef CONFIG_LMAT_STRICT_COLOUR_CHECK
 const uint8_t* LEDMatrix::m_expectedColours;
 #endif
 
@@ -61,7 +61,7 @@ SemaphoreHandle_t LEDMatrix::m_bufferMutex = xSemaphoreCreateRecursiveMutexStati
 esp_err_t LEDMatrix::init() {
     /* allocate framebuffer */
     m_buffer = new uint8_t[LMAT_SIZE];
-#ifdef LMAT_STRICT_COLOUR_CHECK
+#ifdef CONFIG_LMAT_STRICT_COLOUR_CHECK
     // populate expected colours buffer
     m_expectedColours = m_buffer;
     setMulti(kBurnleyOffsets, sizeof(kBurnleyOffsets) / sizeof(size_t), kBurnley);
@@ -83,7 +83,7 @@ esp_err_t LEDMatrix::init() {
     ESP_RETURN_ON_ERROR(enableDrivers(), kTag, "cannot enable driver output");
 
     /* initialise SPI buses */
-#if !defined(SPI3_ONLY)
+#if !defined(CONFIG_SPI3_ONLY)
     ESP_RETURN_ON_ERROR(spi_bus_initialize(
         SPI2_HOST,
         &kSPI2BusConfig,
@@ -110,7 +110,7 @@ esp_err_t LEDMatrix::init() {
     ), kTag, "SPI3 device add failed");
 
     /* initialise LED drivers */
-#if defined(SPI3_ONLY)
+#if defined(CONFIG_SPI3_ONLY)
 #define SPI_HANDLE(host)                spi3Handle
 #else
 #define SPI_HANDLE(host)                (((host) == SPI2_HOST) ? spi2Handle : spi3Handle) // macro to select SPI handle
@@ -140,7 +140,7 @@ esp_err_t LEDMatrix::set(size_t offset, colour_t colour) {
     m_buffer[LMAT_G(offset)] = (colour >> 8) & 0xFF; // green
     m_buffer[LMAT_B(offset)] = (colour >> 0) & 0xFF; // blue
 
-#ifdef LMAT_STRICT_COLOUR_CHECK
+#ifdef CONFIG_LMAT_STRICT_COLOUR_CHECK
     assert(colour == kOff || (!memcmp(&m_buffer[offset], &m_expectedColours[offset], 3)));
 #endif
 

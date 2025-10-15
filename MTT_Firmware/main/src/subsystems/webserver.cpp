@@ -6,8 +6,8 @@ const char* WebServer::kTag = "webserver";
 
 httpd_handle_t WebServer::m_server = NULL;
 
-#ifndef HTTP_PORT
-#define HTTP_PORT                           80
+#ifndef CONFIG_HTTP_PORT
+#define CONFIG_HTTP_PORT                           80
 #endif
 
 const httpd_uri_t* WebServer::kHandlers[] = {
@@ -27,12 +27,12 @@ esp_err_t WebServer::init(const char* hostname, const char* instance) {
     ESP_RETURN_ON_ERROR(mdns_init(), kTag, "cannot initialise mDNS service");
     mdns_hostname_set(hostname);
     if (instance) mdns_instance_name_set(instance);
-    ESP_RETURN_ON_ERROR(mdns_service_add(NULL, "_http", "_tcp", HTTP_PORT, kMDNSServiceTXT, sizeof(kMDNSServiceTXT) / sizeof(mdns_txt_item_t)), kTag, "cannot add HTTP service to mDNS");
+    ESP_RETURN_ON_ERROR(mdns_service_add(NULL, "_http", "_tcp", CONFIG_HTTP_PORT, kMDNSServiceTXT, sizeof(kMDNSServiceTXT) / sizeof(mdns_txt_item_t)), kTag, "cannot add HTTP service to mDNS");
 
     ESP_LOGI(kTag, "initialised mDNS service");
 
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
-    config.server_port = HTTP_PORT;
+    config.server_port = CONFIG_HTTP_PORT;
     config.lru_purge_enable = true;
     config.max_uri_handlers = sizeof(kHandlers) / sizeof(httpd_uri_t*);
 

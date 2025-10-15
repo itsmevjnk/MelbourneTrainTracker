@@ -1,23 +1,23 @@
 menu "Firmware Configuration"
-    config CONFIG_DEFAULT_TIME_SERVER
+    config DEFAULT_TIME_SERVER
         string "Default NTP time server"
         default "pool.ntp.org"
         help
             Sets the default NTP time server hostname/IP address to use if it is not configured in the NVS.
     
-    config CONFIG_DEFAULT_MQTT_BROKER
+    config DEFAULT_MQTT_BROKER
         string "Default MQTT broker address"
         default "mqtt://melbtrains.mooo.com"
         help
             Sets the default MQTT broker address (including the schema) to use if it is not configured in the NVS.
 
-    config CONFIG_DEFAULT_MDNS_HOSTNAME
+    config DEFAULT_MDNS_HOSTNAME
         string "Default mDNS hostname"
         default "melbtrains"
         help
             Sets the default mDNS hostname to use if it is not configured in the NVS.
     
-    config CONFIG_DEFAULT_MDNS_INSTANCE_NAME
+    config DEFAULT_MDNS_INSTANCE_NAME
         string "Default mDNS instance name"
         default "Melbourne Train Tracker"
         help
@@ -30,13 +30,13 @@ menu "Firmware Configuration"
         help
             Sets the duration to add to the received departure time of a service in seconds.
     
-    config CONFIG_PROMPT
+    config PROMPT
         string "Configuration CLI prompt"
         default "config>"
         help
             Sets the prompt string for the configuration CLI.
     
-    config CONFIG_MAX_CMDLINE_LENGTH
+    config MAX_CMDLINE_LENGTH
         int "Maximum configuration CLI command line length"
         range 0 512
         default 128

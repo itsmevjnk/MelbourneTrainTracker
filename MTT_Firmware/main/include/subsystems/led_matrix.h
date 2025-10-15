@@ -11,7 +11,7 @@
 
 #include "colours.h"
 
-// #define LMAT_STRICT_COLOUR_CHECK // TODO: remove this in prod
+// #define CONFIG_LMAT_STRICT_COLOUR_CHECK // TODO: remove this in prod
 
 class LEDMatrix {
 public:
@@ -68,7 +68,7 @@ private:
     static StaticSemaphore_t m_bufferMutexBuf;
     static SemaphoreHandle_t m_bufferMutex;
 
-#ifdef LMAT_STRICT_COLOUR_CHECK
+#ifdef CONFIG_LMAT_STRICT_COLOUR_CHECK
     static const uint8_t* m_expectedColours; // expected colours for each LED - basically a copy of m_buffer with all LEDs set to line colours
 #endif
 

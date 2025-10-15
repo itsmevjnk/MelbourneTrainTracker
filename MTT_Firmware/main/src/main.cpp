@@ -17,7 +17,7 @@ static const char* kTag = "main"; // for logging
 
 /* update LED states */
 void update() {
-#ifdef UPDATE_FLASH_LED
+#ifdef CONFIG_UPDATE_FLASH_LED
     StatusLED::actyOn();
 #endif
     Services::acquire();
@@ -32,13 +32,13 @@ void update() {
         ESP_LOGI(kTag, "updated LED matrix, minimum free heap size: %lu bytes", esp_get_minimum_free_heap_size()); // log to detect excessive RAM usage
     }
     Services::release();
-#ifdef UPDATE_FLASH_LED
+#ifdef CONFIG_UPDATE_FLASH_LED
     StatusLED::actyOff();
 #endif
 }
 
-#ifndef UPDATE_INTERVAL
-#define UPDATE_INTERVAL                 1000
+#ifndef CONFIG_UPDATE_INTERVAL
+#define CONFIG_UPDATE_INTERVAL                 1000
 #endif
 
 /* firmware entry point */
@@ -85,8 +85,12 @@ runCLI:
 
     ESP_LOGI(kTag, "init end"); ESP_ERROR_CHECK(StatusLED::actyOff());
 
+#ifdef CONFIG_SPI3_ONLY
+    ESP_LOGW(kTag, "CONFIG_SPI3_ONLY is set - all LED controllers are expected to be connected to SPI3 (which is NOT the stock configuration)");
+#endif
+
     while (true) {
         update();
-        vTaskDelay(UPDATE_INTERVAL / portTICK_PERIOD_MS);
+        vTaskDelay(CONFIG_UPDATE_INTERVAL / portTICK_PERIOD_MS);
     }
 }

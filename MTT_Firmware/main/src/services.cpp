@@ -124,15 +124,15 @@ void Services::clearAndReserve(ServiceStateIndex count) {
     release(); releaseUpdates();
 }
 
-#ifndef SERVICES_CAPACITY_GROWTH
-#define SERVICES_CAPACITY_GROWTH                    10
+#ifndef CONFIG_SERVICES_CAPACITY_GROWTH
+#define CONFIG_SERVICES_CAPACITY_GROWTH                    10
 #endif
 
 ServiceStateIndex Services::insertUpdate(uint32_t tripHash, ServiceState&& state) {
     acquire(); acquireUpdates();
     ServiceStateIndex index = m_allStatesCount;
     if (index == m_allStatesCapacity) {
-        m_allStatesCapacity += SERVICES_CAPACITY_GROWTH;
+        m_allStatesCapacity += CONFIG_SERVICES_CAPACITY_GROWTH;
         ESP_LOGW(kTag, "growing m_allStatesCapacity outside of reserved capacity to %u bytes - wrong estimate?",  m_allStatesCapacity * sizeof(ServiceState));
         m_allStates = (ServiceState*)realloc(m_allStates, m_allStatesCapacity * sizeof(ServiceState)); // we have to realloc to keep all states
         assert(m_allStates);

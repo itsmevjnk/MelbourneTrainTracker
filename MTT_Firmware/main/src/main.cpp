@@ -93,7 +93,9 @@ runCLI:
 #endif
 
     while (true) {
-        GTFSR::getMetroTripUpdates([](){});
+        GTFSR::getMetroTripUpdates([](GTFSR::trip_update_item_t *item) {
+            ESP_LOGI(kTag, "%s stopping at %d, stack watermark: %u", item->id, item->stop, uxTaskGetStackHighWaterMark(NULL));
+        });
         vTaskDelay(pdMS_TO_TICKS(30000));
     }
 

@@ -12,7 +12,7 @@
 #include <type_traits>
 
 #ifndef CONFIG_GTFSR_ID_BUFFER_LEN
-#define CONFIG_GTFSR_ID_BUFFER_LEN                  24
+#define CONFIG_GTFSR_ID_BUFFER_LEN                  48
 #endif
 
 class GTFSR {
@@ -127,10 +127,12 @@ private:
     static bool httpReadCallback(pb_istream_t *stream, pb_byte_t *buf, size_t count) {
         esp_http_client_handle_t client = (esp_http_client_handle_t)stream->state;
         size_t offset = 0;
-        
+
         int read;
         do {
-            read = esp_http_client_read(client, (char *)&buf[offset], count);
+            size_t len = count - offset;
+            // ESP_LOGI(kTag, "reading %u bytes at offset %u", len, offset);
+            read = esp_http_client_read(client, (char *)&buf[offset], len);
             if (read < 0) {
                 ESP_LOGE(kTag, "HTTP read error (%d)", read);
                 return false;

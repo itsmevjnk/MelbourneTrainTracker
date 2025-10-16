@@ -31,7 +31,7 @@ menu "Firmware Configuration"
 
     config GTFSR_STOPID_BUFFER_LEN
         int "Maximum GTFS-R stop ID buffer length"
-        default 16
+        default 20
         help
             Sets the number of bytes reserved for storing GTFS-R stop IDs.
     

@@ -16,7 +16,7 @@
 #endif
 
 #ifndef CONFIG_GTFSR_STOPID_BUFFER_LEN
-#define CONFIG_GTFSR_STOPID_BUFFER_LEN                  16
+#define CONFIG_GTFSR_STOPID_BUFFER_LEN                  20
 #endif
 
 #ifndef CONFIG_GTFSR_RESPBUF_LEN

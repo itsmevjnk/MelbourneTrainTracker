@@ -5,6 +5,10 @@ const char *GTFSR::kTag = "gtfs";
 esp_http_client_handle_t GTFSR::m_metroClient;
 esp_http_client_handle_t GTFSR::m_vlineClient;
 
+StaticTask_t GTFSR::m_taskBuffer;
+TaskHandle_t GTFSR::m_task;
+StackType_t GTFSR::m_taskStack[CONFIG_GTFSR_TASK_STACK_SIZE];
+
 esp_err_t GTFSR::init(const char *apiKey) {
     /* unitialise metro client */
     esp_http_client_config_t config = {
@@ -26,6 +30,9 @@ esp_err_t GTFSR::init(const char *apiKey) {
 
     /* initialise response buffer mutex */
     m_respMutex = xSemaphoreCreateMutexStatic(&m_respMutexBuf);
+
+    /* create update task */
+    m_task = xTaskCreateStatic(updateTask, "gtfs", CONFIG_GTFSR_TASK_STACK_SIZE, NULL, CONFIG_GTFSR_TASK_PRIORITY, m_taskStack, &m_taskBuffer);
 
     return ESP_OK;
 }
@@ -92,3 +99,22 @@ bool GTFSR::httpReadCallback(pb_istream_t *stream, pb_byte_t *buf, size_t count)
 
 // NOTE: templated functions must be defined in header file
 
+void GTFSR::updateTask(void *arg) {
+    while (true) {        
+        size_t count = 0;
+        auto onItem = [&](GTFSR::trip_update_item_t *item) {
+            ESP_LOGI(kTag, "trip ID %s stopping at stop ID %s", item->id, item->stop);
+            count++;
+        };
+
+        TickType_t t0 = xTaskGetTickCount();
+
+        GTFSR::getMetroTripUpdates(onItem);
+        GTFSR::getVLineTripUpdates(onItem);
+
+        TickType_t t1 = xTaskGetTickCount();
+
+        ESP_LOGI(kTag, "read %u trip updates in %u ms", count, pdTICKS_TO_MS(t1 - t0));
+        vTaskDelay(pdMS_TO_TICKS(CONFIG_GTFSR_INTERVAL * 1000));
+    }
+}

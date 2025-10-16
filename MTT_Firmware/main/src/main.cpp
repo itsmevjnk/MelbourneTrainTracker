@@ -92,18 +92,6 @@ runCLI:
     ESP_LOGW(kTag, "CONFIG_SPI3_ONLY is set - all LED controllers are expected to be connected to SPI3 (which is NOT the stock configuration)");
 #endif
 
-    while (true) {
-        size_t count = 0;
-        TickType_t t0 = xTaskGetTickCount();
-        GTFSR::getMetroTripUpdates([&](GTFSR::trip_update_item_t *item) {
-            // ESP_LOGI(kTag, "Trip ID %s stopping at stop ID %s", item->id, item->stop);
-            count++;
-        });
-        TickType_t t1 = xTaskGetTickCount();
-        ESP_LOGI(kTag, "read %u trip updates in %u ms", count, pdTICKS_TO_MS(t1 - t0));
-        vTaskDelay(pdMS_TO_TICKS(30000));
-    }
-
     // while (true) {
     //     update();
     //     vTaskDelay(CONFIG_UPDATE_INTERVAL / portTICK_PERIOD_MS);

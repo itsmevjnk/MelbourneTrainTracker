@@ -23,6 +23,18 @@
 #define CONFIG_GTFSR_RESPBUF_LEN                        1024
 #endif
 
+#ifndef CONFIG_GTFSR_TASK_STACK_SIZE
+#define CONFIG_GTFSR_TASK_STACK_SIZE                    16384
+#endif
+
+#ifndef CONFIG_GTFSR_TASK_PRIORITY
+#define CONFIG_GTFSR_TASK_PRIORITY                      8
+#endif
+
+#ifndef CONFIG_GTFSR_INTERVAL
+#define CONFIG_GTFSR_INTERVAL                           30
+#endif
+
 class GTFSR {
 public:
     static esp_err_t init(const char *apiKey);
@@ -160,6 +172,12 @@ private:
         xSemaphoreGive(m_respMutex);
         return ESP_OK;
     }
+
+    /* update task */
+    static StaticTask_t m_taskBuffer;
+    static TaskHandle_t m_task;
+    static StackType_t m_taskStack[CONFIG_GTFSR_TASK_STACK_SIZE];
+    static void updateTask(void *arg);
 
 public:
     template <typename F>

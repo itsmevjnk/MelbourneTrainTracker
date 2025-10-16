@@ -41,6 +41,25 @@ menu "Firmware Configuration"
         help
             Sets the GTFS-R response fragment buffer length in bytes.
 
+    config GTFSR_TASK_STACK_SIZE
+        int "GTFS-R update task stack size"
+        default 16384 
+        help
+            Sets the GTFS-R update task's stack size in bytes. This should be at least 8192 bytes.
+    
+    config GTFSR_TASK_PRIORITY
+        int "GTFS-R update task priority"
+        default 8
+        range 0 25
+        help
+            Sets the GTFS-R update task's priority level.
+    
+    config GTFSR_INTERVAL
+        int "GTFS-R update interval"
+        default 30
+        help
+            Sets the GTFS-R fetch interval in seconds.
+
     config DEFAULT_MDNS_HOSTNAME
         string "Default mDNS hostname"
         default "melbtrains"

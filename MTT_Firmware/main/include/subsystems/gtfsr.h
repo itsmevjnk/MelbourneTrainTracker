@@ -2,9 +2,9 @@
 
 #pragma once
 
-#include "esp_check.h"
 #include "esp_err.h"
 #include "esp_http_client.h"
+#include "esp_check.h"
 
 #include "nanopb/gtfs-realtime.pb.h"
 #include "nanopb/pb_decode.h"
@@ -32,15 +32,6 @@ private:
     /* HTTP client handles */
     static esp_http_client_handle_t m_metroClient;
     static esp_http_client_handle_t m_vlineClient;
-
-    static uint8_t *m_respBuffer;
-    static size_t m_respBufferLen;
-    static SemaphoreHandle_t m_respBufferMutex;
-    static StaticSemaphore_t m_respBufferMutexBuffer;
-    static size_t m_respLength;
-
-    static esp_err_t performRequest(esp_http_client_handle_t client); // perform request and put result in m_respBuffer
-    static esp_err_t clientEventHandler(esp_http_client_event_t *event);
 
     struct feed_entity_ctx {
         void *func; // item callback function
@@ -133,33 +124,55 @@ private:
         return true;
     }
 
+    static bool httpReadCallback(pb_istream_t *stream, pb_byte_t *buf, size_t count) {
+        esp_http_client_handle_t client = (esp_http_client_handle_t)stream->state;
+        size_t offset = 0;
+        
+        int read;
+        do {
+            read = esp_http_client_read(client, (char *)&buf[offset], count);
+            if (read < 0) {
+                ESP_LOGE(kTag, "HTTP read error (%d)", read);
+                return false;
+            }
+            offset += read;
+        } while (read > 0 || offset < count);
+
+        if (read == 0 && offset < count) {
+            ESP_LOGE(kTag, "premature EOF (read %u bytes, expecting %u bytes)", offset, count);
+            return false;
+        }
+
+        return true;
+    }
+
     template <typename F>
     static esp_err_t getTripUpdates(esp_http_client_handle_t client, F&& onItem) {
-        while (!xSemaphoreTakeRecursive(m_respBufferMutex, portMAX_DELAY));
+        ESP_RETURN_ON_ERROR(
+            esp_http_client_flush_response(client, NULL),
+            kTag, "cannot flush client response"
+        );
 
-        esp_err_t err;
-        if ((err = performRequest(m_metroClient)) != ESP_OK) {
-            ESP_LOGE(kTag, "cannot make request: %s\n", esp_err_to_name(err));
-            xSemaphoreGiveRecursive(m_respBufferMutex);
-            return err;
-        }
+        ESP_RETURN_ON_ERROR(esp_http_client_open(client, 0), kTag, "esp_http_client_open() failed");
+        int status = esp_http_client_fetch_headers(client);
+        ESP_RETURN_ON_FALSE(status >= 0, ESP_ERR_INVALID_RESPONSE, kTag, "esp_http_client_fetch_headers() failed (%d)", status);
+
 
         transit_realtime_FeedMessage message = transit_realtime_FeedMessage_init_zero;
         message.entity.arg = &onItem;
         message.entity.funcs.decode = &GTFSR::decodeFeedEntityCallback<std::decay_t<F>>;
 
-        pb_istream_t stream = pb_istream_from_buffer(m_respBuffer, m_respLength);
+        pb_istream_t stream = { &GTFSR::httpReadCallback, client, SIZE_MAX }; // custom stream
         while (stream.bytes_left > 0) {
             if (!pb_decode(&stream, transit_realtime_FeedMessage_fields, &message)) {
                 ESP_LOGE(kTag, "cannot decode FeedMessage (%s)", PB_GET_ERROR(&stream));
-                xSemaphoreGiveRecursive(m_respBufferMutex);
+                esp_http_client_close(client);
                 return ESP_ERR_INVALID_STATE;
             }
-
-            
         }
 
-        xSemaphoreGiveRecursive(m_respBufferMutex);
+        ESP_RETURN_ON_ERROR(esp_http_client_close(client), kTag, "esp_http_client_close() failed");
+
         return ESP_OK;
     }
 

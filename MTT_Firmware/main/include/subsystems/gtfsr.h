@@ -49,12 +49,12 @@ private:
     static SemaphoreHandle_t m_respMutex;
     static StaticSemaphore_t m_respMutexBuf;
 
-    struct feed_entity_ctx {
+    struct FeedEntityContext {
         void *func; // item callback function
         char id[CONFIG_GTFSR_TRIPID_BUFFER_LEN]; // trip ID
     }; // feed entity context for decodeStopTimeUpdateCallback
 
-    struct read_string_ctx {
+    struct ReadStringContext {
         char *buf;
         size_t buflen; // incl. null termination
     }; // context for readStringCallbacl
@@ -64,11 +64,11 @@ private:
     template <typename F>
     static bool decodeStopTimeUpdateCallback(pb_istream_t *stream, const pb_field_t *field, void **arg) {
         transit_realtime_TripUpdate_StopTimeUpdate update = transit_realtime_TripUpdate_StopTimeUpdate_init_zero;
-        struct feed_entity_ctx *ctx = (struct feed_entity_ctx *)*arg;
+        struct FeedEntityContext *ctx = (struct FeedEntityContext *)*arg;
 
         trip_update_item_t item = { ctx->id }; // trip ID from context (guaranteed to be in stack)
 
-        struct read_string_ctx stopid_ctx = { item.stop, CONFIG_GTFSR_STOPID_BUFFER_LEN };
+        struct ReadStringContext stopid_ctx = { item.stop, CONFIG_GTFSR_STOPID_BUFFER_LEN };
         update.stop_id.arg = &stopid_ctx;
         update.stop_id.funcs.decode = &GTFSR::readStringCallback;
 
@@ -90,12 +90,12 @@ private:
     static bool decodeFeedEntityCallback(pb_istream_t *stream, const pb_field_t *field, void **arg) {
         transit_realtime_FeedEntity entity = transit_realtime_FeedEntity_init_zero;
 
-        struct feed_entity_ctx ctx = {
+        struct FeedEntityContext ctx = {
             *arg // callback function passed from getTripUpdates
             // ID will be read by readTripIDCallback
         };
 
-        struct read_string_ctx tripid_ctx = { ctx.id, CONFIG_GTFSR_TRIPID_BUFFER_LEN };
+        struct ReadStringContext tripid_ctx = { ctx.id, CONFIG_GTFSR_TRIPID_BUFFER_LEN };
         entity.trip_update.trip.trip_id.arg = &tripid_ctx;
         entity.trip_update.trip.trip_id.funcs.decode = &GTFSR::readStringCallback;
 

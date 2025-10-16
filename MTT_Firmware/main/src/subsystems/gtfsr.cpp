@@ -39,7 +39,7 @@ SemaphoreHandle_t GTFSR::m_respMutex;
 StaticSemaphore_t GTFSR::m_respMutexBuf;
 
 bool GTFSR::readStringCallback(pb_istream_t *stream, const pb_field_t *field, void **arg) {
-    struct read_string_ctx *ctx = (struct read_string_ctx *)*arg;
+    struct ReadStringContext *ctx = (struct ReadStringContext *)*arg;
 
     size_t len = stream->bytes_left;
     if (len >= ctx->buflen) {

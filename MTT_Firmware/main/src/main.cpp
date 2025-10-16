@@ -93,9 +93,14 @@ runCLI:
 #endif
 
     while (true) {
-        GTFSR::getMetroTripUpdates([](GTFSR::trip_update_item_t *item) {
-            ESP_LOGI(kTag, "%s stopping at %d, stack watermark: %u", item->id, item->stop, uxTaskGetStackHighWaterMark(NULL));
+        size_t count = 0;
+        TickType_t t0 = xTaskGetTickCount();
+        GTFSR::getMetroTripUpdates([&](GTFSR::trip_update_item_t *item) {
+            // ESP_LOGI(kTag, "Trip ID %s stopping at stop ID %s", item->id, item->stop);
+            count++;
         });
+        TickType_t t1 = xTaskGetTickCount();
+        ESP_LOGI(kTag, "read %u trip updates in %u ms", count, pdTICKS_TO_MS(t1 - t0));
         vTaskDelay(pdMS_TO_TICKS(30000));
     }
 

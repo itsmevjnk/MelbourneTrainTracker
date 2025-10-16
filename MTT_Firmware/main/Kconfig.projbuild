@@ -23,23 +23,23 @@ menu "Firmware Configuration"
         help
             Sets the GTFS Realtime feed URL for regional (V/Line) train trip updates.
 
-    config GTFSR_RESPBUF_INIT_LEN
-        int "Initial GTFS Realtime API response buffer length"
-        default 65536
+    config GTFSR_TRIPID_BUFFER_LEN
+        int "Maximum GTFS-R trip ID buffer length"
+        default 48
         help
-            Sets the initial size for the GTFS Realtime API response buffer.
-    
-    config GTFSR_RESPBUF_GROWTH
-        int "GTFS Realtime API response buffer growth increment"
-        default 4096
-        help
-            Sets the GTFS Realtime API response buffer growth increment in bytes.
+            Sets the number of bytes reserved for storing GTFS-R trip IDs.
 
-    config GTFSR_RESPBUF_TEMP_LEN
-        int "GTFS Realtime API response fragment buffer length"
-        default 4096
+    config GTFSR_STOPID_BUFFER_LEN
+        int "Maximum GTFS-R stop ID buffer length"
+        default 16
         help
-            Sets the GTFS Realtime API response fragment buffer length.
+            Sets the number of bytes reserved for storing GTFS-R stop IDs.
+    
+    config GTFSR_RESPBUF_LEN
+        int "GTFS-R response fragment buffer length"
+        default 1024
+        help
+            Sets the GTFS-R response fragment buffer length in bytes.
 
     config DEFAULT_MDNS_HOSTNAME
         string "Default mDNS hostname"

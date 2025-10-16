@@ -1,17 +1,5 @@
 #include "subsystems/gtfsr.h"
 
-#ifndef CONFIG_GTFSR_RESPBUF_INIT_LEN
-#define CONFIG_GTFSR_RESPBUF_INIT_LEN               65536
-#endif
-
-#ifndef CONFIG_GTFSR_RESPBUF_GROWTH
-#define CONFIG_GTFSR_RESPBUF_GROWTH                 1
-#endif
-
-#ifndef CONFIG_GTFSR_RESPBUF_TEMP_LEN
-#define CONFIG_GTFSR_RESPBUF_TEMP_LEN               4096
-#endif
-
 const char *GTFSR::kTag = "gtfs";
 
 esp_http_client_handle_t GTFSR::m_metroClient;
@@ -36,8 +24,20 @@ esp_err_t GTFSR::init(const char *apiKey) {
     esp_http_client_set_header(m_vlineClient, "Accept", "*/*");
     esp_http_client_set_header(m_vlineClient, "KeyId", apiKey);
 
+    /* initialise response buffer mutex */
+    m_respMutex = xSemaphoreCreateMutexStatic(&m_respMutexBuf);
+
     return ESP_OK;
 }
+
+uint8_t GTFSR::m_respFragmentBuffer[CONFIG_GTFSR_RESPBUF_LEN];
+size_t GTFSR::m_respFragmentLength = 0;
+size_t GTFSR::m_respFragmentOffset = 0;
+// size_t GTFSR::m_respLength = 0;
+
+SemaphoreHandle_t GTFSR::m_respMutex;
+StaticSemaphore_t GTFSR::m_respMutexBuf;
+
 
 // NOTE: templated functions must be defined in header file
 

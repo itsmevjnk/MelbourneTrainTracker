@@ -10,7 +10,7 @@
 /* infrastructure (line/station) ID */
 typedef uint32_t infraid_t;
 
-#define INFRAID(str)                                ((infraid_t)str[0] | ((infraid_t)str[1] << 8 )| ((infraid_t)str[2] << 16)) // convert line/station 3-letter code into unique 24-bit ID
+#define INFRAID(str)                                ((infraid_t)(str)[0] | ((infraid_t)(str)[1] << 8 )| ((infraid_t)(str)[2] << 16)) // convert line/station 3-letter code into unique 24-bit ID
 #define INFRAID2STR_FMT                             "0x%06lx (%c%c%c)" 
 #define INFRAID2STR(id)                             (uint32_t)id, (char)(((id) >> 0) & 0x7F), (char)(((id) >> 8) & 0x7F), (char)(((id) >> 16) & 0x7F) // format line/station ID for printf
 
@@ -278,6 +278,8 @@ public:
             line == INFRAID_MBY || line == INFRAID_BDE || line == INFRAID_TRN || line == INFRAID_vPK ||
             line == INFRAID_GEL || line == INFRAID_WBL;
     }
+
+    static infraid_t getStationFromStopID(int id);
 private:
     static const char* kTag;
 
@@ -408,5 +410,12 @@ private:
     /* Upfield line */
     static uint16_t ufdGetLED(infraid_t code);
     static size_t ufdGetLEDsBetween(infraid_t fromCode, infraid_t toCode, uint16_t* buffer, size_t maxLength);
+
+    struct StopIDTableEntry {
+        int stopID;
+        infraid_t infraID;
+    }; // numeric stop ID to station ID mapping
+    static const struct StopIDTableEntry kStopIDTable[];
+    static const size_t kStopIDTableLength;
 };
 

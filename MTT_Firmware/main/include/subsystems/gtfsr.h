@@ -41,6 +41,7 @@ public:
 
     typedef struct {
         const char *id; // trip ID
+        uint32_t idHash; // hash of trip ID (calculated using xxHash32)
         // int seq; // stop sequence
         char stop[CONFIG_GTFSR_STOPID_BUFFER_LEN];
         int64_t arrival; // arrival timestamp (-1 if not available)
@@ -64,10 +65,12 @@ private:
     struct FeedEntityContext {
         void *func; // item callback function
         char id[CONFIG_GTFSR_TRIPID_BUFFER_LEN]; // trip ID
+        uint32_t idHash; // hash of trip ID (calculated using xxHash32)
     }; // feed entity context for decodeStopTimeUpdateCallback
 
     struct ReadStringContext {
         char *buf;
+        uint32_t *bufHash;
         size_t buflen; // incl. null termination
     }; // context for readStringCallbacl
 
@@ -78,9 +81,9 @@ private:
         transit_realtime_TripUpdate_StopTimeUpdate update = transit_realtime_TripUpdate_StopTimeUpdate_init_zero;
         struct FeedEntityContext *ctx = (struct FeedEntityContext *)*arg;
 
-        trip_update_item_t item = { ctx->id }; // trip ID from context (guaranteed to be in stack)
+        trip_update_item_t item = { ctx->id, ctx->idHash }; // trip ID from context (guaranteed to be in stack)
 
-        struct ReadStringContext stopid_ctx = { item.stop, CONFIG_GTFSR_STOPID_BUFFER_LEN };
+        struct ReadStringContext stopid_ctx = { item.stop, NULL, CONFIG_GTFSR_STOPID_BUFFER_LEN };
         update.stop_id.arg = &stopid_ctx;
         update.stop_id.funcs.decode = &GTFSR::readStringCallback;
 
@@ -106,8 +109,7 @@ private:
             *arg // callback function passed from getTripUpdates
             // ID will be read by readTripIDCallback
         };
-
-        struct ReadStringContext tripid_ctx = { ctx.id, CONFIG_GTFSR_TRIPID_BUFFER_LEN };
+        struct ReadStringContext tripid_ctx = { ctx.id, &ctx.idHash, CONFIG_GTFSR_TRIPID_BUFFER_LEN };
         entity.trip_update.trip.trip_id.arg = &tripid_ctx;
         entity.trip_update.trip.trip_id.funcs.decode = &GTFSR::readStringCallback;
 

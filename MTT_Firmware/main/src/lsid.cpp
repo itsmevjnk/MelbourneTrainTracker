@@ -3,6 +3,8 @@
 #include "esp_log.h"
 #include "esp_check.h"
 
+#include <algorithm>
+
 const char* LSID::kTag = "lsid";
 
 uint16_t LSID::getLED(infraid_t line, infraid_t code) {
@@ -126,4 +128,11 @@ colour_t LSID::getLineColour(infraid_t line) {
             ESP_LOGE(kTag, "unknown line code " INFRAID2STR_FMT, INFRAID2STR(line));
             return kSpecial;
     }
+}
+
+infraid_t LSID::getStationFromStopID(int id) {
+    const struct StopIDTableEntry *begin = kStopIDTable;
+    const struct StopIDTableEntry *end = &kStopIDTable[kStopIDTableLength];
+    const struct StopIDTableEntry *it = std::lower_bound(begin, end, id, [](const StopIDTableEntry &a, int b) { return a.stopID < b; });
+    return (it != end && it->stopID == id) ? it->infraID : 0;
 }

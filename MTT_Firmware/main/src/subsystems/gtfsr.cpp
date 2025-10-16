@@ -1,4 +1,6 @@
 #include "subsystems/gtfsr.h"
+#include "lsid.h"
+#include "xxhash32.h"
 
 const char *GTFSR::kTag = "gtfs";
 
@@ -60,6 +62,8 @@ bool GTFSR::readStringCallback(pb_istream_t *stream, const pb_field_t *field, vo
     }
 
     ctx->buf[len] = '\0'; // null terminate
+    if (ctx->bufHash) *ctx->bufHash = XXHash32::hash(ctx->buf, len, 0);
+
     return true;
 }
 
@@ -103,7 +107,14 @@ void GTFSR::updateTask(void *arg) {
     while (true) {        
         size_t count = 0;
         auto onItem = [&](GTFSR::trip_update_item_t *item) {
-            ESP_LOGI(kTag, "trip ID %s stopping at stop ID %s", item->id, item->stop);
+            infraid_t line = (item->id[0] == '0')
+                ? INFRAID(&item->id[3]) // e.g. 02-BEG--19-T5-3637
+                : INFRAID(&item->id[6]); // e.g. vic:02BEG:_:R:vpt._Belgrave_3420_20251016
+            infraid_t stop = (item->stop[0] >= '0' && item->stop[1] <= '9')
+                ? LSID::getStationFromStopID(atoi(item->stop)) // numeric stop ID
+                : INFRAID(&item->stop[9]); // station ID given in stop ID (e.g. vic:rail:BOX)
+
+            ESP_LOGI(kTag, "line " INFRAID2STR_FMT " trip 0x%08x stopping at " INFRAID2STR_FMT, INFRAID2STR(line), item->idHash, INFRAID2STR(stop));
             count++;
         };
 

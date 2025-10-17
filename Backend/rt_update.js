@@ -68,7 +68,6 @@ const updateTimetable = (lastTimestamp = null) => {
                         UPDATE SET line=EXCLUDED.line, arrival=EXCLUDED.arrival, departure=EXCLUDED.departure, station=EXCLUDED.station, last_updated=CURRENT_TIMESTAMP
                     RETURNING trip_id, seq
                 `;
-                fs.writeFileSync('query.sql', updateQuery);
                 return db.any(updateQuery).then((rows) => {
                     return {
                         timestamp: data.timestamp,

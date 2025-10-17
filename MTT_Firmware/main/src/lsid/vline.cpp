@@ -5,7 +5,7 @@
 static const station_t kMeltonMEL = { LMAT_VLINE_MEL, LMAT_VLINE_MEL_ALT };
 static const station_t kMeltonTLN = { LMAT_VLINE_TLN, LMAT_VLINE_TLN_ALT };
 static const station_t kMeltonRBK = { LMAT_VLINE_RBK, LMAT_VLINE_RBK_ALT };
-static const station_t kMeltonCPS = { LMAT_VLINE_CPS, LMAT_VLINE_CPS_ALT };
+static const station_t kMeltonRVH = { LMAT_VLINE_RVH, LMAT_VLINE_RVH_ALT };
 
 /* Wyndham Vale line */
 static const station_t kWyndhamValeWVL = { LMAT_VLINE_WVL, LMAT_VLINE_WVL_ALT };
@@ -30,11 +30,11 @@ static const station_t kGippslandRMD = { LMAT_VLINE_RMD, LMAT_VLINE_RMD_ALT };
 static const station_t kGippslandFSS = { LMAT_VLINE_FSS, LMAT_VLINE_SSS_ALT };
 
 static const station_t* kMeltonStations[] = {
-    &kMeltonMEL, &kMeltonTLN, &kMeltonRBK, &kMeltonCPS,
+    &kMeltonMEL, &kMeltonTLN, &kMeltonRBK, &kMeltonRVH,
     &kVLineWestDEK, &kVLineWestADR, &kVLineWestSUN, &kVLineWestFSY, &kVLineSSS
 };
 static const infraid_t kMeltonCodes[] = {
-    INFRAID_MEL, INFRAID_TLN, INFRAID_RBK, INFRAID_CPS,
+    INFRAID_MEL, INFRAID_TLN, INFRAID_RBK, INFRAID_RVH,
     INFRAID_DEK, INFRAID_ADR, INFRAID_SUN, INFRAID_FSY, INFRAID_SSS
 };
 static const size_t kMeltonCount = sizeof(kMeltonStations) / sizeof(station_t*);

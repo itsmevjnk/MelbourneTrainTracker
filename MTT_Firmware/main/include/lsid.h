@@ -31,7 +31,7 @@ typedef uint32_t infraid_t;
 #define INFRAID_CDN                                 INFRAID("CDN")
 #define INFRAID_NWN                                 INFRAID("NWN")
 #define INFRAID_ERM                                 INFRAID("ERM")
-#define INFRAID_CPS                                 INFRAID("CPS")
+#define INFRAID_RVH                                 INFRAID("RVH")
 #define INFRAID_SPG                                 INFRAID("SPG")
 #define INFRAID_SPT                                 INFRAID("SPT")
 #define INFRAID_CBE                                 INFRAID("CBE")

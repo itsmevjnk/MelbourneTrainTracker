@@ -11,8 +11,8 @@
 #define LMAT_VLINE_TLN_ALT                              LMAT_BASE(1, 10, 3)
 #define LMAT_VLINE_RBK                                  LMAT_BASE(1, 10, 4)
 #define LMAT_VLINE_RBK_ALT                              LMAT_BASE(1, 10, 5)
-#define LMAT_VLINE_CPS                                  LMAT_BASE(1, 11, 0)
-#define LMAT_VLINE_CPS_ALT                              LMAT_BASE(1, 11, 1)
+#define LMAT_VLINE_RVH                                  LMAT_BASE(1, 11, 0)
+#define LMAT_VLINE_RVH_ALT                              LMAT_BASE(1, 11, 1)
 
 /* Wyndham Vale line */
 #define LMAT_VLINE_WVL                                  LMAT_BASE(2, 0, 0)
@@ -54,7 +54,7 @@
     LMAT_VLINE_MEL, LMAT_VLINE_MEL_ALT,                \
     LMAT_VLINE_TLN, LMAT_VLINE_TLN_ALT,                \
     LMAT_VLINE_RBK, LMAT_VLINE_RBK_ALT,                \
-    LMAT_VLINE_CPS, LMAT_VLINE_CPS_ALT,                \
+    LMAT_VLINE_RVH, LMAT_VLINE_RVH_ALT,                \
     LMAT_VLINE_WVL, LMAT_VLINE_WVL_ALT,                \
     LMAT_VLINE_DAV, LMAT_VLINE_DAV_ALT,                \
     LMAT_VLINE_TNT, LMAT_VLINE_TNT_ALT,                \

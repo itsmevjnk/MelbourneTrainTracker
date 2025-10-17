@@ -27,7 +27,7 @@ let lastMessage = null;
 
 /* NEW: serialise message to binary for compactness, suitable for the ESP32 */
 const toInfraID = (code) => {
-    const buf = new Uint8Array(3);
+    const buf = new Uint8Array(4);
     for (let i = 0; i < buf.length; i++) buf[i] = code[i].charCodeAt(0);
     return buf;
 };
@@ -60,8 +60,8 @@ const binarySerialise = (message) => {
 
         let properties = [
             toUInt32(hash.xxHash32(entry.trip, 0)),
-            toInfraID(entry.line),
-            toInfraID(entry.stn),
+            toInfraID(entry.line.padEnd(4, ' ')), // line IDs need to be padded 
+            toInfraID(entry.stn), // station IDs are 4 letter now (3 + space typically)
             toInt64(entry.dep || entry.arr),
             toUInt8((hasAdjacent ? (1 << 1) : 0) | (isDeparture ? (1 << 0) : 0))
         ];

@@ -61,250 +61,6 @@ const parseCalendar = (stream) => {
     });
 };
 
-const getStationName = (name) => {
-    name = name.split('Railway')[0];
-    name = name.replace('Station', '');
-    name = name.replace('Rail Replacement Bus Stop', '');
-    name = name.trim();
-    return name;
-}
-
-const resolveStation = (name) => {
-    return {
-        'Melton': 'MEL',
-        'Cobblebank': 'TLN',
-        'Rockbank': 'RBK',
-        'Caroline Springs': 'CPS',
-        'Wyndham Vale': 'WVL',
-        'West Tarneit': 'DAV',
-        'Tarneit': 'TNT',
-        'Deer Park': 'DEK',
-        'Ardeer': 'ADR',
-        'Sunshine': 'SUN',
-        'Footscray': 'FSY',
-        'Southern Cross': 'SSS',
-        'Flinders Street': 'FSS',
-        'Richmond': 'RMD',
-        'Caulfield': 'CFD',
-        'Clayton': 'CLA',
-        'Dandenong': 'DNG',
-        'Berwick': 'BEW',
-        'Pakenham': 'PKM',
-        'Jordanville': 'JOR',
-        'Flagstaff': 'FGS',
-        'Melbourne Central': 'MCE',
-        'Parliament': 'PAR',
-        'Belgrave': 'BEG',
-        'Tecoma': 'TCM',
-        'Upwey': 'UPW',
-        'Alamein': 'ALM',
-        'Ashburton': 'ASH',
-        'Burwood': 'BWD',
-        'Hartwell': 'HWL',
-        'Willison': 'WSN',
-        'Riversdale': 'RIV',
-        'Camberwell': 'CAM',
-        'Frankston': 'FKN',
-        'Kananook': 'KAN',
-        'Seaford': 'SEA',
-        'Carrum': 'CAR',
-        'Bonbeach': 'BON',
-        'Chelsea': 'CSA',
-        'Edithvale': 'EDI',
-        'Aspendale': 'ASP',
-        'Mordialloc': 'MOR',
-        'Parkdale': 'PKD',
-        'Mentone': 'MEN',
-        'Cheltenham': 'CTM',
-        'Upper Ferntree Gully': 'UFG',
-        'Ferntree Gully': 'FTG',
-        'Boronia': 'BOR',
-        'Bayswater': 'BAY',
-        'Heathmont': 'HMT',
-        'Highett': 'HIG',
-        'Glen Waverley': 'GWY',
-        'Syndal': 'SYN',
-        'Mount Waverley': 'MWY',
-        'Lilydale': 'LIL',
-        'Mooroolbark': 'MLK',
-        'Croydon': 'CDN',
-        'Ringwood East': 'RWE',
-        'Officer': 'OFC',
-        'Beaconsfield': 'BFD',
-        'Narre Warren': 'NWA',
-        'Hallam': 'HLM',
-        'Cranbourne': 'CBE',
-        'Merinda Park': 'MPK',
-        'Yarraman': 'YMN',
-        'Noble Park': 'NPK',
-        'Sandown Park': 'SNP',
-        'East Camberwell': 'ECM',
-        'Canterbury': 'CBY',
-        'Chatham': 'CHM',
-        'Box Hill': 'BOX',
-        'Laburnum': 'LAB',
-        'Blackburn': 'BBN',
-        'Nunawading': 'NWG',
-        'Mitcham': 'MCH',
-        'Heatherdale': 'HTD',
-        'Ringwood': 'RWD',
-        'Auburn': 'AUB',
-        'Glenferrie': 'GFE',
-        'Hawthorn': 'HAW',
-        'Burnley': 'BLY',
-        'East Richmond': 'ERM',
-        'Heyington': 'HEY',
-        'Kooyong': 'KYG',
-        'Tooronga': 'TGA',
-        'Gardiner': 'GAR',
-        'Springvale': 'SPG',
-        'Westall': 'WTL',
-        'Huntingdale': 'HUN',
-        'Oakleigh': 'OAK',
-        'Hughesdale': 'HUG',
-        'Murrumbeena': 'MRB',
-        'Carnegie': 'CNE',
-        'Werribee': 'WER',
-        'Hoppers Crossing': 'HCG',
-        'Laverton': 'LAV',
-        'Aircraft': 'ACF',
-        'Westona': 'WTO',
-        'Altona': 'ALT',
-        'Seaholme': 'SHE',
-        'Westgarth': 'WTG',
-        'Dennis': 'DEN',
-        'Fairfield': 'FFD',
-        'Alphington': 'ALP',
-        'Darebin': 'DBN',
-        'Ivanhoe': 'IVA',
-        'Eaglemont': 'EAG',
-        'Heidelberg': 'HDB',
-        'Rosanna': 'ROS',
-        'Moorabbin': 'MRN',
-        'Patterson': 'PAT',
-        'Bentleigh': 'BEN',
-        'McKinnon': 'MCK',
-        'Ormond': 'OMD',
-        'Glen Huntly': 'GHY',
-        'Malvern': 'MAL',
-        'Armadale': 'ARM',
-        'Toorak': 'TOR',
-        'Hawksburn': 'HKN',
-        'Sandringham': 'SHM',
-        'Hampton': 'HAM',
-        'Brighton Beach': 'BBH',
-        'Middle Brighton': 'MBN',
-        'North Brighton': 'NBN',
-        'Gardenvale': 'GVE',
-        'Elsternwick': 'ELS',
-        'Ripponlea': 'RIP',
-        'Balaclava': 'BCV',
-        'Windsor': 'WIN',
-        'Prahran': 'PRA',
-        'South Yarra': 'SYR',
-        'Upfield': 'UFD',
-        'Gowrie': 'GOW',
-        'Fawkner': 'FAK',
-        'Merlynston': 'MYN',
-        'Batman': 'BAT',
-        'Coburg': 'COB',
-        'Moreland': 'MLD',
-        'Anstey': 'ASY',
-        'Brunswick': 'BWK',
-        'Jewell': 'JWL',
-        'Royal Park': 'RPK',
-        'Flemington Bridge': 'FBD',
-        'Macaulay': 'MAC',
-        'North Melbourne': 'NME',
-        'Clifton Hill': 'CHL',
-        'Victoria Park': 'VPK',
-        'Collingwood': 'CWD',
-        'North Richmond': 'NRM',
-        'West Richmond': 'WRM',
-        'Jolimont-MCG': 'JLI',
-        'Macleod': 'MCD',
-        'Watsonia': 'WAT',
-        'Greensborough': 'GRN',
-        'Montmorency': 'MMY',
-        'Eltham': 'ELT',
-        'Diamond Creek': 'DCK',
-        'Wattle Glen': 'WTT',
-        'Hurstbridge': 'HBE',
-        'Williamstown': 'WIL',
-        'Williamstown Beach': 'WBH',
-        'North Williamstown': 'NWN',
-        'Newport': 'NPT',
-        'Spotswood': 'SPT',
-        'Yarraville': 'YVE',
-        'Seddon': 'SEN',
-        'Sunbury': 'SUY',
-        'Diggers Rest': 'DRT',
-        'Watergardens': 'WGS',
-        'Keilor Plains': 'KPL',
-        'St Albans': 'SAB',
-        'Ginifer': 'GIN',
-        'Albion': 'ALB',
-        'Epping': 'EPP',
-        'Lalor': 'LAL',
-        'Thomastown': 'TSN',
-        'Keon Park': 'KPK',
-        'Ruthven': 'RUT',
-        'Reservoir': 'RES',
-        'Regent': 'REG',
-        'Preston': 'PRE',
-        'Bell': 'BEL',
-        'Thornbury': 'TBY',
-        'Croxton': 'CXT',
-        'Northcote': 'NCE',
-        'Merri': 'MER',
-        'Rushall': 'RUS',
-        'Tottenham': 'TOT',
-        'West Footscray': 'WFY',
-        'Middle Footscray': 'MFY',
-        'South Kensington': 'SKN',
-        'Flemington Racecourse': 'RCE',
-        'Showgrounds': 'SGS',
-        'Craigieburn': 'CGB',
-        'Broadmeadows': 'BMS',
-        'Jacana': 'JAC',
-        'Glenroy': 'GRY',
-        'Oak Park': 'OKP',
-        'Pascoe Vale': 'PVL',
-        'Strathmore': 'SME',
-        'Glenbervie': 'GBV',
-        'Essendon': 'ESD',
-        'Moonee Ponds': 'MPD',
-        'Ascot Vale': 'ASV',
-        'Newmarket': 'NKT',
-        'Kensington': 'KEN',
-        'Morradoo': 'MRO',
-        'Darling': 'DLG',
-        'East Malvern': 'EMV',
-        'Glen Iris': 'GIR',
-        'Holmesglen': 'HOL',
-        'Williams Landing': 'WLD',
-        'Union': 'UNN',
-        'Cardinia Road': 'CDA',
-        'Coolaroo': 'CLO',
-        'East Pakenham': 'EPH',
-        'Hawkstowe': 'HWS',
-        'Lynbrook': 'LBK',
-        'Mernda': 'MDD',
-        'Middle Gorge': 'MMR',
-        'South Morang': 'SMG',
-        'Southland': 'SOU',
-        'Bittern': 'BIT',
-        'Hastings': 'HST',
-        'Roxburgh Park': 'RXP',
-        'Tyabb': 'TAB',
-        'Somerville': 'SVE',
-        'Baxter': 'BXR',
-        'Crib Point': 'CPT',
-        'Leawarra': 'LWA',
-        'Stony Point': 'STY'
-    }[name];
-};
-
 const parseStops = (stream) => {
     return new Promise((resolve, reject) => {
         const parser = csv.parse({ delimiter: ',', columns: true, bom: true });
@@ -317,21 +73,14 @@ const parseStops = (stream) => {
             while ((record = parser.read()) !== null) {
                 const stopID = record.stop_id * 1;
                 if (isNaN(stopID)) continue; // non-numeric stop ID - skip (all stop IDs in stop_times.txt are numeric)
-                const stationName = getStationName(record.stop_name);
                 let stationCode;
-                if (record.parent_station.includes('vic:rail:')) {
+                if (record.parent_station.includes(':rail:')) { // including Albury (nsw:rail:ABY)
                     stationCode = record.parent_station.split(':')[2]; // retrievable from parent_station
-                    stationCode = stationCode.slice(0, 3); // cut down to 3 letter
-                }
-                else {
-                    stationCode = resolveStation(stationName);
-                    if (!stationCode) continue; // station code not in resolvable list - probably not necessary anyway, skip
-                }
-                if (!entries.hasOwnProperty(stationCode)) entries[stationCode] = {
-                    name: stationName,
-                    ids: []
-                }; // create array of stop IDs
-                entries[stationCode].ids.push(stopID); // convert string to number for more compact storage
+                    stationCode = stationCode.replaceAll('-', ''); // e.g. BAT-V (Ballarat) becomes BATV
+                    stationCode = stationCode.padEnd(4, ' '); // pad station code to 4 characters
+                    if (!entries.hasOwnProperty(stationCode)) entries[stationCode] = new Set(); // unique IDs only (in case some appears multiple times)
+                    entries[stationCode].add(stopID);
+                } else console.error(`Stop ID ${stopID} (${record.stop_name}) does not have a parent station code (parent_station = "${record.parent_station}") - skipping`);
             }
         });
         parser.on('end', () => {
@@ -506,7 +255,7 @@ const download = () => {
                                     ret.tripCalendar[key] = `${i}_${value}`;
                                 }
                                 for (const [key, value] of Object.entries(results[i].stops)) {
-                                    if (ret.stops.hasOwnProperty(key)) ret.stops[key].ids = ret.stops[key].ids.concat(value.ids);
+                                    if (ret.stops.hasOwnProperty(key)) ret.stops[key] = new Set([...ret.stops[key], ...value]);
                                     else ret.stops[key] = value;
                                 }
                                 ret.times = { ...ret.times, ...results[i].times };
@@ -531,20 +280,15 @@ const updateGTFS = () => {
     const db = database.db;
 
     return download().then((data) => {
-        const stopsDict = {};
-        const stopIDs = [];
-        const stopNames = [];
+        const stops = [];
         for (const [key, value] of Object.entries(data.stops)) {
-            stopNames.push({ code: key, name: value.name });
-            for (const id of value.ids) {
-                stopsDict[id] = key;
-                stopIDs.push(id);
+            for (const id of value) {
+                stops.push({
+                    id: id,
+                    station: key
+                });
             }
         }
-        const stops = Object.entries(stopsDict).map(([key, value]) => ({
-            id: key,
-            station: value
-        }));
 
         console.log('Updating database.');
         return Promise.all([
@@ -577,21 +321,7 @@ const updateGTFS = () => {
                         .then(() => db.none(insert(calendar, cs)))
                         .then(() => console.log('Calendar has been updated'));
                 })(),
-                (() => { // stop names
-                    const cs = new ColumnSet(
-                        ['code', 'name'],
-                        { 
-                            table: new TableName({
-                                schema: 'gtfs',
-                                table: 'stop_names'
-                            }) 
-                        }
-                    );
-                    /* stops iterated above */
-                    return db.none('TRUNCATE TABLE gtfs.stop_names CASCADE')
-                        .then(() => db.none(insert(stopNames, cs)))
-                        .then(() => console.log('Stops have been updated'));
-                })().then(() => { // stops
+                (() => { // stops
                     const cs = new ColumnSet(
                         ['id', 'station'],
                         { 
@@ -605,7 +335,7 @@ const updateGTFS = () => {
                     return db.none('TRUNCATE TABLE gtfs.stops CASCADE')
                         .then(() => db.none(insert(stops, cs)))
                         .then(() => console.log('Stops have been updated'));
-                })
+                })()
             ]).then(() => { // trips
                 const cs = new ColumnSet(
                     ['id', 'calendar'],
@@ -639,7 +369,6 @@ const updateGTFS = () => {
                 const timetable = [];
                 for (const [trip, times] of Object.entries(data.times)) {
                     for (const [seq, value] of Object.entries(times)) {
-                        if (!stopIDs.includes(value.stopID)) continue; // skip entries with non-metro stops
                         timetable.push({
                             trip_id: trip,
                             seq: seq,

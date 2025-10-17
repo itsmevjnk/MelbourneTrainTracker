@@ -17,7 +17,7 @@ size_t Message::m_expectedEntries = 0; // number of expected (from header) and r
 size_t Message::m_receivedEntries = 0;
 bool Message::m_started = false;
 
-#define ENTRY_BASE_SIZE                     (sizeof(MessageEntry) - (3 + 8))
+#define ENTRY_BASE_SIZE                     (sizeof(MessageEntry) - (4 + 8))
 #define ENTRY_ADJ_SIZE                      sizeof(MessageEntry)
 
 void Message::parseFragment(const char* data, int length, bool first) {

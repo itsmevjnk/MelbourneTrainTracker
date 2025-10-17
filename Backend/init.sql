@@ -24,7 +24,7 @@ CREATE TABLE daily.timetable (
     arrival timestamp with time zone NOT NULL,
     departure timestamp with time zone NOT NULL,
     last_updated timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    station character(3) NOT NULL,
+    station character(4) NOT NULL,
     CONSTRAINT timetable_time CHECK ((arrival <= departure))
 );
 
@@ -46,16 +46,9 @@ CREATE TABLE gtfs.calendar (
 
 ALTER TABLE gtfs.calendar OWNER TO postgres;
 
-CREATE TABLE gtfs.stop_names (
-    code character varying(3) NOT NULL,
-    name character varying(32) NOT NULL
-);
-
-ALTER TABLE gtfs.stop_names OWNER TO postgres;
-
 CREATE TABLE gtfs.stops (
     id integer NOT NULL,
-    station character(3) NOT NULL
+    station character(4) NOT NULL
 );
 
 ALTER TABLE gtfs.stops OWNER TO postgres;
@@ -85,12 +78,6 @@ ALTER TABLE ONLY daily.timetable
 ALTER TABLE ONLY gtfs.calendar
     ADD CONSTRAINT id PRIMARY KEY (id);
 
-ALTER TABLE ONLY gtfs.stop_names
-    ADD CONSTRAINT stop_names_name_key UNIQUE (name);
-
-ALTER TABLE ONLY gtfs.stop_names
-    ADD CONSTRAINT stop_names_pkey PRIMARY KEY (code);
-
 ALTER TABLE ONLY gtfs.stops
     ADD CONSTRAINT stops_pkey PRIMARY KEY (id);
 
@@ -105,9 +92,6 @@ CREATE INDEX fki_stops_station ON gtfs.stops USING btree (station);
 CREATE INDEX fki_timetable_stop ON gtfs.timetable USING btree (stop_id);
 
 CREATE INDEX fki_trips_calendar ON gtfs.trips USING btree (calendar);
-
-ALTER TABLE ONLY gtfs.stops
-    ADD CONSTRAINT stops_station FOREIGN KEY (station) REFERENCES gtfs.stop_names(code);
 
 ALTER TABLE ONLY gtfs.timetable
     ADD CONSTRAINT timetable_stop FOREIGN KEY (stop_id) REFERENCES gtfs.stops(id);

@@ -14,20 +14,20 @@
 
 struct MessageEntry {
     uint32_t tripHash; // 0
-    infraid_t line : 24; // 4
-    infraid_t station : 24; // 7
-    int64_t timestamp; // 10
+    infraid_t line; // 4
+    infraid_t station; // 8
+    int64_t timestamp; // 12
     struct Flags {
         uint8_t isDeparture : 1;
         uint8_t hasAdjacent : 1;
         uint8_t reserved : 6;
-    } __attribute__((packed)) flags; // 18
-    // 19 bytes
+    } __attribute__((packed)) flags; // 20
+    // 21 bytes
 
     /* only valid if hasAdjacent is set */
-    infraid_t adjStation : 24; // 19
-    int64_t adjTimestamp; // 22
-    // 30 bytes
+    infraid_t adjStation; // 21
+    int64_t adjTimestamp; // 25
+    // 33 bytes
 } __attribute__((packed));
 
 class Message {

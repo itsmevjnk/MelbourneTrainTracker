@@ -9,6 +9,8 @@
 #include "nanopb/gtfs-realtime.pb.h"
 #include "nanopb/pb_decode.h"
 
+#include "lsid.h"
+
 #include <type_traits>
 
 #ifndef CONFIG_GTFSR_TRIPID_BUFFER_LEN
@@ -183,6 +185,7 @@ private:
     static StaticTask_t m_taskBuffer;
     static TaskHandle_t m_task;
     static StackType_t m_taskStack[CONFIG_GTFSR_TASK_STACK_SIZE];
+    static bool checkVLine(infraid_t line, infraid_t stop);
     static void updateTask(void *arg);
 
 public:

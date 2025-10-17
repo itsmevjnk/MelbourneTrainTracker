@@ -1,5 +1,4 @@
 #include "subsystems/gtfsr.h"
-#include "lsid.h"
 #include "xxhash32.h"
 #include "services.h"
 
@@ -111,6 +110,35 @@ bool GTFSR::httpReadCallback(pb_istream_t *stream, pb_byte_t *buf, size_t count)
 
 // NOTE: templated functions must be defined in header file
 
+bool GTFSR::checkVLine(infraid_t line, infraid_t stop) {
+    /* ignore V/Line lines not represented on map */
+    if (
+        line == INFRAID("ABY") || line == INFRAID("SER") || line == INFRAID("SNH") // Seymour/Shepparton/Albury - via Craigieburn
+        || line == INFRAID("BGO") || line == INFRAID("ECH") || line == INFRAID("SWL") // Bendigo/Echuca/Swan Hill - via Sunbury
+    ) return false;
+
+    /* check V/Line lines if stop is within bounds */
+    if (line == INFRAID_ART || line == INFRAID_BAT || line== INFRAID_MBY) { // V/Line Melton
+        if (
+            stop != INFRAID_MEL && stop != INFRAID_TLN && stop != INFRAID_RBK && stop != INFRAID_CPS
+            && stop != INFRAID_DEK && stop != INFRAID_ADR && stop != INFRAID_SUN && stop != INFRAID_FSY
+            && stop != INFRAID_SSS
+        ) return false;
+    } else if (line == INFRAID_BDE || line == INFRAID_TRN || line == INFRAID_vPK) { // V/Line Gippsland
+        if (
+            stop != INFRAID_PKM && stop != INFRAID_BEW && stop != INFRAID_DNG && stop != INFRAID_CLA
+            && stop != INFRAID_CFD && stop != INFRAID_RMD && stop != INFRAID_FSS && stop != INFRAID_SSS
+        ) return false;
+    } else if (line == INFRAID_GEL || line == INFRAID_WBL) { // V/Line Wyndham Vale
+        if (
+            stop != INFRAID_WVL && stop != INFRAID_DAV && stop != INFRAID_TNT && stop != INFRAID_DEK
+            && stop != INFRAID_ADR && stop != INFRAID_SUN && stop != INFRAID_FSY && stop != INFRAID_SSS
+        ) return false;
+    }
+
+    return true;
+}
+
 void GTFSR::updateTask(void *arg) {
     /* dry run to count number of entries */
     size_t initCount = 0;
@@ -121,6 +149,15 @@ void GTFSR::updateTask(void *arg) {
     auto dryOnItem = [&](GTFSR::trip_update_item_t *item) { 
         initTotalCount++;
         if (item->arrival > max_time || (item->arrival < 0 && item->departure > max_time)) return; // skip event since it is beyond the window
+        
+        infraid_t line = (item->id[0] == '0')
+            ? INFRAID(&item->id[3]) // e.g. 02-BEG--19-T5-3637
+            : INFRAID(&item->id[6]); // e.g. vic:02BEG:_:R:vpt._Belgrave_3420_20251016
+        infraid_t stop = (item->stop[0] >= '0' && item->stop[1] <= '9')
+            ? LSID::getStationFromStopID(atoi(item->stop)) // numeric stop ID
+            : INFRAID(&item->stop[9]); // station ID given in stop ID (e.g. vic:rail:BOX)
+        if (!checkVLine(line, stop)) return;
+
         initCount++;
     };
     GTFSR::getMetroTripUpdates(dryOnItem);
@@ -148,14 +185,16 @@ void GTFSR::updateTask(void *arg) {
                 ? LSID::getStationFromStopID(atoi(item->stop)) // numeric stop ID
                 : INFRAID(&item->stop[9]); // station ID given in stop ID (e.g. vic:rail:BOX)
             
+            ESP_LOGD(kTag, "line " INFRAID2STR_FMT " trip 0x%08x stopping at " INFRAID2STR_FMT, INFRAID2STR(line), item->idHash, INFRAID2STR(stop));
+            count++;
+
+            if (!checkVLine(line, stop)) return;
+
             if (item->idHash != lastIDHash) {
                 lastIDHash = item->idHash;
                 lastDepartingStation = 0;
                 lastDepartingTime = -1;
             }
-
-            ESP_LOGD(kTag, "line " INFRAID2STR_FMT " trip 0x%08x stopping at " INFRAID2STR_FMT, INFRAID2STR(line), item->idHash, INFRAID2STR(stop));
-            count++;
 
             if (item->arrival > max_time || (item->arrival < 0 && item->departure > max_time)) return; // skip event since it is beyond the window
             
@@ -176,7 +215,7 @@ void GTFSR::updateTask(void *arg) {
         TickType_t t0 = xTaskGetTickCount();
 
         GTFSR::getMetroTripUpdates(onItem);
-        // GTFSR::getVLineTripUpdates(onItem);
+        GTFSR::getVLineTripUpdates(onItem);
 
         TickType_t t1 = xTaskGetTickCount();
 

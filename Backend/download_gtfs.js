@@ -8,7 +8,7 @@ const schedule = require('node-schedule');
 
 temp.track(); // automatically remove file on completion
 
-const GTFS_DATASET_URL = process.env.GTFS_DATASET_URL || 'https://opendata.transport.vic.gov.au/dataset/3f4e292e-7f8a-4ffe-831f-1953be0fe448/resource/120e70d2-2781-4123-9d09-ddf9434dbfd3/download/gtfs.zip';
+const GTFS_DATASET_URL = process.env.GTFS_DATASET_URL || 'https://opendata.transport.vic.gov.au/dataset/3f4e292e-7f8a-4ffe-831f-1953be0fe448/resource/fb152201-859f-4882-9206-b768060b50ad/download/gtfs.zip';
 // const GTFS_DATASET_URL = 'http://192.168.42.69/gtfs.zip';
 
 const createProgressStream = (length) => {

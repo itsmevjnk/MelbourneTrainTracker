@@ -72,7 +72,7 @@ typedef uint32_t infraid_t;
 #define INFRAID_CGB                                 INFRAID("CGB")
 #define INFRAID_NPT                                 INFRAID("NPT")
 #define INFRAID_WFY                                 INFRAID("WFY")
-#define INFRAID_ADR                                 INFRAID("ADR")
+#define INFRAID_ARR                                 INFRAID("ARR")
 #define INFRAID_WTT                                 INFRAID("WTT")
 #define INFRAID_DEN                                 INFRAID("DEN")
 #define INFRAID_SVE                                 INFRAID("SVE")

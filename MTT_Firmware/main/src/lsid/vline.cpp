@@ -14,7 +14,7 @@ static const station_t kWyndhamValeTNT = { LMAT_VLINE_TNT, LMAT_VLINE_TNT_ALT };
 
 /* Western V/Line shared track */
 static const station_t kVLineWestDEK = { LMAT_VLINE_DEK, LMAT_VLINE_DEK_ALT };
-static const station_t kVLineWestADR = { LMAT_VLINE_ADR, LMAT_VLINE_ADR_ALT };
+static const station_t kVLineWestARR = { LMAT_VLINE_ARR, LMAT_VLINE_ARR_ALT };
 static const station_t kVLineWestSUN = { LMAT_VLINE_SUN, LMAT_VLINE_SUN_ALT };
 static const station_t kVLineWestFSY = { LMAT_VLINE_FSY, LMAT_VLINE_FSY_ALT };
 
@@ -31,11 +31,11 @@ static const station_t kGippslandFSS = { LMAT_VLINE_FSS, LMAT_VLINE_SSS_ALT };
 
 static const station_t* kMeltonStations[] = {
     &kMeltonMEL, &kMeltonTLN, &kMeltonRBK, &kMeltonRVH,
-    &kVLineWestDEK, &kVLineWestADR, &kVLineWestSUN, &kVLineWestFSY, &kVLineSSS
+    &kVLineWestDEK, &kVLineWestARR, &kVLineWestSUN, &kVLineWestFSY, &kVLineSSS
 };
 static const infraid_t kMeltonCodes[] = {
     INFRAID_MEL, INFRAID_TLN, INFRAID_RBK, INFRAID_RVH,
-    INFRAID_DEK, INFRAID_ADR, INFRAID_SUN, INFRAID_FSY, INFRAID_SSS
+    INFRAID_DEK, INFRAID_ARR, INFRAID_SUN, INFRAID_FSY, INFRAID_SSS
 };
 static const size_t kMeltonCount = sizeof(kMeltonStations) / sizeof(station_t*);
 
@@ -49,11 +49,11 @@ size_t LSID::melGetLEDsBetween(infraid_t fromCode, infraid_t toCode, uint16_t* b
 
 static const station_t* kWyndhamValeStations[] = {
     &kWyndhamValeWVL, &kWyndhamValeDAV, &kWyndhamValeTNT,
-    &kVLineWestDEK, &kVLineWestADR, &kVLineWestSUN, &kVLineWestFSY, &kVLineSSS
+    &kVLineWestDEK, &kVLineWestARR, &kVLineWestSUN, &kVLineWestFSY, &kVLineSSS
 };
 static const infraid_t kWyndhamValeCodes[] = {
     INFRAID_WVL, INFRAID_DAV, INFRAID_TNT,
-    INFRAID_DEK, INFRAID_ADR, INFRAID_SUN, INFRAID_FSY, INFRAID_SSS
+    INFRAID_DEK, INFRAID_ARR, INFRAID_SUN, INFRAID_FSY, INFRAID_SSS
 };
 static const size_t kWyndhamValeCount = sizeof(kWyndhamValeStations) / sizeof(station_t*);
 

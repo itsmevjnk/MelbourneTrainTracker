@@ -87,9 +87,9 @@ const fetchUpdate = () => {
                         cancellations.push(informedEntity.trip.tripId);
                     }
                 }
-                else {
-                    console.warn(`Unknown alert type ${effect}: ${alert.descriptionText.translation[0].text}`);
-                }
+                // else {
+                //     console.warn(`Unknown alert type ${effect}: ${alert.descriptionText.translation[0].text}`);
+                // }
             }
         }
 

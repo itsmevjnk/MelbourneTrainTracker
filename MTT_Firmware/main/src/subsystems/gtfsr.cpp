@@ -1,6 +1,9 @@
 #include "subsystems/gtfsr.h"
 #include "lsid.h"
 #include "xxhash32.h"
+#include "services.h"
+
+#include <sys/time.h>
 
 const char *GTFSR::kTag = "gtfs";
 
@@ -10,6 +13,11 @@ esp_http_client_handle_t GTFSR::m_vlineClient;
 StaticTask_t GTFSR::m_taskBuffer;
 TaskHandle_t GTFSR::m_task;
 StackType_t GTFSR::m_taskStack[CONFIG_GTFSR_TASK_STACK_SIZE];
+
+/* padding duration (in seconds) after service departure at stations */
+#ifndef CONFIG_MSG_STATION_PAD
+#define CONFIG_MSG_STATION_PAD                         10
+#endif
 
 esp_err_t GTFSR::init(const char *apiKey) {
     /* unitialise metro client */
@@ -105,6 +113,14 @@ bool GTFSR::httpReadCallback(pb_istream_t *stream, pb_byte_t *buf, size_t count)
 
 void GTFSR::updateTask(void *arg) {
     while (true) {        
+        Services::acquire(); Services::acquireUpdates();
+        Services::clearAndReserve(0); // TODO: is there a way to determine the number of elements, so we don't end up fragmenting our heap?
+
+        /* for storing last departing station to match with arrival */
+        uint32_t lastIDHash = 0;
+        infraid_t lastDepartingStation = 0;
+        time_t lastDepartingTime = -1;
+
         size_t count = 0;
         auto onItem = [&](GTFSR::trip_update_item_t *item) {
             infraid_t line = (item->id[0] == '0')
@@ -113,19 +129,44 @@ void GTFSR::updateTask(void *arg) {
             infraid_t stop = (item->stop[0] >= '0' && item->stop[1] <= '9')
                 ? LSID::getStationFromStopID(atoi(item->stop)) // numeric stop ID
                 : INFRAID(&item->stop[9]); // station ID given in stop ID (e.g. vic:rail:BOX)
+            
+            if (item->idHash != lastIDHash) {
+                lastIDHash = item->idHash;
+                lastDepartingStation = 0;
+                lastDepartingTime = -1;
+            }
 
-            ESP_LOGI(kTag, "line " INFRAID2STR_FMT " trip 0x%08x stopping at " INFRAID2STR_FMT, INFRAID2STR(line), item->idHash, INFRAID2STR(stop));
+            ESP_LOGD(kTag, "line " INFRAID2STR_FMT " trip 0x%08x stopping at " INFRAID2STR_FMT, INFRAID2STR(line), item->idHash, INFRAID2STR(stop));
             count++;
+
+            time_t now; time(&now);
+            time_t max_time = now + CONFIG_GTFSR_WINDOW; // timestamp window
+
+            if (item->arrival > max_time || (item->arrival < 0 && item->departure > max_time)) return; // skip event since it is beyond the window
+            
+            if (item->arrival >= 0) { // arriving at station
+                Services::insertUpdate(item->idHash, ServiceState(line, item->arrival, stop)); // stopping
+                if (lastDepartingStation) { // arriving from previous station
+                    time_t departTime = lastDepartingTime + CONFIG_MSG_STATION_PAD;
+                    Services::insertUpdate(item->idHash, ServiceState(line, departTime, lastDepartingStation, item->arrival, stop)); // in transit from prev. station to this one
+                }
+            }
+
+            if (item->departure >= 0) { // departing from station
+                lastDepartingStation = stop; lastDepartingTime = item->departure;
+                // the connection to the next arriving station will be done when the next arrival event is received
+            }
         };
 
         TickType_t t0 = xTaskGetTickCount();
 
         GTFSR::getMetroTripUpdates(onItem);
-        GTFSR::getVLineTripUpdates(onItem);
+        // GTFSR::getVLineTripUpdates(onItem);
 
         TickType_t t1 = xTaskGetTickCount();
 
         ESP_LOGI(kTag, "read %u trip updates in %u ms", count, pdTICKS_TO_MS(t1 - t0));
+        Services::release(); Services::releaseUpdates();
         vTaskDelay(pdMS_TO_TICKS(CONFIG_GTFSR_INTERVAL * 1000));
     }
 }

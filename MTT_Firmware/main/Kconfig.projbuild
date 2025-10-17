@@ -60,6 +60,12 @@ menu "Firmware Configuration"
         help
             Sets the GTFS-R fetch interval in seconds.
 
+    config GTFSR_WINDOW
+        int "GTFS-R event timestamp window"
+        default 300
+        help
+            Sets the time window into the future (in seconds) in which GTFS-R trip updates are considered.
+
     config DEFAULT_MDNS_HOSTNAME
         string "Default mDNS hostname"
         default "melbtrains"
@@ -95,7 +101,7 @@ menu "Firmware Configuration"
     config SERVICES_CAPACITY_GROWTH
         int "Services buffer growth step"
         range 1 50
-        default 10
+        default 32
         help
             Sets the number of additional service objects allocated when Services::m_allStates is grown beyond the reserved size.
     

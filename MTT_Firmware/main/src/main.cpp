@@ -92,8 +92,8 @@ runCLI:
     ESP_LOGW(kTag, "CONFIG_SPI3_ONLY is set - all LED controllers are expected to be connected to SPI3 (which is NOT the stock configuration)");
 #endif
 
-    // while (true) {
-    //     update();
-    //     vTaskDelay(CONFIG_UPDATE_INTERVAL / portTICK_PERIOD_MS);
-    // }
+    while (true) {
+        update();
+        vTaskDelay(CONFIG_UPDATE_INTERVAL / portTICK_PERIOD_MS);
+    }
 }

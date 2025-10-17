@@ -35,6 +35,10 @@
 #define CONFIG_GTFSR_INTERVAL                           30
 #endif
 
+#ifndef CONFIG_GTFSR_WINDOW
+#define CONFIG_GTFSR_WINDOW                             (60 * 5)
+#endif
+
 class GTFSR {
 public:
     static esp_err_t init(const char *apiKey);

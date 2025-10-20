@@ -189,7 +189,6 @@ const infraid_t Services::kLineIDs[] = {
 
     INFRAID_BDE, // Bairnsdale
     INFRAID_TRN, // Traralgon
-    INFRAID_vPK, // Pakenham
 
     INFRAID_GEL, // Geelong
     INFRAID_WBL  // Warrnambool

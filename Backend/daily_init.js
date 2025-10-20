@@ -37,10 +37,6 @@ const daily_init = () => {
                         AND end_date >= (CASE WHEN CURRENT_TIME < TIME '03:00' THEN CURRENT_DATE - INTERVAL '1 day' ELSE CURRENT_DATE END)
                 )
             ) filtered_trips
-            WHERE line IN (
-                'ALM', 'BEG', 'CBE', 'CCL', 'CGB', 'FKN', 'GWY', 'HBE', 'LIL', 'MDD', 'PKM', 'RCE', 'SHM', 'STY', 'SUY', 'UFD', 'WER', 'WIL',
-                'ART', 'BAT', 'BDE', 'GEL', 'MBY', 'TRN', 'vPK', 'WBL'
-            )
         )
     `;
     return db.none('TRUNCATE TABLE daily.timetable CASCADE')

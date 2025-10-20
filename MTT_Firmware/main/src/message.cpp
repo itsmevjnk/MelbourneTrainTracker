@@ -17,8 +17,37 @@ size_t Message::m_expectedEntries = 0; // number of expected (from header) and r
 size_t Message::m_receivedEntries = 0;
 bool Message::m_started = false;
 
-#define ENTRY_BASE_SIZE                     (sizeof(MessageEntry) - (3 + 8))
+#define ENTRY_BASE_SIZE                     (sizeof(MessageEntry) - (4 + 8))
 #define ENTRY_ADJ_SIZE                      sizeof(MessageEntry)
+
+bool Message::checkVLine(infraid_t line, infraid_t station) {
+    /* ignore V/Line lines not represented on map */
+    if (
+        line == INFRAID("ABY ") || line == INFRAID("SER ") || line == INFRAID("SNH ") // Seymour/Shepparton/Albury - via Craigieburn
+        || line == INFRAID("BGO ") || line == INFRAID("ECH ") || line == INFRAID("SWL ") // Bendigo/Echuca/Swan Hill - via Sunbury
+    ) return false;
+
+    /* check V/Line lines if stop is within bounds */
+    if (line == INFRAID_ART || line == INFRAID_BAT || line== INFRAID_MBY) { // V/Line Melton
+        if (
+            station != INFRAID_MEL && station != INFRAID_TLN && station != INFRAID_RBK && station != INFRAID_RVH
+            && station != INFRAID_DEK && station != INFRAID_ARR && station != INFRAID_SUN && station != INFRAID_FSY
+            && station != INFRAID_SSS
+        ) return false;
+    } else if (line == INFRAID_BDE || line == INFRAID_TRN) { // V/Line Gippsland
+        if (
+            station != INFRAID_PKM && station != INFRAID_BEW && station != INFRAID_DNG && station != INFRAID_CLA
+            && station != INFRAID_CFD && station != INFRAID_RMD && station != INFRAID_FSS && station != INFRAID_SSS
+        ) return false;
+    } else if (line == INFRAID_GEL || line == INFRAID_WBL) { // V/Line Wyndham Vale
+        if (
+            station != INFRAID_WVL && station != INFRAID_DAV && station != INFRAID_TNT && station != INFRAID_DEK
+            && station != INFRAID_ARR && station != INFRAID_SUN && station != INFRAID_FSY && station != INFRAID_SSS
+        ) return false;
+    }
+
+    return true;
+}
 
 void Message::parseFragment(const char* data, int length, bool first) {
     int offset = 0;
@@ -73,18 +102,20 @@ void Message::parseFragment(const char* data, int length, bool first) {
                 (entry->flags.isDeparture) ? "arrival" : "departure", INFRAID2STR(entry->adjStation), entry->adjTimestamp
             );
         
-        assert(LSID::isValidLine(entry->line));
+        if (checkVLine(entry->line, entry->station)) {
+            assert(LSID::isValidLine(entry->line));
 
-        if (entry->flags.isDeparture) { // departing station
-            time_t departTime = entry->timestamp + CONFIG_MSG_STATION_PAD;
-            if (entry->flags.hasAdjacent) { // departing to another station
-                Services::insertUpdate(entry->tripHash, ServiceState(entry->line, departTime, entry->station, entry->adjTimestamp, entry->adjStation)); // in transit
-            }
-        } else { // arriving at station
-            Services::insertUpdate(entry->tripHash, ServiceState(entry->line, entry->timestamp, entry->station)); // stopping
-            if (entry->flags.hasAdjacent) { // arriving from another station
-                time_t departTime = entry->adjTimestamp + CONFIG_MSG_STATION_PAD;
-                Services::insertUpdate(entry->tripHash, ServiceState(entry->line, departTime, entry->adjStation, entry->timestamp, entry->station)); // in transit state from previous station to this one
+            if (entry->flags.isDeparture) { // departing station
+                if (entry->flags.hasAdjacent && checkVLine(entry->line, entry->adjStation)) { // departing to another (valid) station
+                    time_t departTime = entry->timestamp + CONFIG_MSG_STATION_PAD;
+                    Services::insertUpdate(entry->tripHash, ServiceState(entry->line, departTime, entry->station, entry->adjTimestamp, entry->adjStation)); // in transit
+                }
+            } else { // arriving at station
+                Services::insertUpdate(entry->tripHash, ServiceState(entry->line, entry->timestamp, entry->station)); // stopping
+                if (entry->flags.hasAdjacent && checkVLine(entry->line, entry->adjStation)) { // arriving from another (valid) station
+                    time_t departTime = entry->adjTimestamp + CONFIG_MSG_STATION_PAD;
+                    Services::insertUpdate(entry->tripHash, ServiceState(entry->line, departTime, entry->adjStation, entry->timestamp, entry->station)); // in transit state from previous station to this one
+                }
             }
         }
 

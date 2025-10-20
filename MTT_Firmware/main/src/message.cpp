@@ -34,7 +34,7 @@ bool Message::checkVLine(infraid_t line, infraid_t station) {
             && station != INFRAID_DEK && station != INFRAID_ARR && station != INFRAID_SUN && station != INFRAID_FSY
             && station != INFRAID_SSS
         ) return false;
-    } else if (line == INFRAID_BDE || line == INFRAID_TRN || line == INFRAID_vPK) { // V/Line Gippsland
+    } else if (line == INFRAID_BDE || line == INFRAID_TRN) { // V/Line Gippsland
         if (
             station != INFRAID_PKM && station != INFRAID_BEW && station != INFRAID_DNG && station != INFRAID_CLA
             && station != INFRAID_CFD && station != INFRAID_RMD && station != INFRAID_FSS && station != INFRAID_SSS

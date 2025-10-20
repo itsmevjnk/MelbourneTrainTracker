@@ -34,7 +34,6 @@ uint16_t LSID::getLED(infraid_t line, infraid_t code) {
 
         case INFRAID_BDE: return gplGetLED(code); // Bairnsdale
         case INFRAID_TRN: return gplGetLED(code); // Traralgon
-        case INFRAID_vPK: return gplGetLED(code); // Pakenham
 
         case INFRAID_GEL: return wvlGetLED(code); // Geelong
         case INFRAID_WBL: return wvlGetLED(code); // Warrnambool
@@ -74,7 +73,6 @@ size_t LSID::getLEDsBetween(infraid_t line, infraid_t fromCode, infraid_t toCode
 
         case INFRAID_BDE: return gplGetLEDsBetween(fromCode, toCode, buffer, maxLength); // Bairnsdale
         case INFRAID_TRN: return gplGetLEDsBetween(fromCode, toCode, buffer, maxLength); // Traralgon
-        case INFRAID_vPK: return gplGetLEDsBetween(fromCode, toCode, buffer, maxLength); // Pakenham
 
         case INFRAID_GEL: return wvlGetLEDsBetween(fromCode, toCode, buffer, maxLength); // Geelong
         case INFRAID_WBL: return wvlGetLEDsBetween(fromCode, toCode, buffer, maxLength); // Warrnambool
@@ -118,7 +116,6 @@ colour_t LSID::getLineColour(infraid_t line) {
         case INFRAID_MBY: return kVLine;
         case INFRAID_BDE: return kVLine;
         case INFRAID_TRN: return kVLine;
-        case INFRAID_vPK: return kVLine;
         case INFRAID_GEL: return kVLine;
         case INFRAID_WBL: return kVLine;
 

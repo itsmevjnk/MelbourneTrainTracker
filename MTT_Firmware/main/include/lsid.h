@@ -143,7 +143,6 @@ typedef uint32_t infraid_t;
 #define INFRAID_GRN                                 INFRAID("GRN ")
 #define INFRAID_BAT                                 INFRAID("BAT ")
 #define INFRAID_VPK                                 INFRAID("VPK ") // Victoria Park
-#define INFRAID_vPK                                 INFRAID("vPK ") // V/Line Pakenham line
 #define INFRAID_CXT                                 INFRAID("CXT ")
 #define INFRAID_CBY                                 INFRAID("CBY ")
 #define INFRAID_JLI                                 INFRAID("JLI ")
@@ -275,8 +274,8 @@ public:
             line == INFRAID_GWY || line == INFRAID_ALM || line == INFRAID_STY || line == INFRAID_FKN ||
             line == INFRAID_WIL || line == INFRAID_WER || line == INFRAID_CGB || line == INFRAID_SUY ||
             line == INFRAID_RCE || line == INFRAID_UFD || line == INFRAID_ART || line == INFRAID_BAT ||
-            line == INFRAID_MBY || line == INFRAID_BDE || line == INFRAID_TRN || line == INFRAID_vPK ||
-            line == INFRAID_GEL || line == INFRAID_WBL;
+            line == INFRAID_MBY || line == INFRAID_BDE || line == INFRAID_TRN || line == INFRAID_GEL || 
+            line == INFRAID_WBL;
     }
 private:
     static const char* kTag;

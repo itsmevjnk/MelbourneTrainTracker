@@ -15,6 +15,7 @@
     "express": "^5.1.0",
     "gtfs-realtime-bindings": "^1.1.1",
     "js-xxhash": "^4.0.0",
+    "jsdom": "^27.0.1",
     "mqtt": "^5.12.0",
     "node-schedule": "^2.1.1",
     "pg": "^8.15.6",

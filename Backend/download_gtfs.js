@@ -5,10 +5,11 @@ const progress = require('progress-stream');
 const yauzl = require('yauzl');
 const csv = require('csv-parse');
 const schedule = require('node-schedule');
+const jsdom = require('jsdom');
 
 temp.track(); // automatically remove file on completion
 
-const GTFS_DATASET_URL = process.env.GTFS_DATASET_URL || 'https://opendata.transport.vic.gov.au/dataset/3f4e292e-7f8a-4ffe-831f-1953be0fe448/resource/fb152201-859f-4882-9206-b768060b50ad/download/gtfs.zip';
+const GTFS_DATASET_URL = process.env.GTFS_DATASET_URL;
 // const GTFS_DATASET_URL = 'http://192.168.42.69/gtfs.zip';
 
 const createProgressStream = (length) => {
@@ -193,11 +194,11 @@ const extractFeed = (readStream) => {
     });
 };
 
-const download = () => {
+const download = (url) => {
     const file = temp.createWriteStream('gtfs');
-    return fetch(GTFS_DATASET_URL)
+    return fetch(url)
         .then((response) => { // download GTFS dataset to temp file
-            console.log(`Downloading GTFS dataset from ${GTFS_DATASET_URL}`);
+            console.log(`Downloading GTFS dataset from ${url}`);
             const progressStream = createProgressStream(response.headers.get('Content-Length') * 1);
             stream.Readable.fromWeb(response.body)
                 .pipe(progressStream) // also pipe to progress stream
@@ -274,12 +275,12 @@ const download = () => {
         .finally(() => temp.cleanup()); // clean up after ourselves
 };
 
-const updateGTFS = () => {
+const updateGTFS = (url) => {
     const database = require('./database'); // connect to database
     const { TableName, ColumnSet, insert } = database.pgp.helpers;
     const db = database.db;
 
-    return download().then((data) => {
+    return download(url).then((data) => {
         const stops = [];
         for (const [key, value] of Object.entries(data.stops)) {
             for (const id of value) {
@@ -401,12 +402,29 @@ const updateGTFS = () => {
     });
 }
 
-module.exports = { download, updateGTFS };
+const getGTFSLink = () => {
+    return fetch('https://opendata.transport.vic.gov.au/dataset/gtfs-schedule')
+        .then((response) => response.text())
+        .then((respText) => {
+            const dom = new jsdom.JSDOM(respText);
+            const doc = dom.window.document;
+            const evalResult = doc.evaluate('//li[@class="resource-item"]', doc, null, dom.window.XPathResult.FIRST_ORDERED_NODE_TYPE, null); // NOTE: any node would work
+            if (!evalResult.singleNodeValue) return null; // no nodes found
+
+            const liNode = evalResult.singleNodeValue;
+            const id = liNode.dataset.id;
+
+            return `https://opendata.transport.vic.gov.au/dataset/3f4e292e-7f8a-4ffe-831f-1953be0fe448/resource/${id}/download/gtfs.zip`;
+        });
+};
+
+module.exports = { download, updateGTFS, getGTFSLink };
 
 const HEALTHCHECK_PORT = process.env.HEALTHCHECK_PORT || 3000;
 
 if (require.main === module) {
-    updateGTFS().then(() => {
+    ((GTFS_DATASET_URL) ? new Promise(() => GTFS_DATASET_URL) : getGTFSLink())
+    .then((url) => updateGTFS(url)).then(() => {
         /* schedule weekly schedule update at 9pm on the 15th day of every month - should give us plenty of clearance since each schedule has 90 days of data */
         schedule.scheduleJob('0 21 15 * *', async () => {
             console.log('>>> Updating GTFS schedule.');

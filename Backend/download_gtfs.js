@@ -425,8 +425,8 @@ const HEALTHCHECK_PORT = process.env.HEALTHCHECK_PORT || 3000;
 if (require.main === module) {
     ((GTFS_DATASET_URL) ? new Promise(() => GTFS_DATASET_URL) : getGTFSLink())
     .then((url) => updateGTFS(url)).then(() => {
-        /* schedule weekly schedule update at 9pm on the 15th day of every month - should give us plenty of clearance since each schedule has 90 days of data */
-        schedule.scheduleJob('0 21 15 * *', async () => {
+        /* schedule weekly schedule update every Monday at 9pm */
+        schedule.scheduleJob('0 21 * * 1', async () => {
             console.log('>>> Updating GTFS schedule.');
             await updateGTFS();
         });

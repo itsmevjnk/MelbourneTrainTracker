@@ -28,7 +28,7 @@ const getTripIDPattern = (id) => {
 };
 
 const updateTimetable = (lastTimestamp = null) => {
-    return gtfs.fetchUpdate()
+    return gtfs.fetchAllUpdates()
     .then((data) => {
         if (lastTimestamp != null && lastTimestamp.getTime() == data.timestamp.getTime()) return null; // indicate that the data has not been updated
 

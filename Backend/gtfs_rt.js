@@ -3,21 +3,16 @@
 const gtfs = require('gtfs-realtime-bindings');
 const secret = require('./secret');
 
-const UPDATE_API_URL = process.env.UPDATE_API_URL || 'https://api.opendata.transport.vic.gov.au/opendata/public-transport/gtfs/realtime/v1/metro/trip-updates';
-const ALERT_API_URL = process.env.ALERT_API_URL || 'https://api.opendata.transport.vic.gov.au/opendata/public-transport/gtfs/realtime/v1/metro/service-alerts';
+const METRO_UPDATE_API_URL = process.env.METRO_UPDATE_API_URL || 'https://api.opendata.transport.vic.gov.au/opendata/public-transport/gtfs/realtime/v1/metro/trip-updates';
+const METRO_ALERT_API_URL = process.env.METRO_ALERT_API_URL || 'https://api.opendata.transport.vic.gov.au/opendata/public-transport/gtfs/realtime/v1/metro/service-alerts';
+const VLINE_UPDATE_API_URL = process.env.VLINE_UPDATE_API_URL || 'https://api.opendata.transport.vic.gov.au/opendata/public-transport/gtfs/realtime/v1/vline/trip-updates';
+// NOTE: the V/Line service alert API seems to be active, but it's not documented - let's just assume that it doesn't exist yet for now.
+
 const API_KEY = secret.read(process.env.API_KEY_FILE) || process.env.API_KEY;
 
-const fetchUpdate = () => {
-    return Promise.all([
-        fetch(UPDATE_API_URL, {
-            method: 'GET',
-            headers: {
-                // 'Cache-Control': 'no-cache',
-                'accept': '*/*',
-                'KeyId': API_KEY
-            }
-        }),
-        fetch(ALERT_API_URL, {
+const fetchUpdate = (tripUpdateURL, serviceAlertURL = null) => {
+    const fetchPromises = [
+        fetch(tripUpdateURL, {
             method: 'GET',
             headers: {
                 // 'Cache-Control': 'no-cache',
@@ -25,9 +20,21 @@ const fetchUpdate = () => {
                 'KeyId': API_KEY
             }
         })
-    ])
+    ];
+    if (serviceAlertURL !== null) fetchPromises.push(
+        fetch(serviceAlertURL, {
+            method: 'GET',
+            headers: {
+                // 'Cache-Control': 'no-cache',
+                'accept': '*/*',
+                'KeyId': API_KEY
+            }
+        })
+    );
+
+    return Promise.all(fetchPromises)
     .then((responses) => {
-        const promises = []
+        const promises = [];
         for (const response of responses) promises.push(response.arrayBuffer());
         return Promise.all(promises);
     })
@@ -76,20 +83,22 @@ const fetchUpdate = () => {
             }
         }
 
-        const alertFeed = gtfs.transit_realtime.FeedMessage.decode(new Uint8Array(buffers[1]));
         const cancellations = [];
-        for (const entity of alertFeed.entity) {
-            const alert = entity.alert;
-            if (alert) {
-                const effect = alert.effect;
-                if (effect == 1) { // no service - cancelled service
-                    for (const informedEntity of alert.informedEntity) {
-                        cancellations.push(informedEntity.trip.tripId);
+        if (buffers.length > 1) {
+            const alertFeed = gtfs.transit_realtime.FeedMessage.decode(new Uint8Array(buffers[1]));
+            for (const entity of alertFeed.entity) {
+                const alert = entity.alert;
+                if (alert) {
+                    const effect = alert.effect;
+                    if (effect == 1) { // no service - cancelled service
+                        for (const informedEntity of alert.informedEntity) {
+                            cancellations.push(informedEntity.trip.tripId);
+                        }
                     }
+                    // else {
+                    //     console.warn(`Unknown alert type ${effect}: ${alert.descriptionText.translation[0].text}`);
+                    // }
                 }
-                // else {
-                //     console.warn(`Unknown alert type ${effect}: ${alert.descriptionText.translation[0].text}`);
-                // }
             }
         }
 
@@ -102,10 +111,32 @@ const fetchUpdate = () => {
     });
 };
 
-module.exports = { fetchUpdate };
+const fetchAllUpdates = () => {
+    return Promise.all([
+        fetchUpdate(METRO_UPDATE_API_URL, METRO_ALERT_API_URL),
+        fetchUpdate(VLINE_UPDATE_API_URL)
+    ]).then((results) => {
+        const merged = {
+            timestamp: new Date(), // doesn't matter TBH, since the GTFS-R API now returns the latest timestamp
+            tripStart: {},
+            updates: {},
+            cancellations: []
+        };
+
+        for (const res of results) {
+            Object.assign(merged.tripStart, res.tripStart);
+            Object.assign(merged.updates, res.updates);
+            merged.cancellations.concat(res.cancellations);
+        }
+
+        return merged;
+    });
+};
+
+module.exports = { fetchUpdate, fetchAllUpdates };
 
 if (require.main === module) {
-    fetchUpdate().then((feed) => {
+    fetchAllUpdates().then((feed) => {
         console.log(JSON.stringify(feed, null, 2));
     });
 }

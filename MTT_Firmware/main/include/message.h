@@ -44,4 +44,6 @@ private:
     static size_t m_expectedEntries; // number of expected (from header) and received entries
     static size_t m_receivedEntries;
     static bool m_started;
+
+    static bool checkVLine(infraid_t line, infraid_t station); // check if V/Line event entry is to be rejected due to not being represented on map
 };

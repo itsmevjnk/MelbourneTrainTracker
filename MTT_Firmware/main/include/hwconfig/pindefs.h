@@ -5,6 +5,39 @@
 #include <driver/gpio.h>
 #include <driver/spi_master.h>
 
+#if CONFIG_IDF_TARGET_ESP32S3 // TODO: confirm pin config
+
+/* SPI buses */
+#define SPI3_MISO                       GPIO_NUM_5
+#define SPI3_MOSI                       GPIO_NUM_4
+#define SPI3_SCK                        GPIO_NUM_6
+
+/* LED drivers */
+#define L0_SPI                          SPI3_HOST
+#define L0_CS                           GPIO_NUM_15
+#define L1_SPI                          SPI3_HOST
+#define L1_CS                           GPIO_NUM_16
+#define L2_SPI                          SPI3_HOST
+#define L2_CS                           GPIO_NUM_17
+#define L3_SPI                          SPI3_HOST
+#define L3_CS                           GPIO_NUM_18
+#define L4_SPI                          SPI3_HOST
+#define L4_CS                           GPIO_NUM_8
+#define L5_SPI                          SPI3_HOST
+#define L5_CS                           GPIO_NUM_48
+#define L6_SPI                          SPI3_HOST
+#define L6_CS                           GPIO_NUM_47
+#define L7_SPI                          SPI3_HOST
+#define L7_CS                           GPIO_NUM_21
+
+#define DRV_EN                          GPIO_NUM_7
+
+/* status LEDs */
+#define LED_ACTY                        GPIO_NUM_2
+#define LED_ERROR                       GPIO_NUM_1
+
+#else // original ESP32 revision
+
 /* SPI buses */
 #define SPI2_MISO                       GPIO_NUM_12
 #define SPI2_MOSI                       GPIO_NUM_13
@@ -55,4 +88,6 @@
 #define L6_SPI SPI3_HOST
 #undef L7_SPI
 #define L7_SPI SPI3_HOST
+#endif
+
 #endif

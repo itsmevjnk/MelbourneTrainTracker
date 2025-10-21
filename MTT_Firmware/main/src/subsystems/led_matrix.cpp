@@ -9,6 +9,7 @@
 const char* LEDMatrix::kTag = "led_matrix";
 
 /* SPI configs */
+#if CONFIG_IDF_TARGET_ESP32
 static const spi_bus_config_t kSPI2BusConfig = {
     .mosi_io_num = SPI2_MOSI,
     .miso_io_num = SPI2_MISO,
@@ -22,6 +23,7 @@ static const spi_bus_config_t kSPI2BusConfig = {
     .max_transfer_sz = 216 + 2,
     
 };
+#endif
 static const spi_bus_config_t kSPI3BusConfig = {
     .mosi_io_num = SPI3_MOSI,
     .miso_io_num = SPI3_MISO,
@@ -83,7 +85,7 @@ esp_err_t LEDMatrix::init() {
     ESP_RETURN_ON_ERROR(enableDrivers(), kTag, "cannot enable driver output");
 
     /* initialise SPI buses */
-#if !defined(CONFIG_SPI3_ONLY)
+#if CONFIG_IDF_TARGET_ESP32 && !defined(CONFIG_SPI3_ONLY)
     ESP_RETURN_ON_ERROR(spi_bus_initialize(
         SPI2_HOST,
         &kSPI2BusConfig,
@@ -110,7 +112,7 @@ esp_err_t LEDMatrix::init() {
     ), kTag, "SPI3 device add failed");
 
     /* initialise LED drivers */
-#if defined(CONFIG_SPI3_ONLY)
+#if CONFIG_IDF_TARGET_ESP32S3 || defined(CONFIG_SPI3_ONLY)
 #define SPI_HANDLE(host)                spi3Handle
 #else
 #define SPI_HANDLE(host)                (((host) == SPI2_HOST) ? spi2Handle : spi3Handle) // macro to select SPI handle

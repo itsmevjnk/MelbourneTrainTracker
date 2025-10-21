@@ -63,6 +63,7 @@ menu "Firmware Configuration"
         help
             Enable this if the board is wired to have all LED matrix drivers' SPI buses connected to SPI3/VSPI (GPIO 18/19/21).
             This allows the SPI2/HSPI pins to be used for JTAG debugging.
+            NOTE: This only applies to the original ESP32 revision; the ESP32-S3 revision has all LED matrix drivers connected to SPI3.
     
     config UPDATE_FLASH_LED
         bool "Flash activity LED during LED state updates"

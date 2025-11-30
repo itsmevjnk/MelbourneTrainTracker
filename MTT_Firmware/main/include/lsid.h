@@ -254,6 +254,13 @@ typedef uint32_t infraid_t;
 #define INFRAID_GEL                                 INFRAID("GEL ")
 #define INFRAID_WBL                                 INFRAID("WBL ")
 
+/* NEW: Metro Tunnel stations */
+#define INFRAID_ARN                                 INFRAID("ARN ") // Arden
+#define INFRAID_PKV                                 INFRAID("PKV ") // Parkville
+#define INFRAID_STL                                 INFRAID("STL ") // State Library
+#define INFRAID_THL                                 INFRAID("THL ") // Town Hall
+#define INFRAID_AZC                                 INFRAID("AZC ") // Anzac
+
 /* info structure for a station on a line */
 typedef struct {
     uint16_t led; // LED index for this station

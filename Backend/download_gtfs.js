@@ -229,10 +229,12 @@ const download = (url) => {
                             ) {
                                 /* GTFS feed zip file found */
                                 console.log(`Extracting GTFS feed file ${entryPath}`);
-                                zipfile.openReadStream(entry, (err, readStream) => {
-                                    if (err) throw err;
-                                    promises.push(extractFeed(readStream));
-                                });
+                                promises.push(new Promise((resolve, reject) => {
+                                    zipfile.openReadStream(entry, (err, readStream) => {
+                                        if (err) return reject(err);
+                                        resolve(extractFeed(readStream));
+                                    });
+                                }));
                             }
                         }
                         zipfile.readEntry(); // read next entry

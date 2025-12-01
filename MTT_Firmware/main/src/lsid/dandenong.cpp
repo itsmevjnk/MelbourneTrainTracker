@@ -89,12 +89,12 @@ static const size_t kPakenhamCount = sizeof(kPakenhamStations) / sizeof(station_
 
 uint16_t LSID::pkmGetLED(infraid_t code) {
     if (isCityStation(code)) return dngCityGetLED(code);
+    else if (isMunnelStation(code)) return mtGetLED(code);
     return getLEDStub(kPakenhamStations, kPakenhamCodes, kPakenhamCount, code);
 }
 
 size_t LSID::pkmGetLEDsBetween(infraid_t fromCode, infraid_t toCode, uint16_t* buffer, size_t maxLength) {
-    return rmdGetLEDsBetween(
-        kDandenongCityCCWCodes, kDandenongCityCCWStations, kDandenongCityCWStations,
+    return dngGetLEDsBetween(
         kPakenhamStations, kPakenhamCodes, kPakenhamCount,
         fromCode, toCode, buffer, maxLength
     );
@@ -112,13 +112,58 @@ static const size_t kCranbourneCount = sizeof(kCranbourneStations) / sizeof(stat
 
 uint16_t LSID::cbeGetLED(infraid_t code) {
     if (isCityStation(code)) return dngCityGetLED(code);
+    else if (isMunnelStation(code)) return mtGetLED(code);
     return getLEDStub(kCranbourneStations, kCranbourneCodes, kCranbourneCount, code);
 }
 
 size_t LSID::cbeGetLEDsBetween(infraid_t fromCode, infraid_t toCode, uint16_t* buffer, size_t maxLength) {
-    return rmdGetLEDsBetween(
-        kDandenongCityCCWCodes, kDandenongCityCCWStations, kDandenongCityCWStations,
+    return dngGetLEDsBetween(
         kCranbourneStations, kCranbourneCodes, kCranbourneCount,
         fromCode, toCode, buffer, maxLength
     );
+}
+
+size_t LSID::dngGetLEDsBetween(
+    const station_t** stations, const infraid_t* codes, size_t count,
+    infraid_t fromCode, infraid_t toCode, uint16_t* buffer, size_t maxLength
+) {
+    bool fromMunnel = isMunnelStation(fromCode), toMunnel = isMunnelStation(toCode);
+    if (fromMunnel && toMunnel) return mtGetLEDsBetween(fromCode, toCode, buffer, maxLength);
+    
+    if (fromMunnel) { // Metro Tunnel -> Dandenong
+        size_t mtOffset = mtGetLEDsBetween(fromCode, INFRAID_AZC, buffer, maxLength); // to Anzac
+        if (mtOffset == maxLength) return mtOffset;
+        buffer[mtOffset++] = LMAT_MUNNEL_AZC;
+        if (mtOffset == maxLength) return mtOffset;
+        buffer[mtOffset++] = LMAT_MUNNEL_AZC_ALT;
+        if (mtOffset == maxLength || toCode == INFRAID_MAL || toCode == INFRAID_CFD) return mtOffset;
+        // TODO: this is a workaround for the rev1 board, which cannot show Dandenong services going to Malvern - make it proper for rev2
+
+        /* at this point we still have more space in the buffer, and we want to go beyond Caulfield */
+        buffer[mtOffset++] = LMAT_DANDENONG_CFD;
+        return mtOffset + rmdGetLEDsBetween(
+            kDandenongCityCCWCodes, kDandenongCityCCWStations, kDandenongCityCWStations,
+            stations, codes, count,
+            INFRAID_CFD, toCode, &buffer[mtOffset], maxLength - mtOffset
+        );
+    }
+    
+    if (toMunnel) { // Dandenong -> Metro Tunnel
+        size_t mtOffset = getLEDsBetweenCodes(stations, codes, count, fromCode, INFRAID_CFD, buffer, maxLength); // get to Caulfield
+        if (mtOffset == maxLength) return mtOffset;
+        buffer[mtOffset++] = LMAT_DANDENONG_CFD;
+        if (mtOffset == maxLength) return mtOffset;
+        buffer[mtOffset++] = LMAT_MUNNEL_AZC_ALT;
+        if (mtOffset == maxLength || toCode == INFRAID_AZC) return mtOffset;
+
+        /* at this point we still have more space in the buffer, and we want to go beyond Anzac */
+        buffer[mtOffset++] = LMAT_MUNNEL_AZC;
+        return mtOffset + mtGetLEDsBetween(INFRAID_AZC, toCode, &buffer[mtOffset], maxLength - mtOffset);
+    }
+
+    return rmdGetLEDsBetween(
+        kDandenongCityCCWCodes, kDandenongCityCCWStations, kDandenongCityCWStations,
+        stations, codes, count,
+        fromCode, toCode, buffer, maxLength
+    ); // normal handling
 }

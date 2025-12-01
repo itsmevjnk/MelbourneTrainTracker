@@ -228,11 +228,37 @@ static const size_t kSunburyCount = sizeof(kSunburyStations) / sizeof(station_t*
 
 uint16_t LSID::suyGetLED(infraid_t code) {
     if (isCityStation(code)) return nmeCityGetLED(code);
+    else if (isMunnelStation(code)) return mtGetLED(code);
     return getLEDStub(kSunburyStations, kSunburyCodes, kSunburyCount, code);
 }
 
 size_t LSID::suyGetLEDsBetween(infraid_t fromCode, infraid_t toCode, uint16_t* buffer, size_t maxLength) {
-    return nmeGetLEDsBetween(kSunburyStations, kSunburyCodes, kSunburyCount, fromCode, toCode, buffer, maxLength);
+    bool fromMunnel = isMunnelStation(fromCode), toMunnel = isMunnelStation(toCode);
+    if (fromMunnel && toMunnel) return mtGetLEDsBetween(fromCode, toCode, buffer, maxLength);
+    
+    if (fromMunnel) { // Metro Tunnel -> Sunbury
+        size_t mtOffset = mtGetLEDsBetween(fromCode, INFRAID_ARN, buffer, maxLength); // to Arden
+        if (mtOffset == maxLength) return mtOffset;
+        buffer[mtOffset++] = LMAT_MUNNEL_ARN;
+        if (mtOffset == maxLength) return mtOffset;
+        buffer[mtOffset++] = LMAT_SUNBURY_FSY_ALT;
+        if (mtOffset == maxLength || toCode == INFRAID_FSY) return mtOffset;
+
+        /* at this point we still have more space in the buffer, and we want to go beyond Footscray */
+        buffer[mtOffset++] = LMAT_SUNBURY_FSY;
+        return mtOffset + nmeGetLEDsBetween(kSunburyStations, kSunburyCodes, kSunburyCount, INFRAID_FSY, toCode, &buffer[mtOffset], maxLength - mtOffset);
+    }
+    
+    if (toMunnel) { // Sunbury -> Metro Tunnel
+        size_t mtOffset = getLEDsBetweenCodes(kSunburyStations, kSunburyCodes, kSunburyCount, fromCode, INFRAID_NME, buffer, maxLength); // get to Footscray, and will also include FSY and FSY_ALT for us
+        if (mtOffset == maxLength || toCode == INFRAID_ARN) return mtOffset;
+
+        /* at this point we still have more space in the buffer, and we want to go beyond Arden */
+        buffer[mtOffset++] = LMAT_MUNNEL_ARN;
+        return mtOffset + mtGetLEDsBetween(INFRAID_ARN, toCode, &buffer[mtOffset], maxLength - mtOffset);
+    }
+
+    return nmeGetLEDsBetween(kSunburyStations, kSunburyCodes, kSunburyCount, fromCode, toCode, buffer, maxLength); // normal handling
 }
 
 static const station_t* kUpfieldStations[] = {

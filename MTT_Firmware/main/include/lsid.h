@@ -261,6 +261,16 @@ typedef uint32_t infraid_t;
 #define INFRAID_THL                                 INFRAID("THL ") // Town Hall
 #define INFRAID_AZC                                 INFRAID("AZC ") // Anzac
 
+/* lines via Metro Tunnel */
+// originating from Metro Tunnel (i.e. Down direction)
+#define INFRAID_SUYM                                INFRAID("SUYM")
+#define INFRAID_CBEM                                INFRAID("CBEM")
+#define INFRAID_PKMM                                INFRAID("PKMM")
+// heading into Metro Tunnel (i.e. Up direction)
+#define INFRAID_SUYm                                INFRAID("SUYm")
+#define INFRAID_CBEm                                INFRAID("CBEm")
+#define INFRAID_PKMm                                INFRAID("PKMm")
+
 /* info structure for a station on a line */
 typedef struct {
     uint16_t led; // LED index for this station
@@ -282,6 +292,12 @@ public:
             line == INFRAID_WIL || line == INFRAID_WER || line == INFRAID_CGB || line == INFRAID_SUY ||
             line == INFRAID_RCE || line == INFRAID_UFD || line == INFRAID_ART || line == INFRAID_BAT ||
             line == INFRAID_MBY || line == INFRAID_BDE || line == INFRAID_TRN || line == INFRAID_GEL || 
+#ifndef CONFIG_MUNNEL_COLOUR_NONE
+            line == INFRAID_SUYM || line == INFRAID_CBEM || line == INFRAID_PKMM ||
+#endif
+#ifdef CONFIG_MUNNEL_COLOUR_DEST
+            line == INFRAID_SUYm || line == INFRAID_CBEm || line == INFRAID_PKMm ||
+#endif
             line == INFRAID_WBL;
     }
 private:

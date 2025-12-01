@@ -38,6 +38,18 @@ uint16_t LSID::getLED(infraid_t line, infraid_t code) {
         case INFRAID_GEL: return wvlGetLED(code); // Geelong
         case INFRAID_WBL: return wvlGetLED(code); // Warrnambool
 
+        /* Metro Tunnel lines */
+#ifndef CONFIG_MUNNEL_COLOUR_NONE
+        case INFRAID_SUYM: return suyGetLED(code);
+        case INFRAID_CBEM: return cbeGetLED(code);
+        case INFRAID_PKMM: return pkmGetLED(code);
+#endif
+#ifdef CONFIG_MUNNEL_COLOUR_DEST
+        case INFRAID_SUYm: return suyGetLED(code);
+        case INFRAID_CBEm: return cbeGetLED(code);
+        case INFRAID_PKMm: return pkmGetLED(code);
+#endif
+
         default:
             ESP_LOGE(kTag, "invalid line code " INFRAID2STR_FMT, INFRAID2STR(line));
             return LMAT_NULL;
@@ -76,6 +88,18 @@ size_t LSID::getLEDsBetween(infraid_t line, infraid_t fromCode, infraid_t toCode
 
         case INFRAID_GEL: return wvlGetLEDsBetween(fromCode, toCode, buffer, maxLength); // Geelong
         case INFRAID_WBL: return wvlGetLEDsBetween(fromCode, toCode, buffer, maxLength); // Warrnambool
+
+        /* Metro Tunnel lines */
+#ifndef CONFIG_MUNNEL_COLOUR_NONE
+        case INFRAID_SUYM: return suyGetLEDsBetween(fromCode, toCode, buffer, maxLength);
+        case INFRAID_CBEM: return cbeGetLEDsBetween(fromCode, toCode, buffer, maxLength);
+        case INFRAID_PKMM: return pkmGetLEDsBetween(fromCode, toCode, buffer, maxLength);
+#endif
+#ifdef CONFIG_MUNNEL_COLOUR_DEST
+        case INFRAID_SUYm: return suyGetLEDsBetween(fromCode, toCode, buffer, maxLength);
+        case INFRAID_CBEm: return cbeGetLEDsBetween(fromCode, toCode, buffer, maxLength);
+        case INFRAID_PKMm: return pkmGetLEDsBetween(fromCode, toCode, buffer, maxLength);
+#endif
 
         default:
             ESP_LOGE(kTag, "invalid line code " INFRAID2STR_FMT, INFRAID2STR(line));
@@ -118,6 +142,20 @@ colour_t LSID::getLineColour(infraid_t line) {
         case INFRAID_TRN: return kVLine;
         case INFRAID_GEL: return kVLine;
         case INFRAID_WBL: return kVLine;
+
+#ifdef CONFIG_MUNNEL_COLOUR_BLUE
+        case INFRAID_SUYM: return kDandenong;
+        case INFRAID_CBEM: return kDandenong;
+        case INFRAID_PKMM: return kDandenong;
+#endif
+#ifdef CONFIG_MUNNEL_COLOUR_DEST
+        case INFRAID_SUYM: return kNorthern; // to Sunbury
+        case INFRAID_SUYm: return kDandenong; // to Dandenong
+        case INFRAID_CBEM: return kDandenong; // to Cranbourne
+        case INFRAID_CBEm: return kNorthern; // to Sunbury
+        case INFRAID_PKMM: return kDandenong; // to Pakenham
+        case INFRAID_PKMm: return kNorthern; // to Sunbury
+#endif
 
         default:
             ESP_LOGE(kTag, "unknown line code " INFRAID2STR_FMT, INFRAID2STR(line));

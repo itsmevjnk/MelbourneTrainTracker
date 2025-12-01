@@ -63,7 +63,7 @@ const binarySerialise = (message) => {
             toInfraID(entry.line.padEnd(4, ' ')), // line IDs need to be padded 
             toInfraID(entry.stn), // station IDs are 4 letter now (3 + space typically)
             toInt64(entry.dep || entry.arr),
-            toUInt8((hasAdjacent ? (1 << 1) : 0) | (isDeparture ? (1 << 0) : 0))
+            toUInt8((hasAdjacent ? (1 << 1) : 0) | (isDeparture ? (1 << 0) : 0) | (entry.mt ? (1 << 2) : 0) | (entry.mto ? (1 << 3) : 0))
         ];
         if (hasAdjacent) {
             properties = properties.concat([
@@ -108,7 +108,9 @@ const publish = () => {
             next.station AS next_station,
             next.arrival AS next_arrival,
             prev.station AS prev_station,
-            prev.departure AS prev_departure
+            prev.departure AS prev_departure,
+			mt_first.seq IS NOT NULL AS via_mt,
+			mt_first.seq = mt_thl.seq AS mt_originating
         FROM daily.timetable t
         LEFT JOIN LATERAL (
             SELECT station, arrival
@@ -124,6 +126,19 @@ const publish = () => {
             ORDER BY seq DESC
             LIMIT 1
         ) prev ON true
+		LEFT JOIN LATERAL (
+			SELECT seq
+			FROM daily.timetable
+			WHERE trip_id = t.trip_id AND station IN ('ARN', 'PKV', 'STL', 'THL', 'AZC')
+			ORDER BY seq ASC
+			LIMIT 1
+		) mt_first ON true		
+		LEFT JOIN LATERAL (
+			SELECT seq
+			FROM daily.timetable
+			WHERE trip_id = t.trip_id AND station = 'THL'
+			LIMIT 1
+		) mt_thl ON true
         WHERE
             NOT (
                 (t.departure < CURRENT_TIMESTAMP - INTERVAL '${WINDOW_PAST}')
@@ -144,7 +159,9 @@ const publish = () => {
                 // seq: row.seq,
                 line: row.line,
                 trip: row.trip_id,
-                stn: row.station
+                stn: row.station,
+                mt: row.via_mt,
+                mto: (row.via_mt) ? row.mt_originating : undefined // set if originating from Metro Tunnel (i.e. to Dandenong/Sunbury)
             };
             message.push({
                 ...entryBase,

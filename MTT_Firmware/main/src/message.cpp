@@ -92,9 +92,28 @@ void Message::parseFragment(const char* data, int length, bool first) {
             if (entry->flags.hasAdjacent && length - offset < (int)ENTRY_ADJ_SIZE) break; // incomplete
         }
 
+        infraid_t line = entry->line;
+#ifndef CONFIG_MUNNEL_COLOUR_NONE
+        if (entry->flags.viaMunnel) {
+            switch (line) {
+#ifdef CONFIG_MUNNEL_COLOUR_BLUE
+                case INFRAID_SUY: line = INFRAID_SUYM; break;
+                case INFRAID_CBE: line = INFRAID_CBEM; break;
+                case INFRAID_PKM: line = INFRAID_PKMM; break;
+#endif
+#ifdef CONFIG_MUNNEL_COLOUR_DEST
+                case INFRAID_SUY: line = (entry->flags.mtOriginating) ? INFRAID_SUYM : INFRAID_SUYm; break;
+                case INFRAID_CBE: line = (entry->flags.mtOriginating) ? INFRAID_CBEM : INFRAID_CBEm; break;
+                case INFRAID_PKM: line = (entry->flags.mtOriginating) ? INFRAID_PKMM : INFRAID_PKMm; break;
+#endif
+                default: ESP_LOGE(kTag, "viaMunnel flag set for non-MT line " INFRAID2STR_FMT, INFRAID2STR(line)); break;
+            }
+        }
+#endif
+
         ESP_LOGV(
             kTag, "trip hash 0x%08lx at %lld: " INFRAID2STR_FMT " %s event at " INFRAID2STR_FMT,
-            entry->tripHash, entry->timestamp, INFRAID2STR(entry->line), (entry->flags.isDeparture) ? "departure" : "arrival", INFRAID2STR(entry->station)
+            entry->tripHash, entry->timestamp, INFRAID2STR(line), (entry->flags.isDeparture) ? "departure" : "arrival", INFRAID2STR(entry->station)
         );
         if (entry->flags.hasAdjacent)
             ESP_LOGV(
@@ -102,19 +121,19 @@ void Message::parseFragment(const char* data, int length, bool first) {
                 (entry->flags.isDeparture) ? "arrival" : "departure", INFRAID2STR(entry->adjStation), entry->adjTimestamp
             );
         
-        if (checkVLine(entry->line, entry->station)) {
-            assert(LSID::isValidLine(entry->line));
+        if (checkVLine(line, entry->station)) {
+            assert(LSID::isValidLine(line));
 
             if (entry->flags.isDeparture) { // departing station
-                if (entry->flags.hasAdjacent && checkVLine(entry->line, entry->adjStation)) { // departing to another (valid) station
+                if (entry->flags.hasAdjacent && checkVLine(line, entry->adjStation)) { // departing to another (valid) station
                     time_t departTime = entry->timestamp + CONFIG_MSG_STATION_PAD;
-                    Services::insertUpdate(entry->tripHash, ServiceState(entry->line, departTime, entry->station, entry->adjTimestamp, entry->adjStation)); // in transit
+                    Services::insertUpdate(entry->tripHash, ServiceState(line, departTime, entry->station, entry->adjTimestamp, entry->adjStation)); // in transit
                 }
             } else { // arriving at station
-                Services::insertUpdate(entry->tripHash, ServiceState(entry->line, entry->timestamp, entry->station)); // stopping
-                if (entry->flags.hasAdjacent && checkVLine(entry->line, entry->adjStation)) { // arriving from another (valid) station
+                Services::insertUpdate(entry->tripHash, ServiceState(line, entry->timestamp, entry->station)); // stopping
+                if (entry->flags.hasAdjacent && checkVLine(line, entry->adjStation)) { // arriving from another (valid) station
                     time_t departTime = entry->adjTimestamp + CONFIG_MSG_STATION_PAD;
-                    Services::insertUpdate(entry->tripHash, ServiceState(entry->line, departTime, entry->adjStation, entry->timestamp, entry->station)); // in transit state from previous station to this one
+                    Services::insertUpdate(entry->tripHash, ServiceState(line, departTime, entry->adjStation, entry->timestamp, entry->station)); // in transit state from previous station to this one
                 }
             }
         }

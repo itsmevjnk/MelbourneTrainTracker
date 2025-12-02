@@ -1,4 +1,8 @@
 *-backups
 fp-info-cache
 *.lck
-
+*.kicad_sch-bak
+*/jlcpcb/gerber/
+*/jlcpcb/production_files/*.csv
+*/jlcpcb/production_files/*.zip
+*/jlcpcb/production_files/.~lock*

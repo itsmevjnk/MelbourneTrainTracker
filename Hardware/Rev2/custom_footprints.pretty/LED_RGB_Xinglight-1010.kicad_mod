@@ -1,0 +1,94 @@
+(footprint "LED_RGB_Xinglight-1010"
+	(version 20241229)
+	(generator "pcbnew")
+	(generator_version "9.0")
+	(layer "F.Cu")
+	(property "Reference" "REF**"
+		(at 0 -0.6 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(uuid "82be9ed4-4e15-4f63-9f79-1de3bb2c0f45")
+		(effects
+			(font
+				(size 0.1 0.1)
+				(thickness 0.025)
+			)
+		)
+	)
+	(property "Value" "LED_RGB_Xinglight-1010"
+		(at 0 1.5 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "90df9a0a-0006-4b38-a8f7-010d3ead85d2")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Datasheet" ""
+		(at 0 0 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "7c542b44-8604-4147-9a00-d7d1a543df66")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Description" ""
+		(at 0 0 0)
+		(unlocked yes)
+		(layer "F.SilkS")
+		(hide yes)
+		(uuid "fe15f158-72a8-44f6-b848-b5111bd927a9")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(attr smd)
+	(fp_rect
+		(start -0.5 -0.5)
+		(end 0.5 0.5)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.SilkS")
+		(uuid "4a0e330a-c689-415f-b6c6-33a652ac99c2")
+	)
+	(pad "1" smd rect
+		(at 0.325 -0.325)
+		(size 0.35 0.35)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "dc6afc8e-37f4-4b1d-9ce1-117dcb44d879")
+	)
+	(pad "2" smd rect
+		(at 0.325 0.325)
+		(size 0.35 0.35)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "b4c28b89-7a01-4b7a-be1e-d65188e0b00a")
+	)
+	(pad "3" smd rect
+		(at -0.325 0.325)
+		(size 0.35 0.35)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "b09b16c7-d85f-4d3d-ba26-f98cc2dbfe21")
+	)
+	(pad "4" smd rect
+		(at -0.325 -0.325)
+		(size 0.35 0.35)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "b64246fd-450b-4ed5-9980-fb4d4a66099d")
+	)
+	(embedded_fonts no)
+)

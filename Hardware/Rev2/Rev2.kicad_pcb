@@ -5825,11 +5825,23 @@
 				)
 			)
 		)
+		(property "LCSC" "C352369"
+			(at 0 0 0)
+			(layer "F.SilkS")
+			(hide yes)
+			(uuid "587799b5-a1c6-4716-99bc-c49e2ac5959b")
+			(effects
+				(font
+					(size 1.27 1.27)
+					(thickness 0.15)
+				)
+			)
+		)
 		(property ki_fp_filters "R_*")
 		(path "/a439bf26-855a-431e-bb37-b656be58d856/35c4b280-65cb-43e6-8c99-ec9aa798255b")
 		(sheetname "/Control/")
 		(sheetfile "ctrl.kicad_sch")
-		(attr smd)
+		(attr smd exclude_from_pos_files exclude_from_bom)
 		(fp_line
 			(start -0.254724 -0.5225)
 			(end 0.254724 -0.5225)
@@ -8171,7 +8183,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C2930231"
+		(property "LCSC" "C352369"
 			(at 0 0 0)
 			(layer "F.SilkS")
 			(hide yes)
@@ -8693,11 +8705,23 @@
 				)
 			)
 		)
+		(property "LCSC" "C352369"
+			(at 0 0 0)
+			(layer "F.SilkS")
+			(hide yes)
+			(uuid "5dfdd536-9a28-4505-bf34-3694e9903f3f")
+			(effects
+				(font
+					(size 1.27 1.27)
+					(thickness 0.15)
+				)
+			)
+		)
 		(property ki_fp_filters "R_*")
 		(path "/a439bf26-855a-431e-bb37-b656be58d856/fe3fd762-2248-4b7a-b06e-1539a4ea001d")
 		(sheetname "/Control/")
 		(sheetfile "ctrl.kicad_sch")
-		(attr smd)
+		(attr smd exclude_from_pos_files exclude_from_bom)
 		(fp_line
 			(start -0.254724 -0.5225)
 			(end 0.254724 -0.5225)
@@ -12483,7 +12507,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C2930231"
+		(property "LCSC" "C352369"
 			(at 0 0 0)
 			(layer "F.SilkS")
 			(hide yes)
@@ -12709,7 +12733,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C2930231"
+		(property "LCSC" "C352369"
 			(at 0 0 0)
 			(layer "F.SilkS")
 			(hide yes)
@@ -21556,11 +21580,23 @@
 				)
 			)
 		)
+		(property "LCSC" "C352369"
+			(at 0 0 0)
+			(layer "F.SilkS")
+			(hide yes)
+			(uuid "cf950f92-99c5-44e4-9712-88ed8d512b46")
+			(effects
+				(font
+					(size 1.27 1.27)
+					(thickness 0.15)
+				)
+			)
+		)
 		(property ki_fp_filters "R_*")
 		(path "/a439bf26-855a-431e-bb37-b656be58d856/bccdd1a3-69bb-4233-9321-31f0dc5f288e")
 		(sheetname "/Control/")
 		(sheetfile "ctrl.kicad_sch")
-		(attr smd)
+		(attr smd exclude_from_pos_files exclude_from_bom)
 		(fp_line
 			(start -0.254724 -0.5225)
 			(end 0.254724 -0.5225)
@@ -24874,12 +24910,12 @@
 	(footprint "custom_footprints:logo"
 		(layer "F.Cu")
 		(uuid "2216a11c-1f55-42cc-aff5-dc4b4f555963")
-		(at 29.025 143.75)
+		(at 29.025 151.75)
 		(property "Reference" "G***"
 			(at 0 0 0)
 			(layer "F.SilkS")
 			(hide yes)
-			(uuid "4424324c-d2fd-4726-b6fe-c9d928d0d7a2")
+			(uuid "b70c4340-71b5-46f7-992d-2a7be64864bd")
 			(effects
 				(font
 					(size 1.5 1.5)
@@ -24891,7 +24927,7 @@
 			(at 0.75 0 0)
 			(layer "F.SilkS")
 			(hide yes)
-			(uuid "23892b08-1840-4306-995d-2f9e8eaa8c68")
+			(uuid "4a3ec38e-eb33-4c2a-8175-483db11ac4a9")
 			(effects
 				(font
 					(size 1.5 1.5)
@@ -24903,7 +24939,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "f67322c6-59fa-41d6-afbb-e9d62a2f25e8")
+			(uuid "106590e1-7369-40c5-9887-74d0ed9c7533")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -24915,7 +24951,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "fd2011bd-54f7-44c5-8bb1-fdab71f0ef4d")
+			(uuid "293f9164-c982-442a-a174-c0002274e778")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -32730,7 +32766,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C2930231"
+		(property "LCSC" "C352369"
 			(at 0 0 0)
 			(layer "F.SilkS")
 			(hide yes)
@@ -35893,7 +35929,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C2930231"
+		(property "LCSC" "C352369"
 			(at 0 0 0)
 			(layer "F.SilkS")
 			(hide yes)
@@ -39487,7 +39523,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C2930231"
+		(property "LCSC" "C352369"
 			(at 0 0 0)
 			(layer "F.SilkS")
 			(hide yes)
@@ -41419,11 +41455,23 @@
 				)
 			)
 		)
+		(property "LCSC" "C352369"
+			(at 0 0 0)
+			(layer "F.SilkS")
+			(hide yes)
+			(uuid "a4ef1591-0426-4568-9eaf-1ea917cb1701")
+			(effects
+				(font
+					(size 1.27 1.27)
+					(thickness 0.15)
+				)
+			)
+		)
 		(property ki_fp_filters "R_*")
 		(path "/a439bf26-855a-431e-bb37-b656be58d856/53a61a8f-3e60-412e-80a9-2b527934fa88")
 		(sheetname "/Control/")
 		(sheetfile "ctrl.kicad_sch")
-		(attr smd)
+		(attr smd exclude_from_pos_files exclude_from_bom)
 		(fp_line
 			(start -0.254724 -0.5225)
 			(end 0.254724 -0.5225)
@@ -57898,7 +57946,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C2930231"
+		(property "LCSC" "C352369"
 			(at 0 0 0)
 			(layer "F.SilkS")
 			(hide yes)
@@ -59825,7 +59873,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C2930231"
+		(property "LCSC" "C352369"
 			(at 0 0 0)
 			(layer "F.SilkS")
 			(hide yes)
@@ -62115,11 +62163,23 @@
 				)
 			)
 		)
+		(property "LCSC" "C52750308"
+			(at 0 0 0)
+			(layer "F.SilkS")
+			(hide yes)
+			(uuid "3609c7e8-7062-4bf2-aaa7-33196c588ad7")
+			(effects
+				(font
+					(size 1.27 1.27)
+					(thickness 0.15)
+				)
+			)
+		)
 		(property ki_fp_filters "microSD*")
 		(path "/a439bf26-855a-431e-bb37-b656be58d856/da52554a-2198-445e-b719-762a1add3149")
 		(sheetname "/Control/")
 		(sheetfile "ctrl.kicad_sch")
-		(attr board_only exclude_from_pos_files)
+		(attr board_only exclude_from_pos_files exclude_from_bom)
 		(fp_line
 			(start 7.375 14.5)
 			(end -7.375 14.5)
@@ -62387,7 +62447,7 @@
 		(path "/a439bf26-855a-431e-bb37-b656be58d856/27cc306d-8dff-4782-b148-e646a12947bc")
 		(sheetname "/Control/")
 		(sheetfile "ctrl.kicad_sch")
-		(attr through_hole exclude_from_pos_files)
+		(attr through_hole exclude_from_pos_files exclude_from_bom)
 		(fp_line
 			(start -1.38 -1.38)
 			(end 0 -1.38)
@@ -64932,7 +64992,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C2930231"
+		(property "LCSC" "C352369"
 			(at 0 0 0)
 			(layer "F.SilkS")
 			(hide yes)
@@ -74379,7 +74439,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C2930231"
+		(property "LCSC" "C352369"
 			(at 0 0 0)
 			(layer "F.SilkS")
 			(hide yes)
@@ -80867,7 +80927,7 @@
 			(pinfunction "GND")
 			(pintype "passive")
 			(zone_connect 2)
-			(uuid "77d3bd51-fd19-4783-9675-a06588420604")
+			(uuid "0c470780-ef1c-4d90-a04a-a5b35650173a")
 		)
 		(pad "41" thru_hole circle
 			(at -2.2 1.06 270)
@@ -80880,7 +80940,7 @@
 			(pinfunction "GND")
 			(pintype "passive")
 			(zone_connect 2)
-			(uuid "77d3bd51-fd19-4783-9675-a06588420604")
+			(uuid "e7e193d3-3341-4792-a6ae-b2180d989ac0")
 		)
 		(pad "41" thru_hole circle
 			(at -2.2 2.46 270)
@@ -80893,7 +80953,7 @@
 			(pinfunction "GND")
 			(pintype "passive")
 			(zone_connect 2)
-			(uuid "77d3bd51-fd19-4783-9675-a06588420604")
+			(uuid "f4b0e6a4-de74-4f2b-a86f-67572fabbc5f")
 		)
 		(pad "41" thru_hole circle
 			(at -2.2 3.86 270)
@@ -80906,7 +80966,7 @@
 			(pinfunction "GND")
 			(pintype "passive")
 			(zone_connect 2)
-			(uuid "77d3bd51-fd19-4783-9675-a06588420604")
+			(uuid "6d92d988-2b9b-40df-a2d8-c67c2db0cbfa")
 		)
 		(pad "41" thru_hole circle
 			(at -1.5 1.76 270)
@@ -80919,7 +80979,7 @@
 			(pinfunction "GND")
 			(pintype "passive")
 			(zone_connect 2)
-			(uuid "77d3bd51-fd19-4783-9675-a06588420604")
+			(uuid "95881d19-27f6-4dfc-a055-dffbc7017b68")
 		)
 		(pad "41" smd rect
 			(at -1.5 2.46 180)
@@ -80930,7 +80990,7 @@
 			(pinfunction "GND")
 			(pintype "passive")
 			(zone_connect 2)
-			(uuid "77d3bd51-fd19-4783-9675-a06588420604")
+			(uuid "070349d0-f9f6-4218-898c-e6a301a14fbc")
 		)
 		(pad "41" thru_hole circle
 			(at -1.5 3.16 270)
@@ -80943,7 +81003,7 @@
 			(pinfunction "GND")
 			(pintype "passive")
 			(zone_connect 2)
-			(uuid "77d3bd51-fd19-4783-9675-a06588420604")
+			(uuid "446fd134-0c83-45a9-b169-9c41a005fcd3")
 		)
 		(pad "41" thru_hole circle
 			(at -0.8 1.06 270)
@@ -80956,7 +81016,7 @@
 			(pinfunction "GND")
 			(pintype "passive")
 			(zone_connect 2)
-			(uuid "77d3bd51-fd19-4783-9675-a06588420604")
+			(uuid "c1cd28db-8238-4eeb-aadf-825ec416595d")
 		)
 		(pad "41" thru_hole circle
 			(at -0.8 2.46 270)
@@ -80969,7 +81029,7 @@
 			(pinfunction "GND")
 			(pintype "passive")
 			(zone_connect 2)
-			(uuid "77d3bd51-fd19-4783-9675-a06588420604")
+			(uuid "dae5df13-94bb-483b-9bd3-1d77b14dfd6b")
 		)
 		(pad "41" thru_hole circle
 			(at -0.8 3.86 270)
@@ -80982,7 +81042,7 @@
 			(pinfunction "GND")
 			(pintype "passive")
 			(zone_connect 2)
-			(uuid "77d3bd51-fd19-4783-9675-a06588420604")
+			(uuid "938dab75-151e-494e-bf44-10623af39a4b")
 		)
 		(pad "41" thru_hole circle
 			(at -0.1 1.76 270)
@@ -80995,7 +81055,7 @@
 			(pinfunction "GND")
 			(pintype "passive")
 			(zone_connect 2)
-			(uuid "77d3bd51-fd19-4783-9675-a06588420604")
+			(uuid "1331fdb6-1bfa-4708-97c4-796c22d0fafb")
 		)
 		(pad "41" thru_hole circle
 			(at -0.1 3.16 270)
@@ -81008,7 +81068,7 @@
 			(pinfunction "GND")
 			(pintype "passive")
 			(zone_connect 2)
-			(uuid "77d3bd51-fd19-4783-9675-a06588420604")
+			(uuid "eabffca4-69a6-47f8-9ec9-c63e3964f715")
 		)
 		(zone
 			(net 0)
@@ -81918,7 +81978,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C2930231"
+		(property "LCSC" "C352369"
 			(at 0 0 0)
 			(layer "F.SilkS")
 			(hide yes)
@@ -88487,6 +88547,18 @@
 			(effects
 				(font
 					(size 1 1)
+					(thickness 0.15)
+				)
+			)
+		)
+		(property "LCSC" "C965822"
+			(at 0 0 0)
+			(layer "F.SilkS")
+			(hide yes)
+			(uuid "b82294e3-7c1f-430a-8ab5-4a4744f6901a")
+			(effects
+				(font
+					(size 1.27 1.27)
 					(thickness 0.15)
 				)
 			)
@@ -97065,7 +97137,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C2930231"
+		(property "LCSC" "C352369"
 			(at 0 0 0)
 			(layer "F.SilkS")
 			(hide yes)
@@ -114395,7 +114467,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C2930231"
+		(property "LCSC" "C352369"
 			(at 0 0 0)
 			(layer "F.SilkS")
 			(hide yes)
@@ -121796,11 +121868,23 @@
 				)
 			)
 		)
+		(property "LCSC" "C352369"
+			(at 0 0 0)
+			(layer "F.SilkS")
+			(hide yes)
+			(uuid "926ea85b-596f-430b-8607-70df4572ae06")
+			(effects
+				(font
+					(size 1.27 1.27)
+					(thickness 0.15)
+				)
+			)
+		)
 		(property ki_fp_filters "R_*")
 		(path "/a439bf26-855a-431e-bb37-b656be58d856/81a30191-223f-4daf-84d7-79db9dcde1dd")
 		(sheetname "/Control/")
 		(sheetfile "ctrl.kicad_sch")
-		(attr smd)
+		(attr smd exclude_from_pos_files exclude_from_bom)
 		(fp_line
 			(start -0.254724 -0.5225)
 			(end 0.254724 -0.5225)
@@ -129643,7 +129727,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C2930231"
+		(property "LCSC" "C352369"
 			(at 0 0 0)
 			(layer "F.SilkS")
 			(hide yes)
@@ -138715,6 +138799,18 @@
 				)
 			)
 		)
+		(property "LCSC" "C2907127"
+			(at 0 0 0)
+			(layer "F.SilkS")
+			(hide yes)
+			(uuid "322af817-7ac2-450f-abbf-6ed2c1a8e1f1")
+			(effects
+				(font
+					(size 1.27 1.27)
+					(thickness 0.15)
+				)
+			)
+		)
 		(property ki_fp_filters "R_*")
 		(path "/a439bf26-855a-431e-bb37-b656be58d856/6d44c74f-ab55-44e3-bca0-b3e25ee45723")
 		(sheetname "/Control/")
@@ -147083,11 +147179,23 @@
 				)
 			)
 		)
+		(property "LCSC" "C352369"
+			(at 0 0 0)
+			(layer "F.SilkS")
+			(hide yes)
+			(uuid "545101f2-1964-4a82-a700-98fb042c858d")
+			(effects
+				(font
+					(size 1.27 1.27)
+					(thickness 0.15)
+				)
+			)
+		)
 		(property ki_fp_filters "R_*")
 		(path "/a439bf26-855a-431e-bb37-b656be58d856/7d094061-63a7-4eac-8935-2f4cd5da078a")
 		(sheetname "/Control/")
 		(sheetfile "ctrl.kicad_sch")
-		(attr smd)
+		(attr smd exclude_from_pos_files exclude_from_bom)
 		(fp_line
 			(start -0.254724 -0.5225)
 			(end 0.254724 -0.5225)
@@ -158536,7 +158644,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C2930231"
+		(property "LCSC" "C352369"
 			(at 0 0 0)
 			(layer "F.SilkS")
 			(hide yes)
@@ -166914,7 +167022,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C2930231"
+		(property "LCSC" "C352369"
 			(at 0 0 0)
 			(layer "F.SilkS")
 			(hide yes)
@@ -179958,7 +180066,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C2930231"
+		(property "LCSC" "C352369"
 			(at 0 0 0)
 			(layer "F.SilkS")
 			(hide yes)
@@ -185429,7 +185537,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C2930231"
+		(property "LCSC" "C352369"
 			(at 0 0 0)
 			(layer "F.SilkS")
 			(hide yes)
@@ -186982,7 +187090,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C2930231"
+		(property "LCSC" "C352369"
 			(at 0 0 0)
 			(layer "F.SilkS")
 			(hide yes)
@@ -190408,16 +190516,6 @@
 		(layer "F.SilkS")
 		(uuid "757275ef-03d8-4bfc-98f8-a56c0668c095")
 	)
-	(gr_line
-		(start 15.9 172.6)
-		(end 64.5 172.6)
-		(stroke
-			(width 1.5)
-			(type solid)
-		)
-		(layer "F.SilkS")
-		(uuid "770f5c98-1387-4f2a-9941-51821e4d367a")
-	)
 	(gr_arc
 		(start 124.2 88.907105)
 		(mid 123.54672 88.470598)
@@ -192053,7 +192151,7 @@
 			(justify left bottom)
 		)
 	)
-	(gr_text "Melbourne Train Tracker"
+	(gr_text "Victorian Train Tracker"
 		(at 16.6 175.4 0)
 		(layer "F.SilkS")
 		(uuid "140a1c3b-3ebd-4f94-b9e0-cb14fd7f1c94")
@@ -194805,19 +194903,6 @@
 				(bold yes)
 			)
 			(justify left bottom)
-		)
-	)
-	(gr_text "Victorian"
-		(at 40.2 166.4 0)
-		(layer "F.SilkS")
-		(uuid "b98a83c0-b58c-4648-be62-c28022bc25c2")
-		(effects
-			(font
-				(size 6 6)
-				(thickness 1.1)
-				(bold yes)
-			)
-			(justify bottom)
 		)
 	)
 	(gr_text "Westall"

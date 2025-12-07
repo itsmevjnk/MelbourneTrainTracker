@@ -1,7 +1,7 @@
 menu "Firmware Configuration"
     choice MUNNEL_COLOUR
         prompt "Metro Tunnel service colour handling"
-        default MUNNEL_COLOUR_DEST
+        default MUNNEL_COLOUR_BLUE
         config MUNNEL_COLOUR_BLUE
             bool "Show all services in Metro Tunnel/Dandenong group blue"
         config MUNNEL_COLOUR_DEST

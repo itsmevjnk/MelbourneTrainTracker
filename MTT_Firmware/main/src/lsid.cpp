@@ -92,13 +92,13 @@ size_t LSID::getLEDsBetween(infraid_t line, infraid_t fromCode, infraid_t toCode
         /* Metro Tunnel lines */
 #ifndef CONFIG_MUNNEL_COLOUR_NONE
         case INFRAID_SUYM: return suyGetLEDsBetween(fromCode, toCode, buffer, maxLength);
-        case INFRAID_CBEM: return cbeGetLEDsBetween(fromCode, toCode, buffer, maxLength);
-        case INFRAID_PKMM: return pkmGetLEDsBetween(fromCode, toCode, buffer, maxLength);
+        case INFRAID_CBEM: return cbeMunnelGetLEDsBetween(fromCode, toCode, buffer, maxLength);
+        case INFRAID_PKMM: return pkmMunnelGetLEDsBetween(fromCode, toCode, buffer, maxLength);
 #endif
 #ifdef CONFIG_MUNNEL_COLOUR_DEST
         case INFRAID_SUYm: return suyGetLEDsBetween(fromCode, toCode, buffer, maxLength);
-        case INFRAID_CBEm: return cbeGetLEDsBetween(fromCode, toCode, buffer, maxLength);
-        case INFRAID_PKMm: return pkmGetLEDsBetween(fromCode, toCode, buffer, maxLength);
+        case INFRAID_CBEm: return cbeMunnelGetLEDsBetween(fromCode, toCode, buffer, maxLength);
+        case INFRAID_PKMm: return pkmMunnelGetLEDsBetween(fromCode, toCode, buffer, maxLength);
 #endif
 
         default:

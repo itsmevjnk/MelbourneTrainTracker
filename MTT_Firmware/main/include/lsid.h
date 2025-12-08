@@ -379,6 +379,10 @@ private:
     static uint16_t cbeGetLED(infraid_t code);
     static size_t cbeGetLEDsBetween(infraid_t fromCode, infraid_t toCode, uint16_t* buffer, size_t maxLength);
 
+    /* hack for Pakenham/Cranbourne via Metro Tunnel - not needed for Rev2 */
+    static size_t cbeMunnelGetLEDsBetween(infraid_t fromCode, infraid_t toCode, uint16_t* buffer, size_t maxLength);
+    static size_t pkmMunnelGetLEDsBetween(infraid_t fromCode, infraid_t toCode, uint16_t* buffer, size_t maxLength);
+
     /* Burnley city stations */
     static uint16_t blyCityGetLED(infraid_t code);
 

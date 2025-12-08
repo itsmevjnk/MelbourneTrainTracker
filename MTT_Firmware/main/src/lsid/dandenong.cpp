@@ -77,6 +77,7 @@ uint16_t LSID::dngCityGetLED(infraid_t code) {
             return LMAT_NULL;
     }
 }
+
 static const station_t* kPakenhamStations[] = {
     &kPakenhamEPH, &kPakenhamPKM, &kPakenhamCDA, &kPakenhamOFC, &kPakenhamBFD, &kPakenhamBEW, &kPakenhamNWA, &kPakenhamHLM,
     &kDandenongDNG, &kDandenongYMN, &kDandenongNPK, &kDandenongSNP, &kDandenongSPG, &kDandenongWTL, &kDandenongCLA, &kDandenongHUN, &kDandenongOAK, &kDandenongHUG, &kDandenongMRB, &kDandenongCNE, &kDandenongCFD, &kDandenongMAL, &kDandenongSYR, &kDandenongRMD
@@ -166,4 +167,30 @@ size_t LSID::dngGetLEDsBetween(
         stations, codes, count,
         fromCode, toCode, buffer, maxLength
     ); // normal handling
+}
+
+static const station_t kDandenongMAL_AZC = { LMAT_MUNNEL_AZC_ALT, LMAT_MUNNEL_AZC_ALT }; // use AZC alt to represent MAL for Dandenong services going through the Metro Tunnel
+
+static const station_t* kPakenhamMunnelStations[] = {
+    &kPakenhamEPH, &kPakenhamPKM, &kPakenhamCDA, &kPakenhamOFC, &kPakenhamBFD, &kPakenhamBEW, &kPakenhamNWA, &kPakenhamHLM,
+    &kDandenongDNG, &kDandenongYMN, &kDandenongNPK, &kDandenongSNP, &kDandenongSPG, &kDandenongWTL, &kDandenongCLA, &kDandenongHUN, &kDandenongOAK, &kDandenongHUG, &kDandenongMRB, &kDandenongCNE, &kDandenongCFD, &kDandenongMAL_AZC, &kDandenongSYR, &kDandenongRMD
+};
+
+size_t LSID::pkmMunnelGetLEDsBetween(infraid_t fromCode, infraid_t toCode, uint16_t* buffer, size_t maxLength) {
+    return dngGetLEDsBetween(
+        kPakenhamMunnelStations, kPakenhamCodes, kPakenhamCount,
+        fromCode, toCode, buffer, maxLength
+    );
+}
+
+static const station_t* kCranbourneMunnelStations[] = {
+    &kCranbourneCBE, &kCranbourneMPK, &kCranbourneLBK,
+    &kDandenongDNG, &kDandenongYMN, &kDandenongNPK, &kDandenongSNP, &kDandenongSPG, &kDandenongWTL, &kDandenongCLA, &kDandenongHUN, &kDandenongOAK, &kDandenongHUG, &kDandenongMRB, &kDandenongCNE, &kDandenongCFD, &kDandenongMAL_AZC, &kDandenongSYR, &kDandenongRMD
+};
+
+size_t LSID::cbeMunnelGetLEDsBetween(infraid_t fromCode, infraid_t toCode, uint16_t* buffer, size_t maxLength) {
+    return dngGetLEDsBetween(
+        kPakenhamMunnelStations, kPakenhamCodes, kPakenhamCount,
+        fromCode, toCode, buffer, maxLength
+    );
 }

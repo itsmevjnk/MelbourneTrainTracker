@@ -10487,7 +10487,7 @@
 				)
 			)
 		)
-		(property "Footprint" "custom_footprints:TPS16-N1F1-2016-A"
+		(property "Footprint" "custom_footprints:ShouHan-USBC-16P-2MD"
 			(at 72.39 111.76 0)
 			(effects
 				(font
@@ -10514,7 +10514,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "C52750323"
+		(property "MPN" "C2765186"
 			(at 68.58 111.76 0)
 			(effects
 				(font

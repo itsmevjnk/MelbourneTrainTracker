@@ -538,7 +538,7 @@
 		(uuid "c6c90709-bc87-49ec-a67c-625cb497a9b2")
 	)
 	(embedded_fonts no)
-	(model "${KICAD9_3DMODEL_DIR}/Package_DFN_QFN.3dshapes/QFN-44-1EP_5x5mm_P0.4mm_EP2.45x2.45mm.wrl"
+	(model "models/aw20216.STEP"
 		(offset
 			(xyz 0 0 0)
 		)
@@ -546,7 +546,7 @@
 			(xyz 1 1 1)
 		)
 		(rotate
-			(xyz 0 0 0)
+			(xyz -90 -0 -0)
 		)
 	)
 )

@@ -91,4 +91,15 @@
 		(uuid "b64246fd-450b-4ed5-9980-fb4d4a66099d")
 	)
 	(embedded_fonts no)
+	(model "models/1010 led.STEP"
+		(offset
+			(xyz 0 0 0)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz -90 -0 -0)
+		)
+	)
 )

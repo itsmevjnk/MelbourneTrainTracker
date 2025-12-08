@@ -210,4 +210,15 @@
 		(uuid "1dd1e0a9-67b2-420c-a2a4-99ad7d3535a3")
 	)
 	(embedded_fonts no)
+	(model "models/sd.STEP"
+		(offset
+			(xyz 0 -7.25 0)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz -90 -0 -0)
+		)
+	)
 )

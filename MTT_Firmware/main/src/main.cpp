@@ -84,6 +84,9 @@ extern "C" void app_main() {
         }
     }
     if (runConfig) {
+        /* initialise web configuration interface access */
+        ESP_ERROR_CHECK(WiFi::initAP());
+
         ESP_ERROR_CHECK(Config::cli());
         while (true) { // while CLI is running on another task, we flash the two LEDs alternately
             ESP_ERROR_CHECK(StatusLED::actyOn()); ESP_ERROR_CHECK(StatusLED::errorOff()); vTaskDelay(500 / portTICK_PERIOD_MS);
@@ -93,9 +96,9 @@ extern "C" void app_main() {
     ESP_ERROR_CHECK(StatusLED::errorOff());
 
     if (Config::isWiFiEnterprise())
-        ESP_ERROR_CHECK(WiFi::init(Config::getWiFiSSID(), Config::getWiFiIdentity(), Config::getWiFiUsername(), Config::getWiFiPassword(), Config::getWiFiCertificate(), Config::getWiFiCertLength()));
+        ESP_ERROR_CHECK(WiFi::initSTA(Config::getWiFiSSID(), Config::getWiFiIdentity(), Config::getWiFiUsername(), Config::getWiFiPassword(), Config::getWiFiCertificate(), Config::getWiFiCertLength()));
     else
-        ESP_ERROR_CHECK(WiFi::init(Config::getWiFiSSID(), Config::getWiFiPassword()));
+        ESP_ERROR_CHECK(WiFi::initSTA(Config::getWiFiSSID(), Config::getWiFiPassword()));
 
     ESP_ERROR_CHECK(NTP::init(Config::getTimeServer()));
 

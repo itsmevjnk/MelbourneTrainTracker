@@ -12,12 +12,13 @@
 
 class WiFi {
 public:
-    static esp_err_t init(
+    /* STA (station) mode */
+    static esp_err_t initSTA(
         const char* ssid,
         const char* password = nullptr, // null for open networks
         size_t maxRetries = 3
     ); // initialise Wi-Fi with the provided params
-    static esp_err_t init(
+    static esp_err_t initSTA(
         const char* ssid,
         const char* identity,
         const char* username,
@@ -30,9 +31,12 @@ public:
 
     static bool isConnected();
 
+    /* AP (access point) mode */
+    static esp_err_t initAP(); // default name, no password
+
 private:
-    static esp_err_t initStub(wifi_config_t& config, size_t maxRetries = 3); // initialise Wi-Fi with prepared configuration, without starting the Wi-Fi driver. this allows the WPA2-Enterprise init method to inject addition setup
-    static esp_err_t start(); // start Wi-Fi driver and wait for connection
+    static esp_err_t initStub(wifi_config_t& config, bool ap, size_t maxRetries = 3); // initialise Wi-Fi with prepared configuration, without starting the Wi-Fi driver. this allows the WPA2-Enterprise init method to inject addition setup
+    static esp_err_t startSTA(); // start Wi-Fi driver and wait for connection
 
     static void wifiEventHandler(void* arg, esp_event_base_t eventBase, int32_t eventID, void* eventData); // Wi-Fi event handler
     static void ipEventHandler(void* arg, esp_event_base_t eventBase, int32_t eventID, void* eventData); // IP event handler

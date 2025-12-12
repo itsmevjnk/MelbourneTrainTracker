@@ -254,6 +254,23 @@ typedef uint32_t infraid_t;
 #define INFRAID_GEL                                 INFRAID("GEL ")
 #define INFRAID_WBL                                 INFRAID("WBL ")
 
+/* NEW: Metro Tunnel stations */
+#define INFRAID_ARN                                 INFRAID("ARN ") // Arden
+#define INFRAID_PKV                                 INFRAID("PKV ") // Parkville
+#define INFRAID_STL                                 INFRAID("STL ") // State Library
+#define INFRAID_THL                                 INFRAID("THL ") // Town Hall
+#define INFRAID_AZC                                 INFRAID("AZC ") // Anzac
+
+/* lines via Metro Tunnel */
+// originating from Metro Tunnel (i.e. Down direction)
+#define INFRAID_SUYM                                INFRAID("SUYM")
+#define INFRAID_CBEM                                INFRAID("CBEM")
+#define INFRAID_PKMM                                INFRAID("PKMM")
+// heading into Metro Tunnel (i.e. Up direction)
+#define INFRAID_SUYm                                INFRAID("SUYm")
+#define INFRAID_CBEm                                INFRAID("CBEm")
+#define INFRAID_PKMm                                INFRAID("PKMm")
+
 /* info structure for a station on a line */
 typedef struct {
     uint16_t led; // LED index for this station
@@ -275,20 +292,30 @@ public:
             line == INFRAID_WIL || line == INFRAID_WER || line == INFRAID_CGB || line == INFRAID_SUY ||
             line == INFRAID_RCE || line == INFRAID_UFD || line == INFRAID_ART || line == INFRAID_BAT ||
             line == INFRAID_MBY || line == INFRAID_BDE || line == INFRAID_TRN || line == INFRAID_GEL || 
+#ifndef CONFIG_MUNNEL_COLOUR_NONE
+            line == INFRAID_SUYM || line == INFRAID_CBEM || line == INFRAID_PKMM ||
+#endif
+#ifdef CONFIG_MUNNEL_COLOUR_DEST
+            line == INFRAID_SUYm || line == INFRAID_CBEm || line == INFRAID_PKMm ||
+#endif
             line == INFRAID_WBL;
     }
 private:
     static const char* kTag;
 
     /* helpers */
+    static bool stationExists(const infraid_t* codes, size_t count, infraid_t code);
     static uint16_t getLEDStub(const station_t** stations, const infraid_t* codes, size_t count, infraid_t code);
     static size_t getLEDsBetweenCodes(const station_t** stations, const infraid_t* codes, size_t count, infraid_t fromCode, infraid_t toCode, uint16_t* buffer, size_t maxLength);
     static size_t getLEDsBetweenIndices(const station_t** stations, const infraid_t* codes, size_t count, int fromIndex, int toIndex, uint16_t* buffer, size_t maxLength);
     static inline bool isCityStation(infraid_t code) {
         return (code == INFRAID_FSS || code == INFRAID_SSS || code == INFRAID_FGS || code == INFRAID_MCE || code == INFRAID_PAR);
-    }
+    } // excluding Metro Tunnel
     static inline bool isCityLoopStation(infraid_t code) {
         return (code == INFRAID_FGS || code == INFRAID_MCE || code == INFRAID_PAR);
+    }
+    static inline bool isMunnelStation(infraid_t code) {
+        return (code == INFRAID_ARN || code == INFRAID_PKV || code == INFRAID_STL || code == INFRAID_THL || code == INFRAID_AZC);
     }
 
     /* Sandringham line */
@@ -337,8 +364,12 @@ private:
         infraid_t fromCode, infraid_t toCode, uint16_t* buffer, size_t maxLength
     ); // asserts that the last element of stations is RMD
 
-    /* Dandenong city stations */
+    /* Dandenong lines */
     static uint16_t dngCityGetLED(infraid_t code);
+    static size_t dngGetLEDsBetween(
+        const station_t** stations, const infraid_t* codes, size_t count,
+        infraid_t fromCode, infraid_t toCode, uint16_t* buffer, size_t maxLength
+    ); // asserts that the last element of stations is RMD
 
     /* Pakenham line */
     static uint16_t pkmGetLED(infraid_t code);
@@ -347,6 +378,10 @@ private:
     /* Cranbourne line */
     static uint16_t cbeGetLED(infraid_t code);
     static size_t cbeGetLEDsBetween(infraid_t fromCode, infraid_t toCode, uint16_t* buffer, size_t maxLength);
+
+    /* hack for Pakenham/Cranbourne via Metro Tunnel - not needed for Rev2 */
+    static size_t cbeMunnelGetLEDsBetween(infraid_t fromCode, infraid_t toCode, uint16_t* buffer, size_t maxLength);
+    static size_t pkmMunnelGetLEDsBetween(infraid_t fromCode, infraid_t toCode, uint16_t* buffer, size_t maxLength);
 
     /* Burnley city stations */
     static uint16_t blyCityGetLED(infraid_t code);
@@ -407,5 +442,9 @@ private:
     /* Upfield line */
     static uint16_t ufdGetLED(infraid_t code);
     static size_t ufdGetLEDsBetween(infraid_t fromCode, infraid_t toCode, uint16_t* buffer, size_t maxLength);
+
+    /* Metro Tunnel */
+    static uint16_t mtGetLED(infraid_t code);
+    static size_t mtGetLEDsBetween(infraid_t fromCode, infraid_t toCode, uint16_t* buffer, size_t maxLength);
 };
 

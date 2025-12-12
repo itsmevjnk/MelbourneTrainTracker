@@ -1,4 +1,15 @@
 menu "Firmware Configuration"
+    choice MUNNEL_COLOUR
+        prompt "Metro Tunnel service colour handling"
+        default MUNNEL_COLOUR_BLUE
+        config MUNNEL_COLOUR_BLUE
+            bool "Show all services in Metro Tunnel/Dandenong group blue"
+        config MUNNEL_COLOUR_DEST
+            bool "Show service colour depending on direction (e.g. yellow for Sunbury)"
+        config MUNNEL_COLOUR_NONE
+            bool "Change service colour within the Metro Tunnel"
+    endchoice
+    
     config DEFAULT_TIME_SERVER
         string "Default NTP time server"
         default "pool.ntp.org"

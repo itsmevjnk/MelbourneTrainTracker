@@ -191,7 +191,16 @@ const infraid_t Services::kLineIDs[] = {
     INFRAID_TRN, // Traralgon
 
     INFRAID_GEL, // Geelong
-    INFRAID_WBL  // Warrnambool
+    INFRAID_WBL,  // Warrnambool
+
+    /* lines via Metro Tunnel */
+    INFRAID_SUYM,
+    INFRAID_CBEM,
+    INFRAID_PKMM,
+    INFRAID_SUYm,
+    INFRAID_CBEm,
+    INFRAID_PKMm
+    // TODO: properly do this for web interface
 }; // line IDs to match with m_lines flag
 const size_t Services::kNumLines = (sizeof(kLineIDs) / sizeof(infraid_t));
 const uint32_t Services::kAllLines = (1 << kNumLines) - 1;

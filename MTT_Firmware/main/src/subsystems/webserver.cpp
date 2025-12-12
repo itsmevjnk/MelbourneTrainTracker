@@ -16,11 +16,17 @@ const httpd_uri_t* WebServer::kHandlers[] = {
     &kLEDBufferWS,
     &kGetLines, &kEnableLines, &kDisableLines,
     &kGetBoardImage, &kGetBoardView, &kGetIndex, &kGetRoot,
-    &kConfigGetMAC_STA, &kConfigGetMAC_AP
+    &kConfigGetMAC_STA, &kConfigGetMAC_AP,
+    &kConfigGetNTP, &kConfigGetMQTT,
+    &kConfigGetMDNSHost, &kConfigGetMDNSInst
 };
 
 const httpd_uri_t* WebServer::kConfigHandlers[] = {
-    &kConfigGetMAC_STA, &kConfigGetMAC_AP
+    &kConfigGetMAC_STA, &kConfigGetMAC_AP,
+    &kConfigGetNTP, &kConfigSetNTP,
+    &kConfigGetMQTT, &kConfigSetMQTT,
+    &kConfigGetMDNSHost, &kConfigSetMDNSHost,
+    &kConfigGetMDNSInst, &kConfigSetMDNSInst
 };
 
 mdns_txt_item_t WebServer::kMDNSServiceTXT[] = {

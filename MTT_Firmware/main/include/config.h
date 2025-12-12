@@ -30,6 +30,11 @@ public:
     static const char* getMDNSHostname();
     static const char* getMDNSInstanceName();
 
+    static esp_err_t setTimeServer(const char* value);
+    static esp_err_t setMQTTBroker(const char* value);
+    static esp_err_t setMDNSHostname(const char* value);
+    static esp_err_t setMDNSInstanceName(const char* value);
+
 private:
     static bool m_initialised;
 

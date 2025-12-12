@@ -38,6 +38,32 @@ private:
 
     static esp_err_t configGetMAC(httpd_req_t* req, bool ap); // stub
 
+    static const httpd_uri_t kConfigGetNTP;
+    static esp_err_t configGetNTP(httpd_req_t* req);
+
+    static const httpd_uri_t kConfigSetNTP;
+    static esp_err_t configSetNTP(httpd_req_t* req);
+    
+    static const httpd_uri_t kConfigGetMQTT;
+    static esp_err_t configGetMQTT(httpd_req_t* req);
+    
+    static const httpd_uri_t kConfigSetMQTT;
+    static esp_err_t configSetMQTT(httpd_req_t* req);
+
+    static const httpd_uri_t kConfigGetMDNSHost;
+    static esp_err_t configGetMDNSHost(httpd_req_t* req);
+    
+    static const httpd_uri_t kConfigSetMDNSHost;
+    static esp_err_t configSetMDNSHost(httpd_req_t* req);
+
+    static const httpd_uri_t kConfigGetMDNSInst;
+    static esp_err_t configGetMDNSInst(httpd_req_t* req);
+    
+    static const httpd_uri_t kConfigSetMDNSInst;
+    static esp_err_t configSetMDNSInst(httpd_req_t* req);
+
+    static esp_err_t readRequestBody(httpd_req_t* req, uint8_t* buf, size_t len, size_t* readLen);
+
     static const httpd_uri_t kLEDBufferWS;
     static esp_err_t wsLEDBuffer(httpd_req_t* req);
     static void sendLEDBufferWorker(void* arg); // worker function called by httpd

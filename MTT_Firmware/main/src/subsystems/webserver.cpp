@@ -15,7 +15,12 @@ const httpd_uri_t* WebServer::kHandlers[] = {
     &kGetLEDBuffer,
     &kLEDBufferWS,
     &kGetLines, &kEnableLines, &kDisableLines,
-    &kGetBoardImage, &kGetBoardView, &kGetIndex, &kGetRoot
+    &kGetBoardImage, &kGetBoardView, &kGetIndex, &kGetRoot,
+    &kConfigGetMAC_STA, &kConfigGetMAC_AP
+};
+
+const httpd_uri_t* WebServer::kConfigHandlers[] = {
+    &kConfigGetMAC_STA, &kConfigGetMAC_AP
 };
 
 mdns_txt_item_t WebServer::kMDNSServiceTXT[] = {
@@ -23,7 +28,7 @@ mdns_txt_item_t WebServer::kMDNSServiceTXT[] = {
     { "board", "esp32" }
 };
 
-esp_err_t WebServer::init(const char* hostname, const char* instance) {
+esp_err_t WebServer::init(const char* hostname, const httpd_uri_t** handlers, size_t handlersCount, const char* instance) {
     ESP_RETURN_ON_ERROR(mdns_init(), kTag, "cannot initialise mDNS service");
     mdns_hostname_set(hostname);
     if (instance) mdns_instance_name_set(instance);
@@ -34,18 +39,26 @@ esp_err_t WebServer::init(const char* hostname, const char* instance) {
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
     config.server_port = CONFIG_HTTP_PORT;
     config.lru_purge_enable = true;
-    config.max_uri_handlers = sizeof(kHandlers) / sizeof(httpd_uri_t*);
+    config.max_uri_handlers = handlersCount;
 
     ESP_RETURN_ON_ERROR(httpd_start(&m_server, &config), kTag, "cannot initialise HTTP server");
 
     /* register URI handlers */
     for (size_t i = 0; i < config.max_uri_handlers; i++) {
         ESP_RETURN_ON_ERROR(
-            httpd_register_uri_handler(m_server, kHandlers[i]),
-            kTag, "cannot register URI handler for %s type %d", kHandlers[i]->uri, kHandlers[i]->method
+            httpd_register_uri_handler(m_server, handlers[i]),
+            kTag, "cannot register URI handler for %s type %d", handlers[i]->uri, handlers[i]->method
         );
     }
 
     ESP_LOGI(kTag, "initialised HTTP server");
     return ESP_OK;
+}
+
+esp_err_t WebServer::init(const char* hostname, const char* instance) {
+    return init(hostname, kHandlers, sizeof(kHandlers) / sizeof(httpd_uri_t*), instance);
+}
+
+esp_err_t WebServer::initConfig(const char* hostname, const char* instance) {
+    return init(hostname, kConfigHandlers, sizeof(kConfigHandlers) / sizeof(httpd_uri_t*), instance);
 }

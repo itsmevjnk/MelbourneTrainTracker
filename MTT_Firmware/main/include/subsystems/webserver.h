@@ -7,7 +7,10 @@
 
 class WebServer {
 public:
-    static esp_err_t init(const char* hostname, const char* instance = nullptr);
+    static esp_err_t init(const char* hostname, const char* instance = nullptr); // in normal mode
+    static esp_err_t initConfig(const char* hostname, const char* instance = nullptr); // in configuration mode
+
+    static esp_err_t init(const char* hostname, const httpd_uri_t** handlers, size_t handlersCount, const char* instance = nullptr);
 
     static esp_err_t sendLEDBufferAsync(); // trigger sending LED buffer over WebSockets (asynchronously)
 private:
@@ -26,6 +29,14 @@ private:
 
     static const httpd_uri_t kGetLEDBuffer;
     static esp_err_t getLEDBuffer(httpd_req_t* req);
+
+    static const httpd_uri_t kConfigGetMAC_STA;
+    static esp_err_t configGetMAC_STA(httpd_req_t* req);
+
+    static const httpd_uri_t kConfigGetMAC_AP;
+    static esp_err_t configGetMAC_AP(httpd_req_t* req);
+
+    static esp_err_t configGetMAC(httpd_req_t* req, bool ap); // stub
 
     static const httpd_uri_t kLEDBufferWS;
     static esp_err_t wsLEDBuffer(httpd_req_t* req);
@@ -51,7 +62,9 @@ private:
     static const httpd_uri_t kGetRoot;
 
     static httpd_handle_t m_server;
+
     static const httpd_uri_t* kHandlers[];
+    static const httpd_uri_t* kConfigHandlers[];
 
     static mdns_txt_item_t kMDNSServiceTXT[];
 

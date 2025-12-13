@@ -11,7 +11,7 @@ const httpd_uri_t WebServer::kGetDriverState = {
 esp_err_t WebServer::getDriverState(httpd_req_t* req) {
     ESP_RETURN_ON_ERROR(
         httpd_resp_send(req, LEDMatrix::getState() ? "1" : "0", 1),
-        kTag, "GET /driver: cannot respond"
+        kTag, "GET %s: cannot respond", req->uri
     );
     return ESP_OK;
 }
@@ -28,7 +28,7 @@ esp_err_t WebServer::setDriverState(httpd_req_t* req) {
     if (bufLength == 1) { // must provide state
         ESP_RETURN_ON_ERROR(
             httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, NULL),
-            kTag, "POST /driver: cannot respond with 400"
+            kTag, "POST %s: cannot send error", req->uri
         );
         return ESP_OK;
     }
@@ -39,22 +39,22 @@ esp_err_t WebServer::setDriverState(httpd_req_t* req) {
     if (ret == ESP_OK) {
         char paramValue[2]; // reading one character (1 or 0)
         if (httpd_query_key_value(queryString, "s", paramValue, sizeof(paramValue)) != ESP_OK) {
-            ESP_LOGE(kTag, "POST /driver: cannot get query parameter for state");
+            ESP_LOGE(kTag, "POST %s: cannot get query parameter for state", req->uri);
             ret = httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, NULL);
             goto done;
         }
 
         switch (paramValue[0]) {
             case '1':
-                ESP_LOGI(kTag, "POST /driver: enabling LED drivers");
+                ESP_LOGI(kTag, "POST %s: enabling LED drivers", req->uri);
                 ESP_ERROR_CHECK(LEDMatrix::enableDrivers());
                 break;
             case '0':
-                ESP_LOGI(kTag, "POST /driver: disabling LED drivers");
+                ESP_LOGI(kTag, "POST %s: disabling LED drivers", req->uri);
                 ESP_ERROR_CHECK(LEDMatrix::disableDrivers());
                 break;
             default:
-                ESP_LOGE(kTag, "POST /driver: invalid state %c", paramValue[0]);
+                ESP_LOGE(kTag, "POST %s: invalid state %c", req->uri, paramValue[0]);
                 ret = httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, NULL);
                 goto done;
         }
@@ -64,6 +64,10 @@ esp_err_t WebServer::setDriverState(httpd_req_t* req) {
 done:
     free(queryString);
     if (ret != ESP_OK)
-        ESP_LOGE(kTag, "POST /driver: error occurred executing handler (%s)", esp_err_to_name(ret));
+#ifdef CONFIG_ESP_ERR_TO_NAME_LOOKUP
+        ESP_LOGE(kTag, "POST %s: error occurred executing handler (%s)", req->uri, esp_err_to_name(ret));
+#else
+        ESP_LOGE(kTag, "POST %s: error occurred executing handler (%d)", req->uri, ret);
+#endif
     return ret;
 }

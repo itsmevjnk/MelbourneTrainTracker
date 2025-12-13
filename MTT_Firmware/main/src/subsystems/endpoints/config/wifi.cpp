@@ -15,7 +15,7 @@ esp_err_t WebServer::configGetWiFiSSID(httpd_req_t* req) {
     const char* result = Config::getWiFiSSID();
     ESP_RETURN_ON_ERROR(
         httpd_resp_send(req, result, strlen(result)),
-        kTag, "GET /config/wifi/ssid: cannot respond"
+        kTag, "GET %s: cannot respond", req->uri
     );
     return ESP_OK;
 }
@@ -31,13 +31,13 @@ esp_err_t WebServer::configGetWiFiIdentity(httpd_req_t* req) {
     if (!Config::isWiFiEnterprise()) {
         ESP_RETURN_ON_ERROR(
             httpd_resp_send_404(req),
-            kTag, "GET /config/wifi/eap/id: cannot respond"
+            kTag, "GET %s: cannot respond", req->uri
         );
     } else {
         const char* result = Config::getWiFiIdentity();
         ESP_RETURN_ON_ERROR(
             httpd_resp_send(req, result, strlen(result)),
-            kTag, "GET /config/wifi/eap/id: cannot respond"
+            kTag, "GET %s: cannot respond", req->uri
         );
     }
     return ESP_OK;
@@ -54,13 +54,13 @@ esp_err_t WebServer::configGetWiFiUsername(httpd_req_t* req) {
     if (!Config::isWiFiEnterprise()) {
         ESP_RETURN_ON_ERROR(
             httpd_resp_send_404(req),
-            kTag, "GET /config/wifi/eap/user: cannot respond"
+            kTag, "GET %s: cannot respond", req->uri
         );
     } else {
         const char* result = Config::getWiFiUsername();
         ESP_RETURN_ON_ERROR(
             httpd_resp_send(req, result, strlen(result)),
-            kTag, "GET /config/wifi/eap/user: cannot respond"
+            kTag, "GET %s: cannot respond", req->uri
         );
     }
     return ESP_OK;
@@ -77,7 +77,7 @@ esp_err_t WebServer::configGetWiFiPassword(httpd_req_t* req) {
     const char* result = Config::getWiFiPassword();
     ESP_RETURN_ON_ERROR(
         httpd_resp_send(req, result, strlen(result)),
-        kTag, "GET /config/wifi/password: cannot respond"
+        kTag, "GET %s: cannot respond", req->uri
     );
     return ESP_OK;
 }
@@ -93,14 +93,14 @@ esp_err_t WebServer::configGetWiFiCertificate(httpd_req_t* req) {
     if (!Config::isWiFiEnterprise()) {
         ESP_RETURN_ON_ERROR(
             httpd_resp_send_404(req),
-            kTag, "GET /config/wifi/eap/cert: cannot respond"
+            kTag, "GET %s: cannot respond", req->uri
         );
     } else {
         size_t resultLen = Config::getWiFiCertLength();
         const char* result = Config::getWiFiCertificate();
         ESP_RETURN_ON_ERROR(
             httpd_resp_send(req, result, resultLen),
-            kTag, "GET /config/wifi/eap/cert: cannot respond"
+            kTag, "GET %s: cannot respond", req->uri
         );
     }
     return ESP_OK;
@@ -119,23 +119,23 @@ esp_err_t WebServer::configSetWiFiUnauth(httpd_req_t* req) {
     size_t len;
     ESP_RETURN_ON_ERROR(
         readRequestBody(req, (uint8_t*) ssid, sizeof(ssid), &len),
-        kTag, "POST /config/wifi/unauth: error occurred reading request body"
+        kTag, "POST %s: error occurred reading request body", req->uri
     );
     ssid[len] = '\0';
 
     esp_err_t err = Config::setWiFiCredentials(ssid);
     if (err != ESP_OK) {
-        ESP_LOGE(kTag, "POST /config/wifi/unauth: error occurred writing to NVS");
+        ESP_LOGE(kTag, "POST %s: error occurred writing to NVS", req->uri);
         ESP_RETURN_ON_ERROR(
             httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, ""),
-            kTag, "POST /config/wifi/unauth: cannot send error"
+            kTag, "POST %s: cannot send error", req->uri
         );
         return ESP_FAIL;
     }
 
     ESP_RETURN_ON_ERROR(
         httpd_resp_send(req, NULL, 0),
-        kTag, "POST /config/wifi/unauth: cannot send response"
+        kTag, "POST %s: cannot send response", req->uri
     );
 
     return ESP_OK;
@@ -154,7 +154,7 @@ esp_err_t WebServer::configSetWiFiPass(httpd_req_t* req) {
     size_t len;
     ESP_RETURN_ON_ERROR(
         readRequestBody(req, (uint8_t*) buf, sizeof(buf), &len),
-        kTag, "POST /config/wifi/psk: error occurred reading request body"
+        kTag, "POST %s: error occurred reading request body", req->uri
     );
     buf[len] = '\0';
 
@@ -165,24 +165,24 @@ esp_err_t WebServer::configSetWiFiPass(httpd_req_t* req) {
     if (!ssid || !password) {
         ESP_RETURN_ON_ERROR(
             httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, ""),
-            kTag, "POST /config/wifi/psk: cannot send error"
+            kTag, "POST %s: cannot send error", req->uri
         );
         return ESP_OK;
     }
 
     esp_err_t err = Config::setWiFiCredentials(ssid, password);
     if (err != ESP_OK) {
-        ESP_LOGE(kTag, "POST /config/wifi/psk: error occurred writing to NVS");
+        ESP_LOGE(kTag, "POST %s: error occurred writing to NVS", req->uri);
         ESP_RETURN_ON_ERROR(
             httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, ""),
-            kTag, "POST /config/wifi/psk: cannot send error"
+            kTag, "POST %s: cannot send error", req->uri
         );
         return ESP_FAIL;
     }
 
     ESP_RETURN_ON_ERROR(
         httpd_resp_send(req, NULL, 0),
-        kTag, "POST /config/wifi/psk: cannot send response"
+        kTag, "POST %s: cannot send response", req->uri
     );
 
     return ESP_OK;
@@ -201,7 +201,7 @@ esp_err_t WebServer::configSetWiFiEnt(httpd_req_t* req) {
     size_t len;
     ESP_RETURN_ON_ERROR(
         readRequestBody(req, (uint8_t*) buf, sizeof(buf), &len),
-        kTag, "POST /config/wifi/eap: error occurred reading request body"
+        kTag, "POST %s: error occurred reading request body", req->uri
     );
     buf[len] = '\0';
 
@@ -214,24 +214,24 @@ esp_err_t WebServer::configSetWiFiEnt(httpd_req_t* req) {
     if (!ssid || !identity || !username || !password) {
         ESP_RETURN_ON_ERROR(
             httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, ""),
-            kTag, "POST /config/wifi/eap: cannot send error"
+            kTag, "POST %s: cannot send error", req->uri
         );
         return ESP_OK;
     }
 
     esp_err_t err = Config::setWiFiCredentials(ssid, identity, username, password);
     if (err != ESP_OK) {
-        ESP_LOGE(kTag, "POST /config/wifi/eap: error occurred writing to NVS");
+        ESP_LOGE(kTag, "POST %s: error occurred writing to NVS", req->uri);
         ESP_RETURN_ON_ERROR(
             httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, ""),
-            kTag, "POST /config/wifi/eap: cannot send error"
+            kTag, "POST %s: cannot send error", req->uri
         );
         return ESP_FAIL;
     }
 
     ESP_RETURN_ON_ERROR(
         httpd_resp_send(req, NULL, 0),
-        kTag, "POST /config/wifi/eap: cannot send response"
+        kTag, "POST %s: cannot send response", req->uri
     );
 
     return ESP_OK;
@@ -250,7 +250,7 @@ esp_err_t WebServer::configSetWiFiEntCert(httpd_req_t* req) {
     size_t len;
     ESP_RETURN_ON_ERROR(
         readRequestBody(req, (uint8_t*) buf, sizeof(buf), &len),
-        kTag, "POST /config/wifi/eap_cert: error occurred reading request body"
+        kTag, "POST %s: error occurred reading request body", req->uri
     );
     buf[len] = '\0';
 
@@ -264,7 +264,7 @@ esp_err_t WebServer::configSetWiFiEntCert(httpd_req_t* req) {
     if (!ssid || !identity || !username || !password || !cert) {
         ESP_RETURN_ON_ERROR(
             httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, ""),
-            kTag, "POST /config/wifi/eap_cert: cannot send error"
+            kTag, "POST %s: cannot send error", req->uri
         );
         return ESP_OK;
     }
@@ -273,17 +273,17 @@ esp_err_t WebServer::configSetWiFiEntCert(httpd_req_t* req) {
 
     esp_err_t err = Config::setWiFiCredentials(ssid, identity, username, password, cert, certLen);
     if (err != ESP_OK) {
-        ESP_LOGE(kTag, "POST /config/wifi/eap_cert: error occurred writing to NVS");
+        ESP_LOGE(kTag, "POST %s: error occurred writing to NVS", req->uri);
         ESP_RETURN_ON_ERROR(
             httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, ""),
-            kTag, "POST /config/wifi/eap_cert: cannot send error"
+            kTag, "POST %s: cannot send error", req->uri
         );
         return ESP_FAIL;
     }
 
     ESP_RETURN_ON_ERROR(
         httpd_resp_send(req, NULL, 0),
-        kTag, "POST /config/wifi/eap_cert: cannot send response"
+        kTag, "POST %s: cannot send response", req->uri
     );
 
     return ESP_OK;

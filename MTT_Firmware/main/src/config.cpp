@@ -45,14 +45,26 @@ esp_err_t Config::init() {
         switch (ret) {
             case ESP_OK: break;
             case ESP_ERR_NVS_NOT_FOUND: ESP_LOGW(kTag, "time server not set in NVS, defaulting to %s", m_timeServer); break;
-            default: ESP_LOGE(kTag, "cannot read time server address (%s)", esp_err_to_name(ret)); return ret;
+            default:
+#ifdef CONFIG_ESP_ERR_TO_NAME_LOOKUP
+                ESP_LOGE(kTag, "cannot read time server address (%s)", esp_err_to_name(ret));
+#else
+                ESP_LOGE(kTag, "cannot read time server address (%d)", ret);
+#endif
+                return ret;
         }
 
         ret = addrHandle.getString("mqtt", m_mqttBroker, sizeof(m_mqttBroker));
         switch (ret) {
             case ESP_OK: break;
             case ESP_ERR_NVS_NOT_FOUND: ESP_LOGW(kTag, "MQTT broker not set in NVS, defaulting to %s", m_mqttBroker); break;
-            default: ESP_LOGE(kTag, "cannot read MQTT server address (%s)", esp_err_to_name(ret)); return ret;
+            default:
+#ifdef CONFIG_ESP_ERR_TO_NAME_LOOKUP
+                ESP_LOGE(kTag, "cannot read MQTT broker address (%s)", esp_err_to_name(ret));
+#else
+                ESP_LOGE(kTag, "cannot read MQTT broker address (%d)", ret);
+#endif
+                return ret;
         }
 
         // addrHandle.close();
@@ -68,14 +80,25 @@ esp_err_t Config::init() {
         switch (ret) {
             case ESP_OK: break;
             case ESP_ERR_NVS_NOT_FOUND: ESP_LOGW(kTag, "mDNS hostname not set in NVS, defaulting to %s", m_mdnsHostname); break;
-            default: ESP_LOGE(kTag, "cannot read mDNS hostname (%s)", esp_err_to_name(ret)); return ret;
+            default:
+#ifdef CONFIG_ESP_ERR_TO_NAME_LOOKUP
+                ESP_LOGE(kTag, "cannot read mDNS hostname (%s)", esp_err_to_name(ret));
+#else
+                ESP_LOGE(kTag, "cannot read mDNS hostname (%d)", ret);
+#endif
+                return ret;
         }
 
         ret = mdnsHandle.getString("inst", m_mdnsInstanceName, sizeof(m_mdnsInstanceName));
         switch (ret) {
             case ESP_OK: break;
             case ESP_ERR_NVS_NOT_FOUND: ESP_LOGW(kTag, "mDNS instance name not set in NVS, defaulting to %s", m_mdnsInstanceName); break;
-            default: ESP_LOGE(kTag, "cannot read mDNS instance name (%s)", esp_err_to_name(ret)); return ret;
+            default:
+#ifdef CONFIG_ESP_ERR_TO_NAME_LOOKUP
+                ESP_LOGE(kTag, "cannot read mDNS instance name (%s)", esp_err_to_name(ret));
+#else
+                ESP_LOGE(kTag, "cannot read mDNS instance name (%d)", ret);
+#endif
         }
 
         // addrHandle.close();

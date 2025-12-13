@@ -36,7 +36,7 @@ esp_err_t WebServer::getLines(httpd_req_t* req) {
 
     ESP_RETURN_ON_ERROR(
         httpd_resp_send(req, result, len),
-        kTag, "GET /lines: cannot respond"
+        kTag, "GET %s: cannot respond", req->uri
     );
     return ESP_OK;
 }
@@ -110,6 +110,10 @@ badRequest:
 done:
     free(queryString);
     if (ret != ESP_OK)
-        ESP_LOGE(kTag, "%s /lines: error occurred executing handler (%s)", (enable) ? "PUT" : "DELETE", esp_err_to_name(ret));
+#ifdef CONFIG_ESP_ERR_TO_NAME_LOOKUP
+        ESP_LOGE(kTag, "%s %s: error occurred executing handler (%s)", (enable) ? "PUT" : "DELETE", req->uri, esp_err_to_name(ret));
+#else
+        ESP_LOGE(kTag, "%s %s: error occurred executing handler (%d)", (enable) ? "PUT" : "DELETE", req->uri, ret);
+#endif
     return ret;
 }

@@ -10,7 +10,11 @@ esp_err_t FS::init(bool rw) {
     if (m_initialised) {
         /* already mounted - unmount */
         esp_err_t ret = (m_rw) ? esp_vfs_fat_spiflash_unmount_rw_wl(FS_ROOT, m_wlHandle) : esp_vfs_fat_spiflash_unmount_ro(FS_ROOT, "storage");
+#ifdef CONFIG_ESP_ERR_TO_NAME_LOOKUP
         ESP_RETURN_ON_ERROR(ret, kTag, "unmounting failed (%s)", esp_err_to_name(ret));
+#else
+        ESP_RETURN_ON_ERROR(ret, kTag, "unmounting failed (%d)", ret);
+#endif
     }
 
     m_initialised = false;
@@ -21,7 +25,11 @@ esp_err_t FS::init(bool rw) {
         .allocation_unit_size = 0 // auto select allocation unit size
     };
     esp_err_t ret = (rw) ? esp_vfs_fat_spiflash_mount_rw_wl(FS_ROOT, "storage", &config, &m_wlHandle) : esp_vfs_fat_spiflash_mount_ro(FS_ROOT, "storage", &config);
+#ifdef CONFIG_ESP_ERR_TO_NAME_LOOKUP
     ESP_RETURN_ON_ERROR(ret, kTag, "mounting failed (%s)", esp_err_to_name(ret));
+#else
+    ESP_RETURN_ON_ERROR(ret, kTag, "mounting failed (%d)", ret);
+#endif
 
     m_initialised = true; m_rw = rw;
     ESP_LOGI(kTag, "mounted internal flash, rw=%d", (rw) ? 1 : 0);
@@ -36,7 +44,11 @@ esp_err_t FS::deinit() {
 
     m_initialised = false;
     esp_err_t ret = (m_rw) ? esp_vfs_fat_spiflash_unmount_rw_wl(FS_ROOT, m_wlHandle) : esp_vfs_fat_spiflash_unmount_ro(FS_ROOT, "storage");
+#ifdef CONFIG_ESP_ERR_TO_NAME_LOOKUP
     ESP_RETURN_ON_ERROR(ret, kTag, "unmounting failed (%s)", esp_err_to_name(ret));
+#else
+    ESP_RETURN_ON_ERROR(ret, kTag, "unmounting failed (%d)", ret);
+#endif
 
     ESP_LOGI(kTag, "file system unmounted");
     return ESP_OK;

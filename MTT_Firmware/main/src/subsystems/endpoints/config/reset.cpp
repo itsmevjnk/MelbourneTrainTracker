@@ -13,7 +13,7 @@ const httpd_uri_t WebServer::kConfigReset = {
 esp_err_t WebServer::configReset(httpd_req_t* req) {
     ESP_RETURN_ON_ERROR(
         httpd_resp_send(req, NULL, 0),
-        kTag, "POST /config/reset: cannot send response"
+        kTag, "POST %s: cannot send response", req->uri
     );
 
     esp_restart();

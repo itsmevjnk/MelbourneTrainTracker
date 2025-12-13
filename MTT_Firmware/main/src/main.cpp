@@ -69,7 +69,11 @@ extern "C" void app_main() {
     esp_err_t ret = Config::init();
     bool runConfig = false;
     if (ret != ESP_OK) {
+#ifdef CONFIG_ESP_ERR_TO_NME_LOOKUP
         ESP_LOGE(kTag, "configuration loading failed (%s), booting into configuration CLI", esp_err_to_name(ret));
+#else  
+        ESP_LOGE(kTag, "configuration loading failed (%d), booting into configuration CLI", ret);
+#endif
         runConfig = true;
     } else {
         ESP_LOGI(kTag, "press any key or the BOOT button within 3 seconds to boot into configuration CLI");

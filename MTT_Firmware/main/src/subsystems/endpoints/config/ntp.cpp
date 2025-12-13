@@ -15,7 +15,7 @@ esp_err_t WebServer::configGetNTP(httpd_req_t* req) {
     const char* result = Config::getTimeServer();
     ESP_RETURN_ON_ERROR(
         httpd_resp_send(req, result, strlen(result)),
-        kTag, "GET /config/ntp: cannot respond"
+        kTag, "GET %s: cannot respond", req->uri
     );
     return ESP_OK;
 }
@@ -33,23 +33,23 @@ esp_err_t WebServer::configSetNTP(httpd_req_t* req) {
     size_t len;
     ESP_RETURN_ON_ERROR(
         readRequestBody(req, (uint8_t*) value, sizeof(value), &len),
-        kTag, "POST /config/ntp: error occurred reading request body"
+        kTag, "POST %s: error occurred reading request body", req->uri
     );
     value[len] = '\0';
 
     esp_err_t err = Config::setTimeServer(value);
     if (err != ESP_OK) {
-        ESP_LOGE(kTag, "POST /config/ntp: error occurred writing to NVS");
+        ESP_LOGE(kTag, "POST %s: error occurred writing to NVS", req->uri);
         ESP_RETURN_ON_ERROR(
             httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, ""),
-            kTag, "POST /config/ntp: cannot send error"
+            kTag, "POST %s: cannot send error", req->uri
         );
         return ESP_FAIL;
     }
 
     ESP_RETURN_ON_ERROR(
         httpd_resp_send(req, NULL, 0),
-        kTag, "POST /config/ntp: cannot send response"
+        kTag, "POST %s: cannot send response", req->uri
     );
 
     return ESP_OK;

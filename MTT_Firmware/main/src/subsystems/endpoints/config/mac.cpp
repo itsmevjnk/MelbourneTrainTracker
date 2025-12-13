@@ -45,7 +45,7 @@ esp_err_t WebServer::configGetMAC(httpd_req_t* req, bool ap) {
 
     ESP_RETURN_ON_ERROR(
         httpd_resp_send(req, result, resultLen),
-        kTag, "GET %s: cannot respond", req->uri
+        kTag, "GET %s: cannot send response", req->uri
     );
     return ESP_OK;
 }

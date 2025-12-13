@@ -35,6 +35,11 @@ public:
     static esp_err_t setMDNSHostname(const char* value);
     static esp_err_t setMDNSInstanceName(const char* value);
 
+    static esp_err_t setWiFiCredentials(const char* ssid); // no authentication
+    static esp_err_t setWiFiCredentials(const char* ssid, const char* password); // WPA2
+    static esp_err_t setWiFiCredentials(const char* ssid, const char* identity, const char* username, const char* password); // WPA2-Enterprise
+    static esp_err_t setWiFiCredentials(const char* ssid, const char* identity, const char* username, const char* password, const char* cert, size_t certLength); // WPA2-Enterprise with certificate
+
 private:
     static bool m_initialised;
 

@@ -61,6 +61,36 @@ private:
     
     static const httpd_uri_t kConfigSetMDNSInst;
     static esp_err_t configSetMDNSInst(httpd_req_t* req);
+    
+    static const httpd_uri_t kConfigGetWiFiSSID;
+    static esp_err_t configGetWiFiSSID(httpd_req_t* req);
+    
+    static const httpd_uri_t kConfigGetWiFiIdentity;
+    static esp_err_t configGetWiFiIdentity(httpd_req_t* req);
+    
+    static const httpd_uri_t kConfigGetWiFiUsername;
+    static esp_err_t configGetWiFiUsername(httpd_req_t* req);
+    
+    static const httpd_uri_t kConfigGetWiFiPassword;
+    static esp_err_t configGetWiFiPassword(httpd_req_t* req);
+    
+    static const httpd_uri_t kConfigGetWiFiCertificate;
+    static esp_err_t configGetWiFiCertificate(httpd_req_t* req);
+    
+    static const httpd_uri_t kConfigSetWiFiUnauth;
+    static esp_err_t configSetWiFiUnauth(httpd_req_t* req);
+    
+    static const httpd_uri_t kConfigSetWiFiPass;
+    static esp_err_t configSetWiFiPass(httpd_req_t* req);
+    
+    static const httpd_uri_t kConfigSetWiFiEnt;
+    static esp_err_t configSetWiFiEnt(httpd_req_t* req);
+    
+    static const httpd_uri_t kConfigSetWiFiEntCert;
+    static esp_err_t configSetWiFiEntCert(httpd_req_t* req);
+    
+    static const httpd_uri_t kConfigReset;
+    static esp_err_t configReset(httpd_req_t* req);
 
     static esp_err_t readRequestBody(httpd_req_t* req, uint8_t* buf, size_t len, size_t* readLen);
 

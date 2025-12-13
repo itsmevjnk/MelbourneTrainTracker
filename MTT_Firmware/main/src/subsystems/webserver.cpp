@@ -18,7 +18,8 @@ const httpd_uri_t* WebServer::kHandlers[] = {
     &kGetBoardImage, &kGetBoardView, &kGetIndex, &kGetRoot,
     &kConfigGetMAC_STA, &kConfigGetMAC_AP,
     &kConfigGetNTP, &kConfigGetMQTT,
-    &kConfigGetMDNSHost, &kConfigGetMDNSInst
+    &kConfigGetMDNSHost, &kConfigGetMDNSInst,
+    &kConfigGetWiFiSSID
 };
 
 const httpd_uri_t* WebServer::kConfigHandlers[] = {
@@ -26,7 +27,10 @@ const httpd_uri_t* WebServer::kConfigHandlers[] = {
     &kConfigGetNTP, &kConfigSetNTP,
     &kConfigGetMQTT, &kConfigSetMQTT,
     &kConfigGetMDNSHost, &kConfigSetMDNSHost,
-    &kConfigGetMDNSInst, &kConfigSetMDNSInst
+    &kConfigGetMDNSInst, &kConfigSetMDNSInst,
+    &kConfigGetWiFiSSID, &kConfigGetWiFiIdentity, &kConfigGetWiFiUsername, &kConfigGetWiFiPassword, &kConfigGetWiFiCertificate,
+    &kConfigSetWiFiUnauth, &kConfigSetWiFiPass, &kConfigSetWiFiEnt, &kConfigSetWiFiEntCert,
+    &kConfigReset
 };
 
 mdns_txt_item_t WebServer::kMDNSServiceTXT[] = {

@@ -95,3 +95,100 @@ write:
     printf("Configuration has been written to NVS.\r\n");
     return ESP_OK;
 }
+
+esp_err_t Config::setWiFiCredentials(const char* ssid) {
+    m_wifiPassword[0] = '\0';
+    m_wifiEnterprise = false;
+    if (ssid != m_wifiSSID) strncpy(m_wifiSSID, ssid, sizeof(m_wifiSSID));
+    
+    NVSHandle handle = NVS::open("wifi", NVS_READWRITE);
+    ESP_RETURN_ON_FALSE(!handle.isClosed(), ESP_FAIL, kTag, "cannot open NVS handle for wifi");
+
+    ESP_RETURN_ON_ERROR(handle.setString("ssid", m_wifiSSID), kTag, "cannot write SSID to NVS");
+    ESP_RETURN_ON_ERROR(handle.setString("pw", m_wifiPassword), kTag, "cannot write password to NVS");
+    ESP_RETURN_ON_ERROR(handle.setU8("ent", 0), kTag, "cannot write WPA-Enterprise flag to NVS");
+    return ESP_OK;
+}
+
+esp_err_t Config::setWiFiCredentials(const char* ssid, const char* password) {
+    if (!password) {
+        ESP_LOGE(kTag, "cannot accept null value");
+        return ESP_ERR_INVALID_ARG;
+    }
+
+    if (ssid != m_wifiSSID) strncpy(m_wifiSSID, ssid, sizeof(m_wifiSSID));
+    if (password != m_wifiPassword) strncpy(m_wifiPassword, password, sizeof(m_wifiPassword));
+    m_wifiEnterprise = false;
+    
+    NVSHandle handle = NVS::open("wifi", NVS_READWRITE);
+    ESP_RETURN_ON_FALSE(!handle.isClosed(), ESP_FAIL, kTag, "cannot open NVS handle for wifi");
+
+    ESP_RETURN_ON_ERROR(handle.setString("ssid", m_wifiSSID), kTag, "cannot write SSID to NVS");
+    ESP_RETURN_ON_ERROR(handle.setString("pw", m_wifiPassword), kTag, "cannot write password to NVS");
+    ESP_RETURN_ON_ERROR(handle.setU8("ent", 0), kTag, "cannot write WPA-Enterprise flag to NVS");
+    return ESP_OK;
+}
+
+esp_err_t Config::setWiFiCredentials(const char* ssid, const char* identity, const char* username, const char* password) {
+    if (!identity || !username || !password) {
+        ESP_LOGE(kTag, "cannot accept null value");
+        return ESP_ERR_INVALID_ARG;
+    }
+
+    if (ssid != m_wifiSSID) strncpy(m_wifiSSID, ssid, sizeof(m_wifiSSID));
+    if (identity != m_wifiIdentity) strncpy(m_wifiIdentity, identity, sizeof(m_wifiIdentity));
+    if (identity != m_wifiUsername) strncpy(m_wifiUsername, username, sizeof(m_wifiUsername));
+    if (password != m_wifiPassword) strncpy(m_wifiPassword, password, sizeof(m_wifiPassword));
+    m_wifiEnterprise = true;
+    
+    NVSHandle handle = NVS::open("wifi", NVS_READWRITE);
+    ESP_RETURN_ON_FALSE(!handle.isClosed(), ESP_FAIL, kTag, "cannot open NVS handle for wifi");
+
+    ESP_RETURN_ON_ERROR(handle.setString("ssid", m_wifiSSID), kTag, "cannot write SSID to NVS");
+    ESP_RETURN_ON_ERROR(handle.setU8("ent", 1), kTag, "cannot write WPA-Enterprise flag to NVS");
+    ESP_RETURN_ON_ERROR(handle.setString("id", m_wifiIdentity), kTag, "cannot write EAP identity to NVS");
+    ESP_RETURN_ON_ERROR(handle.setString("user", m_wifiUsername), kTag, "cannot write EAP username to NVS");
+    ESP_RETURN_ON_ERROR(handle.setString("pw", m_wifiPassword), kTag, "cannot write EAP password to NVS");
+    ESP_RETURN_ON_ERROR(handle.setBlob("cert", nullptr, 0), kTag, "cannot write server certificate to NVS");
+    return ESP_OK;
+}
+
+esp_err_t Config::setWiFiCredentials(const char* ssid, const char* identity, const char* username, const char* password, const char* cert, size_t certLength) {
+    if (!identity || !username || !password || !cert) {
+        ESP_LOGE(kTag, "cannot accept null value");
+        return ESP_ERR_INVALID_ARG;
+    }
+    if (!certLength) {
+        if (m_wifiCert) {
+            free(m_wifiCert);
+            m_wifiCert = nullptr;
+        }
+    } else if (cert != m_wifiCert) {
+        if (certLength > m_wifiCertLength) { // must expand    
+            free(m_wifiCert);
+            m_wifiCert = (char*) malloc(certLength);
+            ESP_RETURN_ON_FALSE(m_wifiCert, ESP_ERR_NO_MEM, kTag, "cannot allocate Wi-Fi certificate buffer");
+        }
+        memmove(m_wifiCert, cert, certLength);
+    }
+    m_wifiCertLength = certLength;
+
+    if (ssid != m_wifiSSID) strncpy(m_wifiSSID, ssid, sizeof(m_wifiSSID));
+    if (identity != m_wifiIdentity) strncpy(m_wifiIdentity, identity, sizeof(m_wifiIdentity));
+    if (identity != m_wifiUsername) strncpy(m_wifiUsername, username, sizeof(m_wifiUsername));
+    if (password != m_wifiPassword) strncpy(m_wifiPassword, password, sizeof(m_wifiPassword));
+    m_wifiEnterprise = true;
+    
+    NVSHandle handle = NVS::open("wifi", NVS_READWRITE);
+    ESP_RETURN_ON_FALSE(!handle.isClosed(), ESP_FAIL, kTag, "cannot open NVS handle for wifi");
+
+    ESP_RETURN_ON_ERROR(handle.setString("ssid", m_wifiSSID), kTag, "cannot write SSID to NVS");
+    ESP_RETURN_ON_ERROR(handle.setU8("ent", 1), kTag, "cannot write WPA-Enterprise flag to NVS");
+    ESP_RETURN_ON_ERROR(handle.setString("id", m_wifiIdentity), kTag, "cannot write EAP identity to NVS");
+    ESP_RETURN_ON_ERROR(handle.setString("user", m_wifiUsername), kTag, "cannot write EAP username to NVS");
+    ESP_RETURN_ON_ERROR(handle.setString("pw", m_wifiPassword), kTag, "cannot write EAP password to NVS");
+    ESP_RETURN_ON_ERROR(handle.setBlob("cert", m_wifiCert, m_wifiCertLength), kTag, "cannot write server certificate to NVS");
+
+    return ESP_OK;
+
+}

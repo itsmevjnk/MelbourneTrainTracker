@@ -28,7 +28,8 @@ esp_err_t Config::init() {
         ESP_RETURN_ON_ERROR(wifiHandle.getString("user", m_wifiUsername, sizeof(m_wifiUsername)), kTag, "cannot read Wi-Fi EAP username");
         ESP_RETURN_ON_ERROR(wifiHandle.getBlobLength("cert", &m_wifiCertLength), kTag, "cannot get Wi-Fi server certificate length");
         if (m_wifiCertLength > 0) {
-            m_wifiCert = new char[m_wifiCertLength];
+            m_wifiCert = (char*) malloc(m_wifiCertLength);
+            ESP_RETURN_ON_FALSE(m_wifiCert, ESP_ERR_NO_MEM, kTag, "Wi-Fi server certificate buffer allocation failed");
             ESP_RETURN_ON_ERROR(wifiHandle.getBlob("cert", m_wifiCert, m_wifiCertLength), kTag, "cannot read Wi-Fi server certificate");
         }
     }

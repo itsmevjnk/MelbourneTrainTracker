@@ -7,7 +7,7 @@ esp_err_t WebServer::serveStaticData(httpd_req_t* req) {
     StaticData* data = (StaticData*)req->user_ctx;
     ESP_RETURN_ON_FALSE(data, ESP_ERR_INVALID_ARG, kTag, "user_ctx is null");
 
-    if (data->mimeType) ESP_RETURN_ON_ERROR(httpd_resp_set_hdr(req, "Content-Type", data->mimeType), kTag, "cannot set Content-Type header");
+    if (data->mimeType) ESP_RETURN_ON_ERROR(httpd_resp_set_type(req, data->mimeType), kTag, "cannot set Content-Type header");
     if (data->gzip) ESP_RETURN_ON_ERROR(httpd_resp_set_hdr(req, "Content-Encoding", "gzip"), kTag, "cannot set Content-Encoding header");
     ESP_RETURN_ON_ERROR(httpd_resp_send(req, (const char*)data->start, data->length), kTag, "cannot send response");
     
@@ -60,4 +60,18 @@ const httpd_uri_t WebServer::kGetRoot = {
     .method = HTTP_GET,
     .handler = serveStaticData,
     .user_ctx = (void*)&kIndex
+};
+
+extern const uint8_t bootstrap_min_css_start[] asm("_binary_bootstrap_min_css_gz_start");
+extern const uint8_t bootstrap_min_css_end[] asm("_binary_bootstrap_min_css_gz_end");
+const WebServer::StaticData WebServer::kBootstrapCSS = {
+    bootstrap_min_css_start,
+    (uintptr_t)bootstrap_min_css_end - (uintptr_t)bootstrap_min_css_start,
+    "text/css", true
+};
+const httpd_uri_t WebServer::kGetBootstrapCSS = {
+    .uri = "/bootstrap.min.css",
+    .method = HTTP_GET,
+    .handler = serveStaticData,
+    .user_ctx = (void*)&kBootstrapCSS
 };

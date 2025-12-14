@@ -117,6 +117,8 @@ private:
     static const StaticData kIndex;
     static const httpd_uri_t kGetIndex;
     static const httpd_uri_t kGetRoot;
+    static const StaticData kBootstrapCSS;
+    static const httpd_uri_t kGetBootstrapCSS;
 
     static httpd_handle_t m_server;
 

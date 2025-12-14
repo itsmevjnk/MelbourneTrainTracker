@@ -1,42 +1,45 @@
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
     <head>
         <title>Melbourne Train Tracker</title>
-        <style>
-            body,html { width: 100%; height: 100%; margin: 0; }
-            body { margin: 0 auto; }
-            iframe { border: 0; }
-            section { padding: 0.1rem 0; }
-            #lines { display: grid; }
-            @media (min-width: 768px) { body { max-width: 750px; } #lines { grid-template-columns: auto auto auto; } }
-            @media (min-width: 992px) { body { max-width: 970px; } #lines { grid-template-columns: auto auto auto auto; } }
-            @media (min-width: 1200px) { body { max-width: 1170px; } }
-        </style>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="bootstrap.min.css" rel="stylesheet">
     </head>
     <body>
-        <h1>Melbourne Train Tracker</h1>
-        <section>
-            <h2>Settings</h2>
-            <section>
-                LED drivers: 
-                <input type="radio" id="driver0" name="driver" value="0"/>
-                <label for="driver0">Off</label>
-                <input type="radio" id="driver1" name="driver" value="1"/>
-                <label for="driver1">On</label>
+        <div class="container">
+            <header>
+                <h1 class="my-4">Melbourne Train Tracker</h1>
+            </header>
+            <section class="row">
+                <h2 class="my-2">Settings</h2>
+                <section>
+                    
+                </section>
+                <section>
+                    <div class="row">
+                        <div class="col-12 col-md-8"><h3 class="my-1">LED drivers</h3></div>
+                        <div class="col form-check form-switch">
+                            <input class="form-check-input" type="checkbox" role="switch" id="driver">
+                            <label class="form-check-label" for="driver" id="driver_lbl"></label>
+                        </div>
+                        <div class="col-12 col-md-8"><h3 class="my-1">Lines</h3></div>
+                        <div class="col">
+                            <div class="btn-group" role="group" aria-label="Toggle all lines">
+                                <button type="button" class="btn btn-success" onclick="enableAll()">Enable all</button>
+                                <button type="button" class="btn btn-danger" onclick="disableAll()">Disable all</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="lines" class="row"></div>
+                </section>
             </section>
-            <section>
-                Lines:
-                <button onclick="enableAll()">Enable all</button>
-                <button onclick="disableAll()">Disable all</button>
-                <div id="lines"></div>
+            <section class="row">
+                <h2 class="my-2">LED Buffer View</h2>
+                <iframe src="board.htm" width="100%" scrolling="no" id="bview"></iframe>
             </section>
-        </section>
-        <section>
-            <h2>LED Buffer View</h2>
-            <iframe src="board.htm" width="100%" scrolling="no" id="bview"></iframe>
-        </section>
+        </div>
         <script>
             const host = window.location.hostname;
             const lines = {
@@ -71,7 +74,7 @@
             const disableLine = (line) => fetch(`http://${host}/lines?l=${line}`, {method: 'DELETE'});
             for (const [key, value] of Object.entries(lines)) {
                 const id = `line_${key}`;
-                lineBoxes.innerHTML += `<div><input type="checkbox" id="${id}" name="${id}" /><label for="${id}">${value}</label></div>`;
+                lineBoxes.innerHTML += `<div class="col-12 col-md-6 col-lg-4 col-xl-3 text-center my-1"><input type="checkbox" id="${id}" name="${id}" class="btn-check" autocomplete="off"><label for="${id}" class="btn btn-outline-primary">${value}</label></div>`;
             }
             const board = document.getElementById('bview');
             const updateBoardHeight = () => {
@@ -79,8 +82,13 @@
             };
             window.addEventListener('load', updateBoardHeight);
             window.addEventListener('resize', updateBoardHeight);
+            const driver = document.getElementById('driver');
+            const driverLabel = document.getElementById('driver_lbl');
             window.addEventListener('load', () => {
-                fetch(`http://${host}/driver`).then((resp) => resp.text()).then((data) => document.getElementById('driver'+data).checked = true);
+                fetch(`http://${host}/driver`).then((resp) => resp.text()).then((data) => {
+                    driver.checked = (data == 1);
+                    driverLabel.innerHTML = (data == 1) ? 'On' : 'Off';
+                });
                 fetch(`http://${host}/lines`).then((resp) => resp.text()).then((data) => {
                     data = data.split(',');
                     for (const [key, value] of Object.entries(lines)) {
@@ -102,7 +110,10 @@
                 for (const key of Object.keys(lines))
                     document.getElementById(`line_${key}`).checked = false;
             });
-            for (let i = 0; i < 2; i++) document.getElementById(`driver${i}`).addEventListener('change', () => fetch(`http://${host}/driver?s=${i}`, {method: 'POST'}));
+            driver.addEventListener('change', () => {
+                driverLabel.innerHTML = (driver.checked) ? 'On' : 'Off';
+                fetch(`http://${host}/driver?s=${(driver.checked) ? 1 : 0}`, {method: 'POST'});
+            });
         </script>
     </body>
 </html>

@@ -14,30 +14,52 @@
             </header>
             <section class="row">
                 <h2 class="my-2">Settings</h2>
-                <section>
-                    
-                </section>
-                <section>
-                    <div class="row">
-                        <div class="col-12 col-md-8"><h3 class="my-1">LED drivers</h3></div>
-                        <div class="col form-check form-switch">
-                            <input class="form-check-input" type="checkbox" role="switch" id="driver">
-                            <label class="form-check-label" for="driver" id="driver_lbl"></label>
-                        </div>
-                        <div class="col-12 col-md-8"><h3 class="my-1">Lines</h3></div>
-                        <div class="col">
-                            <div class="btn-group" role="group" aria-label="Toggle all lines">
-                                <button type="button" class="btn btn-success" onclick="enableAll()">Enable all</button>
-                                <button type="button" class="btn btn-danger" onclick="disableAll()">Disable all</button>
-                            </div>
+                <div class="row">
+                    <div class="col-12 col-md-8"><h3 class="my-1">LED drivers</h3></div>
+                    <div class="col form-check form-switch">
+                        <input class="form-check-input" type="checkbox" role="switch" id="driver">
+                        <label class="form-check-label" for="driver" id="driver_lbl"></label>
+                    </div>
+                    <div class="col-12 col-md-8"><h3 class="my-1">Lines</h3></div>
+                    <div class="col">
+                        <div class="btn-group" role="group" aria-label="Toggle all lines">
+                            <button type="button" class="btn btn-success" onclick="enableAll()">Enable all</button>
+                            <button type="button" class="btn btn-danger" onclick="disableAll()">Disable all</button>
                         </div>
                     </div>
-                    <div id="lines" class="row"></div>
-                </section>
+                </div>
+                <div id="lines" class="row"></div>
             </section>
             <section class="row">
                 <h2 class="my-2">LED Buffer View</h2>
                 <iframe src="board.htm" width="100%" scrolling="no" id="bview"></iframe>
+            </section>
+            <section class="row">
+                <h2 class="my-2">Information</h2>
+                <table class="table">
+                    <tbody>
+                        <tr>
+                            <th scope="row">Connected Wi-Fi SSID</th>
+                            <td id="ssid"></td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Station mode MAC address</th>
+                            <td id="sta_mac"></td>
+                        </tr>
+                        <tr>
+                            <th scope="row">AP mode MAC address</th>
+                            <td id="ap_mac"></td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Build timestamp</th>
+                            <td id="buildtime"></td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Uptime</th>
+                            <td id="uptime"></td>
+                        </tr>
+                    </tbody>
+                </table>
             </section>
         </div>
         <script>
@@ -100,6 +122,24 @@
                             else disableLine(key);
                         });
                     }
+                });
+                fetch(`http://${host}/config/wifi/ssid`).then((resp) => resp.text()).then((data) => {
+                    document.getElementById('ssid').innerHTML = data;
+                });
+                fetch(`http://${host}/config/mac/sta`).then((resp) => resp.text()).then((data) => {
+                    document.getElementById('sta_mac').innerHTML = data;
+                });
+                fetch(`http://${host}/config/mac/ap`).then((resp) => resp.text()).then((data) => {
+                    document.getElementById('ap_mac').innerHTML = data;
+                });
+                fetch(`http://${host}/config/build`).then((resp) => resp.text()).then((data) => {
+                    document.getElementById('buildtime').innerHTML = data;
+                });
+                fetch(`http://${host}/config/uptime`).then((resp) => resp.text()).then((data) => {
+                    const h = Math.floor(data / 3600);
+                    const m = Math.floor((data % 3600) / 60);
+                    const s = Math.floor(data % 60);
+                    document.getElementById('uptime').innerHTML = h + ':' + m.toString().padStart(2, '0') + ':' + s.toString().padStart(2, '0');
                 });
             });
             const enableAll = () => enableLine('all').then(() => {

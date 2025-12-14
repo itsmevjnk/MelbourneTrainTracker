@@ -20,7 +20,8 @@ const httpd_uri_t* WebServer::kHandlers[] = {
     &kConfigGetNTP, &kConfigGetMQTT,
     &kConfigGetMDNSHost, &kConfigGetMDNSInst,
     &kConfigGetWiFiSSID,
-    &kGetBootstrapCSS
+    &kGetBootstrapCSS,
+    &kConfigGetBuildTime, &kConfigGetUptime
 };
 
 const httpd_uri_t* WebServer::kConfigHandlers[] = {
@@ -32,7 +33,8 @@ const httpd_uri_t* WebServer::kConfigHandlers[] = {
     &kConfigGetWiFiSSID, &kConfigGetWiFiIdentity, &kConfigGetWiFiUsername, &kConfigGetWiFiPassword, &kConfigGetWiFiCertificate,
     &kConfigSetWiFiUnauth, &kConfigSetWiFiPass, &kConfigSetWiFiEnt, &kConfigSetWiFiEntCert,
     &kConfigReset,
-    &kGetBootstrapCSS
+    &kGetBootstrapCSS,
+    &kConfigGetBuildTime, &kConfigGetUptime
 };
 
 mdns_txt_item_t WebServer::kMDNSServiceTXT[] = {

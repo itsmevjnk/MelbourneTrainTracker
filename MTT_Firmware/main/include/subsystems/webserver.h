@@ -18,6 +18,7 @@ private:
         const void* start;
         size_t length;
         const char* mimeType;
+        bool gzip;
     };
 
     /* HTTP endpoints */

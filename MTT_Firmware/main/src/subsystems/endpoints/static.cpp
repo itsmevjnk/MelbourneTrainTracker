@@ -8,17 +8,18 @@ esp_err_t WebServer::serveStaticData(httpd_req_t* req) {
     ESP_RETURN_ON_FALSE(data, ESP_ERR_INVALID_ARG, kTag, "user_ctx is null");
 
     if (data->mimeType) ESP_RETURN_ON_ERROR(httpd_resp_set_hdr(req, "Content-Type", data->mimeType), kTag, "cannot set Content-Type header");
+    if (data->gzip) ESP_RETURN_ON_ERROR(httpd_resp_set_hdr(req, "Content-Encoding", "gzip"), kTag, "cannot set Content-Encoding header");
     ESP_RETURN_ON_ERROR(httpd_resp_send(req, (const char*)data->start, data->length), kTag, "cannot send response");
     
     return ESP_OK;
 }
 
-extern const uint8_t board_jpg_start[] asm("_binary_board_jpg_start");
-extern const uint8_t board_jpg_end[] asm("_binary_board_jpg_end");
+extern const uint8_t board_jpg_start[] asm("_binary_board_jpg_gz_start");
+extern const uint8_t board_jpg_end[] asm("_binary_board_jpg_gz_end");
 const WebServer::StaticData WebServer::kBoardImage = {
     board_jpg_start,
     (uintptr_t)board_jpg_end - (uintptr_t)board_jpg_start,
-    "image/jpeg"
+    "image/jpeg", true
 };
 const httpd_uri_t WebServer::kGetBoardImage = {
     .uri = "/board.jpg",
@@ -27,12 +28,12 @@ const httpd_uri_t WebServer::kGetBoardImage = {
     .user_ctx = (void*)&kBoardImage
 };
 
-extern const uint8_t board_htm_start[] asm("_binary_board_min_htm_start");
-extern const uint8_t board_htm_end[] asm("_binary_board_min_htm_end");
+extern const uint8_t board_htm_start[] asm("_binary_board_min_htm_gz_start");
+extern const uint8_t board_htm_end[] asm("_binary_board_min_htm_gz_end");
 const WebServer::StaticData WebServer::kBoardView = {
     board_htm_start,
     (uintptr_t)board_htm_end - (uintptr_t)board_htm_start,
-    "text/html"
+    "text/html", true
 };
 const httpd_uri_t WebServer::kGetBoardView = {
     .uri = "/board.htm",
@@ -41,12 +42,12 @@ const httpd_uri_t WebServer::kGetBoardView = {
     .user_ctx = (void*)&kBoardView
 };
 
-extern const uint8_t index_htm_start[] asm("_binary_index_min_htm_start");
-extern const uint8_t index_htm_end[] asm("_binary_index_min_htm_end");
+extern const uint8_t index_htm_start[] asm("_binary_index_min_htm_gz_start");
+extern const uint8_t index_htm_end[] asm("_binary_index_min_htm_gz_end");
 const WebServer::StaticData WebServer::kIndex = {
     index_htm_start,
     (uintptr_t)index_htm_end - (uintptr_t)index_htm_start,
-    "text/html"
+    "text/html", true
 };
 const httpd_uri_t WebServer::kGetIndex = {
     .uri = "/index.htm",

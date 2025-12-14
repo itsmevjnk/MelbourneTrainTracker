@@ -9,11 +9,14 @@ size_t WebServer::getLinesString(char* result, size_t resultLen) {
     size_t resultIndex = 0;
     uint32_t lines = Services::getEnabledLines();
     for (size_t i = 0; i < Services::kNumLines; i++) {
+        infraid_t id = Services::kLineIDs[i];
+        if (id == INFRAID_SUYM || id == INFRAID_PKMM || id == INFRAID_CBEM || id == INFRAID_SUYm || id == INFRAID_PKMm || id == INFRAID_CBEm)
+            continue; // Sunbury/Pakenham/Cranbourne via Metro Tunnel
+
         if (lines & (1 << i)) {
             if (resultIndex + 4 > resultLen) break; // no more space
 
             if (resultIndex > 0) result[resultIndex - 1] = ','; // not first occurrence - change last line's termination to comma
-            infraid_t id = Services::kLineIDs[i];
             // ESP_LOGD(kTag, INFRAID2STR_FMT, INFRAID2STR(id));
             for (size_t j = 0; j < 3; j++) result[resultIndex + j] = (char)(((id) >> (j << 3)) & 0x7F);
             result[resultIndex + 3] = '\0';
@@ -84,22 +87,25 @@ badRequest:
             if (enable) Services::enableAllLines();
             else Services::disableAllLines();
         } else {
-            char* token = strtok(paramValue, ",");
+            char* saveptr;
+            char* token = strtok_r(paramValue, ",", &saveptr);
             if (!token) {
                 ESP_LOGE(kTag, "%s /lines: query parameter for lines cannot be empty", (enable) ? "PUT" : "DELETE");
                 goto badRequest;
             }
             while (token) {
-                if (strlen(token) != 3) {
+                size_t tokenLen = strlen(token);
+                if (tokenLen != 3 && tokenLen != 4) {
                     ESP_LOGE(kTag, "%s /lines: length of token %s is invalid", (enable) ? "PUT" : "DELETE", token);
                     goto badRequest;
                 }
-                ret = (enable) ? Services::enableLine(INFRAID(token)) : Services::disableLine(INFRAID(token));
+                char id[4]; memcpy(id, token, tokenLen); if (tokenLen == 3) id[3] = ' '; // convert to infra ID
+                ret = (enable) ? Services::enableLine(INFRAID(id)) : Services::disableLine(INFRAID(id));
                 if (ret != ESP_OK) {
                     ESP_LOGE(kTag, "%s /lines: invalid line %s", (enable) ? "PUT" : "DELETE", token);
                     goto badRequest;
                 }
-                token = strtok(NULL, ",");
+                token = strtok_r(NULL, ",", &saveptr);
             }
         }
 

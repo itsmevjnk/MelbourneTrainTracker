@@ -36,7 +36,11 @@ NVSHandle NVS::open(const char* name, nvs_open_mode_t mode) {
 
     esp_err_t ret = nvs_open(name, mode, &handle);
     if (ret != ESP_OK) {
+#ifdef CONFIG_ESP_ERR_TO_NAME_LOOKUP
         ESP_LOGE(kTag, "cannot open NVS namespace %s (%s)", name, esp_err_to_name(ret));
+#else
+        ESP_LOGE(kTag, "cannot open NVS namespace %s (%d)", name, ret);
+#endif
         return NVSHandle();
     }
 

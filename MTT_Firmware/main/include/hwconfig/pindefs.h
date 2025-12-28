@@ -5,6 +5,8 @@
 #include <driver/gpio.h>
 #include <driver/spi_master.h>
 
+#define BTN_BOOT                        GPIO_NUM_0 // BOOT button
+
 #if CONFIG_IDF_TARGET_ESP32S3 // TODO: confirm pin config
 
 /* SPI buses */

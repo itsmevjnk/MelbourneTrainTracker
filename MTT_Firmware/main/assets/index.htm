@@ -110,36 +110,36 @@
                 fetch(`http://${host}/driver`).then((resp) => resp.text()).then((data) => {
                     driver.checked = (data == 1);
                     driverLabel.innerHTML = (data == 1) ? 'On' : 'Off';
-                });
-                fetch(`http://${host}/lines`).then((resp) => resp.text()).then((data) => {
-                    data = data.split(',');
-                    for (const [key, value] of Object.entries(lines)) {
-                        const id = `line_${key}`;
-                        const elem = document.getElementById(id);
-                        if (data.includes(key)) elem.checked = true;
-                        elem.addEventListener('change', (event) => {
-                            if (event.currentTarget.checked) enableLine(key);
-                            else disableLine(key);
+                    return fetch(`http://${host}/lines`).then((resp) => resp.text()).then((data) => {
+                        data = data.split(',');
+                        for (const [key, value] of Object.entries(lines)) {
+                            const id = `line_${key}`;
+                            const elem = document.getElementById(id);
+                            if (data.includes(key)) elem.checked = true;
+                            elem.addEventListener('change', (event) => {
+                                if (event.currentTarget.checked) enableLine(key);
+                                else disableLine(key);
+                            });
+                        }
+                        return fetch(`http://${host}/config/wifi/ssid`).then((resp) => resp.text()).then((data) => {
+                            document.getElementById('ssid').innerHTML = data;
+                            return fetch(`http://${host}/config/mac/sta`).then((resp) => resp.text()).then((data) => {
+                                document.getElementById('sta_mac').innerHTML = data;
+                                return fetch(`http://${host}/config/mac/ap`).then((resp) => resp.text()).then((data) => {
+                                    document.getElementById('ap_mac').innerHTML = data;
+                                    return fetch(`http://${host}/config/build`).then((resp) => resp.text()).then((data) => {
+                                        document.getElementById('buildtime').innerHTML = data;
+                                        return fetch(`http://${host}/config/uptime`).then((resp) => resp.text()).then((data) => {
+                                            const h = Math.floor(data / 3600);
+                                            const m = Math.floor((data % 3600) / 60);
+                                            const s = Math.floor(data % 60);
+                                            document.getElementById('uptime').innerHTML = h + ':' + m.toString().padStart(2, '0') + ':' + s.toString().padStart(2, '0');
+                                        });
+                                    });
+                                });
+                            });
                         });
-                    }
-                });
-                fetch(`http://${host}/config/wifi/ssid`).then((resp) => resp.text()).then((data) => {
-                    document.getElementById('ssid').innerHTML = data;
-                });
-                fetch(`http://${host}/config/mac/sta`).then((resp) => resp.text()).then((data) => {
-                    document.getElementById('sta_mac').innerHTML = data;
-                });
-                fetch(`http://${host}/config/mac/ap`).then((resp) => resp.text()).then((data) => {
-                    document.getElementById('ap_mac').innerHTML = data;
-                });
-                fetch(`http://${host}/config/build`).then((resp) => resp.text()).then((data) => {
-                    document.getElementById('buildtime').innerHTML = data;
-                });
-                fetch(`http://${host}/config/uptime`).then((resp) => resp.text()).then((data) => {
-                    const h = Math.floor(data / 3600);
-                    const m = Math.floor((data % 3600) / 60);
-                    const s = Math.floor(data % 60);
-                    document.getElementById('uptime').innerHTML = h + ':' + m.toString().padStart(2, '0') + ':' + s.toString().padStart(2, '0');
+                    });
                 });
             });
             const enableAll = () => enableLine('all').then(() => {

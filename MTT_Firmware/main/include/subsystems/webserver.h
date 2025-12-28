@@ -9,6 +9,7 @@ class WebServer {
 public:
     static esp_err_t init(const char* hostname, const char* instance = nullptr); // in normal mode
     static esp_err_t initConfig(const char* hostname, const char* instance = nullptr); // in configuration mode
+    static esp_err_t initConfig(); // in configuration mode, no mDNS
 
     static esp_err_t init(const char* hostname, const httpd_uri_t** handlers, size_t handlersCount, const char* instance = nullptr);
 
@@ -125,6 +126,10 @@ private:
     static const httpd_uri_t kGetRoot;
     static const StaticData kBootstrapCSS;
     static const httpd_uri_t kGetBootstrapCSS;
+
+    static const StaticData kConfigIndex;
+    static const httpd_uri_t kGetConfigIndex;
+    static const httpd_uri_t kGetConfigRoot;
 
     static httpd_handle_t m_server;
 

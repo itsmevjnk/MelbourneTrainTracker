@@ -75,3 +75,23 @@ const httpd_uri_t WebServer::kGetBootstrapCSS = {
     .handler = serveStaticData,
     .user_ctx = (void*)&kBootstrapCSS
 };
+
+extern const uint8_t config_htm_start[] asm("_binary_config_min_htm_gz_start");
+extern const uint8_t config_htm_end[] asm("_binary_config_min_htm_gz_end");
+const WebServer::StaticData WebServer::kConfigIndex = {
+    config_htm_start,
+    (uintptr_t)config_htm_end - (uintptr_t)config_htm_start,
+    "text/html", true
+};
+const httpd_uri_t WebServer::kGetConfigIndex = {
+    .uri = "/index.htm",
+    .method = HTTP_GET,
+    .handler = serveStaticData,
+    .user_ctx = (void*)&kConfigIndex
+};
+const httpd_uri_t WebServer::kGetConfigRoot = {
+    .uri = "/",
+    .method = HTTP_GET,
+    .handler = serveStaticData,
+    .user_ctx = (void*)&kConfigIndex
+};

@@ -90,7 +90,7 @@ extern "C" void app_main() {
     if (runConfig) {
         /* initialise web configuration interface access */
         ESP_ERROR_CHECK(WiFi::initAP());
-        ESP_ERROR_CHECK(WebServer::initConfig(Config::getMDNSHostname(), Config::getMDNSInstanceName()));
+        ESP_ERROR_CHECK(WebServer::initConfig()); // do not use mDNS settings here since Config might not be initialised yet
 
         ESP_ERROR_CHECK(Config::cli());
         while (true) { // while CLI is running on another task, we flash the two LEDs alternately

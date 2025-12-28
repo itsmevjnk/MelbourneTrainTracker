@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+
+<html lang="en">
+    <head>
+        <title>Melbourne Train Tracker</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="bootstrap.min.css" rel="stylesheet">
+    </head>
+    <body>
+        <div class="container">
+            <header>
+                <h1 class="my-4">Melbourne Train Tracker</h1>
+            </header>
+            <section class="row my-4">
+                <h2>Wi-Fi Configuration</h2>
+                <form id="wifiForm" class="mb-3">
+                    <div class="mb-3">
+                        <label for="wifi_ssid" class="form-label">SSID</label>
+                        <input type="text" class="form-control" id="wifi_ssid" name="ssid" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="wifi_auth" class="form-label">Authentication type</label>
+                        <select class="form-select" id="wifi_auth" name="auth">
+                            <option value="open">Open</option>
+                            <option value="wpa-psk">WPA-PSK</option>
+                            <option value="wpa2-ent">WPA2-Enterprise</option>
+                        </select>
+                    </div>
+                    <div class="mb-3" id="wifi_identity_group" style="display: none;">
+                        <label for="wifi_identity" class="form-label">Identity</label>
+                        <input type="text" class="form-control" id="wifi_identity" name="identity">
+                    </div>
+                    <div class="mb-3" id="wifi_username_group" style="display: none;">
+                        <label for="wifi_username" class="form-label">Username</label>
+                        <input type="text" class="form-control" id="wifi_username" name="username">
+                    </div>
+                    <div class="mb-3" id="wifi_password_group">
+                        <label for="wifi_password" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="wifi_password" name="password">
+                    </div>
+                    <div class="mb-3" id="wifi_cert_group" style="display: none;">
+                        <label for="wifi_cert" class="form-label">WPA2-Enterprise certificate (optional)</label>
+                        <textarea class="form-control" id="wifi_cert" name="certificate" rows="5" placeholder="Paste the PEM certificate here"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                    <span id="wifi_save_status" class="ms-3"></span>
+                </form>
+            </section>
+
+            <section class="row my-4">
+                <h2>mDNS Configuration</h2>
+                <form id="mdnsForm" class="mb-3">
+                    <div class="mb-3">
+                        <label for="mdns_hostname" class="form-label">Hostname</label>
+                        <input type="text" class="form-control" id="mdns_hostname" name="hostname" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="mdns_instance" class="form-label">Instance name</label>
+                        <input type="text" class="form-control" id="mdns_instance" name="instance">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                    <span id="mdns_save_status" class="ms-3"></span>
+                </form>
+            </section>
+
+            <section class="row my-4">
+                <h2>Server Configuration</h2>
+                <form id="serverForm" class="mb-3">
+                    <div class="mb-3">
+                        <label for="ntp_server" class="form-label">NTP server address</label>
+                        <input type="text" class="form-control" id="ntp_server" name="ntp_server">
+                    </div>
+                    <div class="mb-3">
+                        <label for="mqtt_broker" class="form-label">MQTT broker address</label>
+                        <input type="text" class="form-control" id="mqtt_broker" name="mqtt_broker">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                    <span id="server_save_status" class="ms-3"></span>
+                </form>
+            </section>
+
+            <section class="row my-4">
+                <div class="d-flex justify-content-center">
+                    <button id="reset_board_btn" class="btn btn-danger">Reset Board</button>
+                </div>
+            </section>
+
+            <section class="row">
+                <h2 class="my-2">Information</h2>
+                <table class="table">
+                    <tbody>
+                        <tr>
+                            <th scope="row">Station mode MAC address</th>
+                            <td id="sta_mac"></td>
+                        </tr>
+                        <tr>
+                            <th scope="row">AP mode MAC address</th>
+                            <td id="ap_mac"></td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Build timestamp</th>
+                            <td id="buildtime"></td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Uptime</th>
+                            <td id="uptime"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+        </div>
+        <script>
+            const host = window.location.hostname;
+            
+            document.addEventListener('DOMContentLoaded', () => {
+                const wifiAuth = document.getElementById('wifi_auth');
+                const identityGroup = document.getElementById('wifi_identity_group');
+                const usernameGroup = document.getElementById('wifi_username_group');
+                const passwordGroup = document.getElementById('wifi_password_group');
+                const certGroup = document.getElementById('wifi_cert_group');
+
+                function updateWifiFields() {
+                    const val = wifiAuth.value;
+                    identityGroup.style.display = (val === 'wpa2-ent') ? '' : 'none';
+                    usernameGroup.style.display = (val === 'wpa2-ent') ? '' : 'none';
+                    certGroup.style.display = (val === 'wpa2-ent') ? '' : 'none';
+                    passwordGroup.style.display = (val === 'open') ? 'none' : '';
+                }
+
+                wifiAuth.addEventListener('change', updateWifiFields);
+                updateWifiFields();
+
+                // load info                
+                fetch(`http://${host}/config/mac/sta`).then((resp) => resp.text()).then((data) => {
+                    document.getElementById('sta_mac').innerHTML = data;
+                    return fetch(`http://${host}/config/mac/ap`).then((resp) => resp.text()).then((data) => {
+                        document.getElementById('ap_mac').innerHTML = data;
+                        return fetch(`http://${host}/config/build`).then((resp) => resp.text()).then((data) => {
+                            document.getElementById('buildtime').innerHTML = data;
+                            return fetch(`http://${host}/config/uptime`).then((resp) => resp.text()).then((data) => {
+                                const h = Math.floor(data / 3600);
+                                const m = Math.floor((data % 3600) / 60);
+                                const s = Math.floor(data % 60);
+                                document.getElementById('uptime').innerHTML = h + ':' + m.toString().padStart(2, '0') + ':' + s.toString().padStart(2, '0');
+                            });
+                        });
+                    });
+                });
+
+                // load current config
+                fetch(`http://${host}/config/wifi/ssid`).then(resp => resp.text()).then(data => {
+                    document.getElementById('wifi_ssid').value = data;
+
+                    return fetch(`http://${host}/config/wifi/password`).then(resp => resp.ok ? resp.text() : "").then(data => {
+                        document.getElementById('wifi_password').value = data;
+                        let promise = null;
+                        if (data == "") {
+                            document.getElementById('wifi_auth').value = 'open';
+                            updateWifiFields();
+                        } else {
+                            promise = fetch(`http://${host}/config/wifi/eap/id`).then(resp => {
+                                if (resp.status === 404) {
+                                    document.getElementById('wifi_auth').value = 'wpa-psk';
+                                    updateWifiFields();
+                                    return;
+                                } else {
+                                    document.getElementById('wifi_auth').value = 'wpa2-ent';
+                                    updateWifiFields();
+                                    return resp.text().then(data => {
+                                        document.getElementById('wifi_identity').value = data;
+                                        return fetch(`http://${host}/config/wifi/eap/user`).then(resp => resp.ok ? resp.text() : "").then(data => {
+                                            document.getElementById('wifi_username').value = data;
+                                        });
+                                    });
+                                }
+                            });
+                        }
+
+                        let nextPromise = fetch(`http://${host}/config/mdns/host`).then(resp => resp.text()).then(data => {
+                            document.getElementById('mdns_hostname').value = data;
+                            return fetch(`http://${host}/config/mdns/inst`).then(resp => resp.text()).then(data => {
+                                document.getElementById('mdns_instance').value = data;
+                                return fetch(`http://${host}/config/ntp`).then(resp => resp.text()).then(data => {
+                                    document.getElementById('ntp_server').value = data;
+                                    return fetch(`http://${host}/config/mqtt`).then(resp => resp.text()).then(data => {
+                                        document.getElementById('mqtt_broker').value = data;
+                                    });
+                                });                                
+                            });
+                        });
+                        
+                        if (promise !== null) {
+                            return promise.then(nextPromise);
+                        } else {
+                            return nextPromise;
+                        }
+                    });
+                });
+
+                document.getElementById('wifiForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    const ssid = document.getElementById('wifi_ssid').value;
+                    const auth = document.getElementById('wifi_auth').value;
+                    const identity = document.getElementById('wifi_identity').value;
+                    const username = document.getElementById('wifi_username').value;
+                    const password = document.getElementById('wifi_password').value;
+                    const cert = document.getElementById('wifi_cert').value;
+                    let status = document.getElementById('wifi_save_status');
+                    
+                    if (ssid.length < 1 || ssid.length > 32) {
+                        status.textContent = 'SSID must be 1-32 characters long.';
+                        return;
+                    }
+
+                    if (auth === 'wpa-psk' || auth === 'wpa2-ent') {
+                        if (password.length < 8 || password.length > 64) {
+                            status.textContent = 'Password must be 8-64 characters long.';
+                            return;
+                        }
+                    }
+
+                    if (auth === 'wpa2-ent') {
+                        if (identity.length > 64) {
+                            status.textContent = 'Identity must be 64 characters or fewer.';
+                            return;
+                        }
+                        if (username.length > 64) {
+                            status.textContent = 'Username must be 64 characters or fewer.';
+                            return;
+                        }
+                    }
+
+                    status.textContent = 'Saving...';
+                    let promise = null;
+
+                    if (auth === 'open') {
+                        promise = fetch(`http://${host}/config/wifi/unauth`, {
+                            method: 'POST',
+                            body: ssid
+                        });
+                    } else if (auth === 'wpa-psk') {
+                        promise = fetch(`http://${host}/config/wifi/psk`, {
+                            method: 'POST',
+                            body: ssid + '\r\n' + password
+                        });
+                    } else if (auth === 'wpa2-ent') {
+                        if (cert == "") {
+                            promise = fetch(`http://${host}/config/wifi/eap`, {
+                                method: 'POST',
+                                body: ssid + '\r\n' + identity + '\r\n' + username + '\r\n' + password
+                            });
+                        } else {
+                            promise = fetch(`http://${host}/config/wifi/eap_cert`, {
+                                method: 'POST',
+                                body: ssid + '\r\n' + identity + '\r\n' + username + '\r\n' + password + '\r\n' + cert
+                            });
+                        }
+                    }
+                    promise.then(resp => {
+                        if (resp.ok) status.textContent = "Saved!";
+                        else status.textContent = "Error.";
+                    }).catch(() => status.textContent = "Error.");
+                });                
+
+                document.getElementById('mdnsForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    let status = document.getElementById('mdns_save_status');
+
+                    const hostname = document.getElementById('mdns_hostname').value;
+                    const instance = document.getElementById('mdns_instance').value;
+
+                    // Form validation for mDNS config
+                    if (hostname.length < 1 || hostname.length > 32) {
+                        status.textContent = 'Hostname must be 1-32 characters.';
+                        return;
+                    }
+                    if (instance.length < 1 || instance.length > 64) {
+                        status.textContent = 'Instance name must be 1-64 characters.';
+                        return;
+                    }
+
+                    status.textContent = 'Saving...';
+                    fetch(`http://${host}/config/mdns/host`, {
+                        method: 'POST',
+                        body: hostname
+                    }).then(resp => {
+                        if (resp.ok) {
+                            return fetch(`http://${host}/config/mdns/inst`, {
+                                method: 'POST',
+                                body: instance
+                            }).then(resp => {
+                                if (resp.ok) status.textContent = "Saved!";
+                                else status.textContent = "Error.";
+                            });
+                        }
+                        else status.textContent = "Error.";
+                    }).catch(() => status.textContent = "Error.");
+                });
+
+                document.getElementById('serverForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    let status = document.getElementById('server_save_status');
+
+                    const ntp_server = document.getElementById('ntp_server').value;
+                    const mqtt_broker = document.getElementById('mqtt_broker').value;
+
+                    // Form validation for Server config
+                    if (ntp_server.length < 1 || ntp_server.length > 64) {
+                        status.textContent = 'NTP server address must be 1-64 characters.';
+                        return;
+                    }
+                    if (mqtt_broker.length < 1 || mqtt_broker.length > 64) {
+                        status.textContent = 'MQTT broker address must be 1-64 characters.';
+                        return;
+                    }
+
+                    status.textContent = 'Saving...';
+                    fetch(`http://${host}/config/ntp`, {
+                        method: 'POST',
+                        body: ntp_server
+                    }).then(resp => {
+                        if (resp.ok) {
+                            return fetch(`http://${host}/config/mqtt`, {
+                                method: 'POST',
+                                body: mqtt_broker
+                            }).then(resp => {
+                                if (resp.ok) status.textContent = "Saved!";
+                                else status.textContent = "Error.";
+                            });
+                        }
+                        else status.textContent = "Error.";
+                    }).catch(() => status.textContent = "Error.");
+                });
+                
+                const resetBtn = document.getElementById('reset_board_btn');
+                resetBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    fetch(`http://${host}/config/reset`, {
+                        method: 'POST'
+                    }).then(() => {
+                        location.reload();
+                    });
+                });
+            });
+        </script>
+    </body>
+</html>

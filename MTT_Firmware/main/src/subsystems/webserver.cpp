@@ -34,7 +34,8 @@ const httpd_uri_t* WebServer::kConfigHandlers[] = {
     &kConfigSetWiFiUnauth, &kConfigSetWiFiPass, &kConfigSetWiFiEnt, &kConfigSetWiFiEntCert,
     &kConfigReset,
     &kGetBootstrapCSS,
-    &kConfigGetBuildTime, &kConfigGetUptime
+    &kConfigGetBuildTime, &kConfigGetUptime,
+    &kGetConfigIndex, &kGetConfigRoot
 };
 
 mdns_txt_item_t WebServer::kMDNSServiceTXT[] = {
@@ -43,12 +44,15 @@ mdns_txt_item_t WebServer::kMDNSServiceTXT[] = {
 };
 
 esp_err_t WebServer::init(const char* hostname, const httpd_uri_t** handlers, size_t handlersCount, const char* instance) {
-    ESP_RETURN_ON_ERROR(mdns_init(), kTag, "cannot initialise mDNS service");
-    mdns_hostname_set(hostname);
-    if (instance) mdns_instance_name_set(instance);
-    ESP_RETURN_ON_ERROR(mdns_service_add(NULL, "_http", "_tcp", CONFIG_HTTP_PORT, kMDNSServiceTXT, sizeof(kMDNSServiceTXT) / sizeof(mdns_txt_item_t)), kTag, "cannot add HTTP service to mDNS");
+    if (hostname) {
+        ESP_RETURN_ON_ERROR(mdns_init(), kTag, "cannot initialise mDNS service");
 
-    ESP_LOGI(kTag, "initialised mDNS service");
+        mdns_hostname_set(hostname);
+        if (instance) mdns_instance_name_set(instance);
+        ESP_RETURN_ON_ERROR(mdns_service_add(NULL, "_http", "_tcp", CONFIG_HTTP_PORT, kMDNSServiceTXT, sizeof(kMDNSServiceTXT) / sizeof(mdns_txt_item_t)), kTag, "cannot add HTTP service to mDNS");
+
+        ESP_LOGI(kTag, "initialised mDNS service");
+    }
 
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
     config.server_port = CONFIG_HTTP_PORT;
@@ -75,4 +79,8 @@ esp_err_t WebServer::init(const char* hostname, const char* instance) {
 
 esp_err_t WebServer::initConfig(const char* hostname, const char* instance) {
     return init(hostname, kConfigHandlers, sizeof(kConfigHandlers) / sizeof(httpd_uri_t*), instance);
+}
+
+esp_err_t WebServer::initConfig() {
+    return init(NULL, kConfigHandlers, sizeof(kConfigHandlers) / sizeof(httpd_uri_t*), NULL);
 }

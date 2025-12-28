@@ -117,43 +117,43 @@ bool Config::isInitialised() {
 
 bool Config::m_wifiEnterprise = false;
 bool Config::isWiFiEnterprise() {
-    verifyInit();
+    // verifyInit();
     return m_wifiEnterprise;
 }
 
 char Config::m_wifiSSID[32] = "";
 const char* Config::getWiFiSSID() {
-    verifyInit();
+    // verifyInit();
     return m_wifiSSID;
 }
 
 char Config::m_wifiUsername[64] = "";
 const char* Config::getWiFiUsername() {
-    verifyInit();
+    // verifyInit();
     return (!m_wifiEnterprise) ? nullptr : m_wifiUsername;
 }
 
 char Config::m_wifiPassword[64] = "";
 const char* Config::getWiFiPassword() {
-    verifyInit();
+    // verifyInit();
     return m_wifiPassword;
 }
 
 char Config::m_wifiIdentity[64] = "";
 const char* Config::getWiFiIdentity() {
-    verifyInit();
+    // verifyInit();
     return (!m_wifiEnterprise) ? nullptr : m_wifiIdentity;
 }
 
 char* Config::m_wifiCert = nullptr;
 const char* Config::getWiFiCertificate() {
-    verifyInit();
+    // verifyInit();
     return (!m_wifiEnterprise) ? nullptr : m_wifiCert;
 }
 
 size_t Config::m_wifiCertLength = 0;
 size_t Config::getWiFiCertLength() {
-    verifyInit();
+    // verifyInit();
     return (!m_wifiEnterprise) ? 0 : m_wifiCertLength;
 }
 
@@ -162,7 +162,7 @@ size_t Config::getWiFiCertLength() {
 #endif
 char Config::m_timeServer[64] = CONFIG_DEFAULT_TIME_SERVER;
 const char* Config::getTimeServer() {
-    verifyInit();
+    // verifyInit();
     return m_timeServer;
 }
 
@@ -171,7 +171,7 @@ const char* Config::getTimeServer() {
 #endif
 char Config::m_mqttBroker[64] = CONFIG_DEFAULT_MQTT_BROKER;
 const char* Config::getMQTTBroker() {
-    verifyInit();
+    // verifyInit();
     return m_mqttBroker;
 }
 
@@ -180,7 +180,7 @@ const char* Config::getMQTTBroker() {
 #endif
 char Config::m_mdnsHostname[32] = CONFIG_DEFAULT_MDNS_HOSTNAME;
 const char* Config::getMDNSHostname() {
-    verifyInit();
+    // verifyInit();
     return m_mdnsHostname;
 }
 
@@ -189,6 +189,6 @@ const char* Config::getMDNSHostname() {
 #endif
 char Config::m_mdnsInstanceName[64] = CONFIG_DEFAULT_MDNS_INSTANCE_NAME;
 const char* Config::getMDNSInstanceName() {
-    verifyInit();
+    // verifyInit();
     return m_mdnsInstanceName;
 }

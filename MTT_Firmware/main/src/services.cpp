@@ -207,12 +207,30 @@ const uint32_t Services::kAllLines = (1 << kNumLines) - 1;
 uint32_t Services::m_lines = kAllLines; // all lines on by default
 
 uint32_t Services::getLineBitmask(infraid_t line) {
-    for (size_t i = 0; i < kNumLines; i++) {
-        if (line == kLineIDs[i]) return (1 << i);
+    uint32_t mask = 0;
+    if (line == INFRAID_SUY || line == INFRAID_SUYM || line == INFRAID_SUYm) {
+        for (size_t i = 0; i < kNumLines; i++) {
+            if (kLineIDs[i] == INFRAID_SUY || kLineIDs[i] == INFRAID_SUYM || kLineIDs[i] == INFRAID_SUYm) mask |= (1 << i);
+        }
+    } else if (line == INFRAID_CBE || line == INFRAID_CBEM || line == INFRAID_CBEm) {
+        for (size_t i = 0; i < kNumLines; i++) {
+            if (kLineIDs[i] == INFRAID_CBE || kLineIDs[i] == INFRAID_CBEM || kLineIDs[i] == INFRAID_CBEm) mask |= (1 << i);
+        }
+    } else if (line == INFRAID_PKM || line == INFRAID_PKMM || line == INFRAID_PKMm) {
+        for (size_t i = 0; i < kNumLines; i++) {
+            if (kLineIDs[i] == INFRAID_PKM || kLineIDs[i] == INFRAID_PKMM || kLineIDs[i] == INFRAID_PKMm) mask |= (1 << i);
+        }
+    } else {
+        for (size_t i = 0; i < kNumLines; i++) {
+            if (line == kLineIDs[i]) {
+                mask = (1 << i);
+                break;
+            }
+        }
     }
 
-    ESP_LOGE(kTag, "invalid line ID " INFRAID2STR_FMT, INFRAID2STR(line));
-    return 0;
+    if (!mask) ESP_LOGE(kTag, "invalid line ID " INFRAID2STR_FMT, INFRAID2STR(line));
+    return mask;
 }
 
 esp_err_t Services::enableLine(infraid_t line) {

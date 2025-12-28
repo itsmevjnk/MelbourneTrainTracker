@@ -28,7 +28,8 @@ esp_err_t Config::init() {
         ESP_RETURN_ON_ERROR(wifiHandle.getString("user", m_wifiUsername, sizeof(m_wifiUsername)), kTag, "cannot read Wi-Fi EAP username");
         ESP_RETURN_ON_ERROR(wifiHandle.getBlobLength("cert", &m_wifiCertLength), kTag, "cannot get Wi-Fi server certificate length");
         if (m_wifiCertLength > 0) {
-            m_wifiCert = new char[m_wifiCertLength];
+            m_wifiCert = (char*) malloc(m_wifiCertLength);
+            ESP_RETURN_ON_FALSE(m_wifiCert, ESP_ERR_NO_MEM, kTag, "Wi-Fi server certificate buffer allocation failed");
             ESP_RETURN_ON_ERROR(wifiHandle.getBlob("cert", m_wifiCert, m_wifiCertLength), kTag, "cannot read Wi-Fi server certificate");
         }
     }
@@ -44,14 +45,26 @@ esp_err_t Config::init() {
         switch (ret) {
             case ESP_OK: break;
             case ESP_ERR_NVS_NOT_FOUND: ESP_LOGW(kTag, "time server not set in NVS, defaulting to %s", m_timeServer); break;
-            default: ESP_LOGE(kTag, "cannot read time server address (%s)", esp_err_to_name(ret)); return ret;
+            default:
+#ifdef CONFIG_ESP_ERR_TO_NAME_LOOKUP
+                ESP_LOGE(kTag, "cannot read time server address (%s)", esp_err_to_name(ret));
+#else
+                ESP_LOGE(kTag, "cannot read time server address (%d)", ret);
+#endif
+                return ret;
         }
 
         ret = addrHandle.getString("mqtt", m_mqttBroker, sizeof(m_mqttBroker));
         switch (ret) {
             case ESP_OK: break;
             case ESP_ERR_NVS_NOT_FOUND: ESP_LOGW(kTag, "MQTT broker not set in NVS, defaulting to %s", m_mqttBroker); break;
-            default: ESP_LOGE(kTag, "cannot read MQTT server address (%s)", esp_err_to_name(ret)); return ret;
+            default:
+#ifdef CONFIG_ESP_ERR_TO_NAME_LOOKUP
+                ESP_LOGE(kTag, "cannot read MQTT broker address (%s)", esp_err_to_name(ret));
+#else
+                ESP_LOGE(kTag, "cannot read MQTT broker address (%d)", ret);
+#endif
+                return ret;
         }
 
         // addrHandle.close();
@@ -67,14 +80,25 @@ esp_err_t Config::init() {
         switch (ret) {
             case ESP_OK: break;
             case ESP_ERR_NVS_NOT_FOUND: ESP_LOGW(kTag, "mDNS hostname not set in NVS, defaulting to %s", m_mdnsHostname); break;
-            default: ESP_LOGE(kTag, "cannot read mDNS hostname (%s)", esp_err_to_name(ret)); return ret;
+            default:
+#ifdef CONFIG_ESP_ERR_TO_NAME_LOOKUP
+                ESP_LOGE(kTag, "cannot read mDNS hostname (%s)", esp_err_to_name(ret));
+#else
+                ESP_LOGE(kTag, "cannot read mDNS hostname (%d)", ret);
+#endif
+                return ret;
         }
 
         ret = mdnsHandle.getString("inst", m_mdnsInstanceName, sizeof(m_mdnsInstanceName));
         switch (ret) {
             case ESP_OK: break;
             case ESP_ERR_NVS_NOT_FOUND: ESP_LOGW(kTag, "mDNS instance name not set in NVS, defaulting to %s", m_mdnsInstanceName); break;
-            default: ESP_LOGE(kTag, "cannot read mDNS instance name (%s)", esp_err_to_name(ret)); return ret;
+            default:
+#ifdef CONFIG_ESP_ERR_TO_NAME_LOOKUP
+                ESP_LOGE(kTag, "cannot read mDNS instance name (%s)", esp_err_to_name(ret));
+#else
+                ESP_LOGE(kTag, "cannot read mDNS instance name (%d)", ret);
+#endif
         }
 
         // addrHandle.close();
@@ -93,43 +117,43 @@ bool Config::isInitialised() {
 
 bool Config::m_wifiEnterprise = false;
 bool Config::isWiFiEnterprise() {
-    verifyInit();
+    // verifyInit();
     return m_wifiEnterprise;
 }
 
 char Config::m_wifiSSID[32] = "";
 const char* Config::getWiFiSSID() {
-    verifyInit();
+    // verifyInit();
     return m_wifiSSID;
 }
 
 char Config::m_wifiUsername[64] = "";
 const char* Config::getWiFiUsername() {
-    verifyInit();
+    // verifyInit();
     return (!m_wifiEnterprise) ? nullptr : m_wifiUsername;
 }
 
 char Config::m_wifiPassword[64] = "";
 const char* Config::getWiFiPassword() {
-    verifyInit();
+    // verifyInit();
     return m_wifiPassword;
 }
 
 char Config::m_wifiIdentity[64] = "";
 const char* Config::getWiFiIdentity() {
-    verifyInit();
+    // verifyInit();
     return (!m_wifiEnterprise) ? nullptr : m_wifiIdentity;
 }
 
 char* Config::m_wifiCert = nullptr;
 const char* Config::getWiFiCertificate() {
-    verifyInit();
+    // verifyInit();
     return (!m_wifiEnterprise) ? nullptr : m_wifiCert;
 }
 
 size_t Config::m_wifiCertLength = 0;
 size_t Config::getWiFiCertLength() {
-    verifyInit();
+    // verifyInit();
     return (!m_wifiEnterprise) ? 0 : m_wifiCertLength;
 }
 
@@ -138,7 +162,7 @@ size_t Config::getWiFiCertLength() {
 #endif
 char Config::m_timeServer[64] = CONFIG_DEFAULT_TIME_SERVER;
 const char* Config::getTimeServer() {
-    verifyInit();
+    // verifyInit();
     return m_timeServer;
 }
 
@@ -147,7 +171,7 @@ const char* Config::getTimeServer() {
 #endif
 char Config::m_mqttBroker[64] = CONFIG_DEFAULT_MQTT_BROKER;
 const char* Config::getMQTTBroker() {
-    verifyInit();
+    // verifyInit();
     return m_mqttBroker;
 }
 
@@ -156,7 +180,7 @@ const char* Config::getMQTTBroker() {
 #endif
 char Config::m_mdnsHostname[32] = CONFIG_DEFAULT_MDNS_HOSTNAME;
 const char* Config::getMDNSHostname() {
-    verifyInit();
+    // verifyInit();
     return m_mdnsHostname;
 }
 
@@ -165,6 +189,6 @@ const char* Config::getMDNSHostname() {
 #endif
 char Config::m_mdnsInstanceName[64] = CONFIG_DEFAULT_MDNS_INSTANCE_NAME;
 const char* Config::getMDNSInstanceName() {
-    verifyInit();
+    // verifyInit();
     return m_mdnsInstanceName;
 }

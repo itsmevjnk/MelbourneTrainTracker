@@ -5,6 +5,8 @@
 #include <driver/gpio.h>
 #include <driver/spi_master.h>
 
+#define BTN_BOOT                        GPIO_NUM_0 // BOOT button
+
 /* SPI buses */
 #define SPI2_MISO                       GPIO_NUM_12
 #define SPI2_MOSI                       GPIO_NUM_13

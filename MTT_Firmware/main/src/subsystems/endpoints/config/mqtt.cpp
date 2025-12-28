@@ -12,7 +12,7 @@ const httpd_uri_t WebServer::kConfigGetMQTT = {
 };
 
 esp_err_t WebServer::configGetMQTT(httpd_req_t* req) {
-    const char* result = Config::getTimeServer();
+    const char* result = Config::getMQTTBroker();
     ESP_RETURN_ON_ERROR(
         httpd_resp_send(req, result, strlen(result)),
         kTag, "GET %s: cannot respond", req->uri

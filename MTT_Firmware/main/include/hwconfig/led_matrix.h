@@ -54,9 +54,17 @@
 /* addressing macros */
 #define L_OFFSET(x)                         L##x##_OFFSET
 #define LMAT_BASE(chip, col, row)           (L_OFFSET(chip) + L_ROWS(chip) * (col) + 3 * (row))
+
+#if CONFIG_IDF_TARGET_ESP32S3
+#define LMAT_R(base)                        ((base) + 2)
+#define LMAT_G(base)                        ((base) + 1)
+#define LMAT_B(base)                        ((base) + 0)
+#else
 #define LMAT_R(base)                        ((base) + 0)
 #define LMAT_G(base)                        ((base) + 1)
 #define LMAT_B(base)                        ((base) + 2)
+#endif
+
 
 /* line LED offsets */
 #if CONFIG_IDF_TARGET_ESP32S3 // TODO: new LED offsets

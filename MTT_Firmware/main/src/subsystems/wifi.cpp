@@ -11,7 +11,9 @@
 #include "esp_log.h"
 const char* WiFi::kTag = "wifi";
 
-esp_err_t WiFi::init(const char* ssid, const char* password, size_t maxRetries) {
+#include "esp_mac.h"
+
+esp_err_t WiFi::initSTA(const char* ssid, const char* password, size_t maxRetries) {
     /* check SSID and password */
     if (!ssid) {
         ESP_LOGE(kTag, "ssid cannot be null");
@@ -39,13 +41,13 @@ esp_err_t WiFi::init(const char* ssid, const char* password, size_t maxRetries) 
     config.sta.threshold.rssi = -127; // accept any RSSI
     config.sta.threshold.authmode = (password) ? WIFI_AUTH_WEP : WIFI_AUTH_OPEN; // minimum auth mode is WEP if there's a password, or open if there's none
     
-    ESP_RETURN_ON_ERROR(initStub(config, maxRetries), kTag, "Wi-Fi initialisation failed"); // run init stub
-    ESP_RETURN_ON_ERROR(start(), kTag, "Wi-Fi driver start and connection failed");
+    ESP_RETURN_ON_ERROR(initStub(config, false, maxRetries), kTag, "Wi-Fi initialisation failed"); // run init stub
+    ESP_RETURN_ON_ERROR(startSTA(), kTag, "Wi-Fi driver start and connection failed");
 
     return ESP_OK;
 }
 
-esp_err_t WiFi::init(const char* ssid, const char* identity, const char* username, const char* password, const char* certificate, size_t certLength, size_t maxRetries) {
+esp_err_t WiFi::initSTA(const char* ssid, const char* identity, const char* username, const char* password, const char* certificate, size_t certLength, size_t maxRetries) {
     /* check input */
     if (!ssid) {
         ESP_LOGE(kTag, "ssid cannot be null");
@@ -93,7 +95,7 @@ esp_err_t WiFi::init(const char* ssid, const char* identity, const char* usernam
     config.sta.threshold.rssi = -127; // accept any RSSI
     config.sta.threshold.authmode = WIFI_AUTH_WPA2_ENTERPRISE; // must be WPA2-Enterprise
 
-    ESP_RETURN_ON_ERROR(initStub(config, maxRetries), kTag, "Wi-Fi initialisation failed"); // run init stub
+    ESP_RETURN_ON_ERROR(initStub(config, false, maxRetries), kTag, "Wi-Fi initialisation failed"); // run init stub
 
     /* configure EAP client */
     ESP_RETURN_ON_ERROR(
@@ -117,7 +119,7 @@ esp_err_t WiFi::init(const char* ssid, const char* identity, const char* usernam
     }
     ESP_RETURN_ON_ERROR(esp_wifi_sta_enterprise_enable(), kTag, "unable to enable enterprise authentication");
 
-    ESP_RETURN_ON_ERROR(start(), kTag, "Wi-Fi driver start and connection failed");
+    ESP_RETURN_ON_ERROR(startSTA(), kTag, "Wi-Fi driver start and connection failed");
 
     return ESP_OK;
 }
@@ -128,7 +130,7 @@ esp_err_t WiFi::init(const char* ssid, const char* identity, const char* usernam
 EventGroupHandle_t WiFi::m_eventGroup; // Wi-Fi event group
 size_t WiFi::kMaxRetries;
 
-esp_err_t WiFi::initStub(wifi_config_t& config, size_t maxRetries) {
+esp_err_t WiFi::initStub(wifi_config_t& config, bool ap, size_t maxRetries) {
     kMaxRetries = maxRetries;
 
     ESP_RETURN_ON_ERROR(NVS::init(), kTag, "NVS initialisation failed, cannot continue");
@@ -146,28 +148,38 @@ esp_err_t WiFi::initStub(wifi_config_t& config, size_t maxRetries) {
         }
     }
 
-    esp_netif_create_default_wifi_sta(); // attach event handlers for handling Wi-Fi connection (including DHCP)
+    if (ap) {
+        esp_netif_create_default_wifi_ap();
 
-    ESP_RETURN_ON_ERROR(
-        esp_event_handler_instance_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &wifiEventHandler, NULL, NULL), // NOTE: we might not have to store the instance
-        kTag, "cannot register Wi-Fi event handler"
-    );
+        wifi_init_config_t initConfig = WIFI_INIT_CONFIG_DEFAULT();
+        ESP_RETURN_ON_ERROR(esp_wifi_init(&initConfig), kTag, "cannot initialise Wi-Fi driver");
 
-    ESP_RETURN_ON_ERROR(
-        esp_event_handler_instance_register(IP_EVENT, IP_EVENT_STA_GOT_IP, &ipEventHandler, NULL, NULL),
-        kTag, "cannot register IP event handler"
-    );
+        ESP_RETURN_ON_ERROR(esp_wifi_set_mode(WIFI_MODE_AP), kTag, "cannot set mode to AP");
+        ESP_RETURN_ON_ERROR(esp_wifi_set_config(WIFI_IF_AP, &config), kTag, "cannot set configuration");
+    } else {
+        esp_netif_create_default_wifi_sta(); // attach event handlers for handling Wi-Fi connection (including DHCP)
 
-    wifi_init_config_t initConfig = WIFI_INIT_CONFIG_DEFAULT();
-    ESP_RETURN_ON_ERROR(esp_wifi_init(&initConfig), kTag, "cannot initialise Wi-Fi driver");
+        ESP_RETURN_ON_ERROR(
+            esp_event_handler_instance_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &wifiEventHandler, NULL, NULL), // NOTE: we might not have to store the instance
+            kTag, "cannot register Wi-Fi event handler"
+        );
 
-    ESP_RETURN_ON_ERROR(esp_wifi_set_mode(WIFI_MODE_STA), kTag, "cannot set mode to STA");
-    ESP_RETURN_ON_ERROR(esp_wifi_set_config(WIFI_IF_STA, &config), kTag, "cannot set configuration");
+        ESP_RETURN_ON_ERROR(
+            esp_event_handler_instance_register(IP_EVENT, IP_EVENT_STA_GOT_IP, &ipEventHandler, NULL, NULL),
+            kTag, "cannot register IP event handler"
+        );
+
+        wifi_init_config_t initConfig = WIFI_INIT_CONFIG_DEFAULT();
+        ESP_RETURN_ON_ERROR(esp_wifi_init(&initConfig), kTag, "cannot initialise Wi-Fi driver");
+
+        ESP_RETURN_ON_ERROR(esp_wifi_set_mode(WIFI_MODE_STA), kTag, "cannot set mode to STA");
+        ESP_RETURN_ON_ERROR(esp_wifi_set_config(WIFI_IF_STA, &config), kTag, "cannot set configuration");
+    }
 
     return ESP_OK;
 }
 
-esp_err_t WiFi::start() {
+esp_err_t WiFi::startSTA() {
     ESP_RETURN_ON_ERROR(esp_wifi_start(), kTag, "cannot start Wi-Fi driver");
 
     /* wait for connection to finish/fail */
@@ -235,4 +247,40 @@ void WiFi::ipEventHandler(void* arg, esp_event_base_t eventBase, int32_t eventID
         m_retries = 0; // reset counter
         m_connected = true;
     }
+}
+
+#ifndef CONFIG_WIFI_CONFIGAP_SSID_PREFIX
+#define CONFIG_WIFI_CONFIGAP_SSID_PREFIX "melbtrains"
+#endif
+
+#ifndef CONFIG_WIFI_CONFIGAP_CHANNEL
+#define CONFIG_WIFI_CONFIGAP_CHANNEL 1
+#endif
+
+#ifndef CONFIG_WIFI_CONFIGAP_MAXCONN
+#define CONFIG_WIFI_CONFIGAP_MAXCONN 4
+#endif
+
+esp_err_t WiFi::initAP() {
+    wifi_config_t config; memset(&config, 0, sizeof(config));
+
+    /* generate SSID */
+#ifndef CONFIG_WIFI_CONFIGAP_SSID_MAC
+    strncpy(config.ap.ssid, CONFIG_WIFI_CONFIGAP_SSID_PREFIX, sizeof(config.ap.ssid) - 1);
+#else
+    uint8_t mac[6];
+    ESP_RETURN_ON_ERROR(esp_read_mac(mac, ESP_MAC_WIFI_STA), kTag, "cannot read STA MAC address");
+    snprintf((char*) config.ap.ssid, sizeof(config.ap.ssid), CONFIG_WIFI_CONFIGAP_SSID_PREFIX "_%02x%02x%02x%02x%02x%02x", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+#endif
+    config.ap.ssid_len = strlen((const char*) config.ap.ssid);
+    config.ap.channel = CONFIG_WIFI_CONFIGAP_CHANNEL;
+    config.ap.authmode = WIFI_AUTH_OPEN;
+    config.ap.max_connection = CONFIG_WIFI_CONFIGAP_MAXCONN;
+
+    ESP_RETURN_ON_ERROR(initStub(config, true), kTag, "Wi-Fi initialisation failed"); // run init stub (maxRetries doesn't matter for us, since we're initialising AP)
+    ESP_RETURN_ON_ERROR(esp_wifi_start(), kTag, "cannot start Wi-Fi driver");
+
+    // that's it, no need for waiting
+
+    return ESP_OK;
 }

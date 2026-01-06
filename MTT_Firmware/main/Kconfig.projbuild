@@ -1,4 +1,41 @@
 menu "Firmware Configuration"
+    choice MUNNEL_COLOUR
+        prompt "Metro Tunnel service colour handling"
+        default MUNNEL_COLOUR_BLUE
+        config MUNNEL_COLOUR_BLUE
+            bool "Show all services in Metro Tunnel/Dandenong group blue"
+        config MUNNEL_COLOUR_DEST
+            bool "Show service colour depending on direction (e.g. yellow for Sunbury)"
+        config MUNNEL_COLOUR_NONE
+            bool "Change service colour within the Metro Tunnel"
+    endchoice
+
+    config WIFI_CONFIGAP_SSID_PREFIX
+        string "Configuration AP SSID prefix"
+        default "melbtrains"
+        help
+            Sets the SSID prefix for the configuration Wi-Fi access point.
+    
+    config WIFI_CONFIGAP_SSID_MAC
+        bool "Include STA MAC address in configuration AP SSID"
+        default y
+        help
+            When enabled, the ESP32's station mode MAC address will be included in the configuration AP's SSID.
+            This allows for the easy identification of the board to be configured.
+
+    config WIFI_CONFIGAP_CHANNEL
+        int "Configuration AP channel"
+        range 1 13
+        default 6
+        help
+            The Wi-Fi channel to be used for the configuration AP.
+    
+    config WIFI_CONFIGAP_MAXCONN
+        int "Maximum number of clients for configuration AP"
+        default 4
+        help
+            The maximum number of clients that can connect to the configuration AP at any time.
+
     config DEFAULT_TIME_SERVER
         string "Default NTP time server"
         default "pool.ntp.org"
@@ -63,6 +100,7 @@ menu "Firmware Configuration"
         help
             Enable this if the board is wired to have all LED matrix drivers' SPI buses connected to SPI3/VSPI (GPIO 18/19/21).
             This allows the SPI2/HSPI pins to be used for JTAG debugging.
+            NOTE: This only applies to the original ESP32 revision; the ESP32-S3 revision has all LED matrix drivers connected to SPI3.
     
     config UPDATE_FLASH_LED
         bool "Flash activity LED during LED state updates"

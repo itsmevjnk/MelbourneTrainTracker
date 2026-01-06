@@ -7,6 +7,8 @@
 #include "subsystems/mqtt.h"
 #include "subsystems/webserver.h"
 
+#include "driver/gpio.h"
+
 #include "message.h"
 #include "services.h"
 
@@ -52,30 +54,56 @@ extern "C" void app_main() {
     ESP_ERROR_CHECK(StatusLED::init()); ESP_ERROR_CHECK(StatusLED::actyOn()); ESP_ERROR_CHECK(StatusLED::errorOn());
     ESP_ERROR_CHECK(LEDMatrix::init());
     
+    /* initialise boot pin */
+    gpio_config_t bootIOConf = {
+        .pin_bit_mask = (1ULL << BTN_BOOT),
+        .mode = GPIO_MODE_INPUT,
+        // .pull_up_en = GPIO_PULLUP_ENABLE,
+        // .pull_down_en = GPIO_PULLDOWN_DISABLE,
+        // .intr_type = GPIO_INTR_DISABLE
+        // NOTE: the BOOT pin should have already been pulled up as it is a strapping pin
+    };
+    ESP_ERROR_CHECK(gpio_config(&bootIOConf));
+
     /* load config */
     esp_err_t ret = Config::init();
+    bool runConfig = false;
     if (ret != ESP_OK) {
+#ifdef CONFIG_ESP_ERR_TO_NME_LOOKUP
         ESP_LOGE(kTag, "configuration loading failed (%s), booting into configuration CLI", esp_err_to_name(ret));
-        goto runCLI;
+#else  
+        ESP_LOGE(kTag, "configuration loading failed (%d), booting into configuration CLI", ret);
+#endif
+        runConfig = true;
     } else {
-        ESP_LOGI(kTag, "press any key within 3 seconds to boot into configuration CLI");
-        uint8_t buf;
-        if (UART::read(&buf, 1, 3000 / portTICK_PERIOD_MS) > 0) { // catch incoming byte, and if there's any, we boot into CLI
-            ESP_LOGI(kTag, "booting into configuration CLI");
-runCLI:
-            ESP_ERROR_CHECK(Config::cli());
-            while (true) { // while CLI is running on another task, we flash the two LEDs alternately
-                ESP_ERROR_CHECK(StatusLED::actyOn()); ESP_ERROR_CHECK(StatusLED::errorOff()); vTaskDelay(500 / portTICK_PERIOD_MS);
-                ESP_ERROR_CHECK(StatusLED::actyOff()); ESP_ERROR_CHECK(StatusLED::errorOn()); vTaskDelay(500 / portTICK_PERIOD_MS);
+        ESP_LOGI(kTag, "press any key or the BOOT button within 3 seconds to boot into configuration CLI");
+        TickType_t startTick = xTaskGetTickCount();
+        while (xTaskGetTickCount() - startTick < (3000 / portTICK_PERIOD_MS)) {
+            uint8_t buf;
+            if ((UART::read(&buf, 1, 0) > 0) || (gpio_get_level(BTN_BOOT) == 0)) {
+                ESP_LOGI(kTag, "booting into configuration CLI");
+                runConfig = true;
+                break;
             }
+        }
+    }
+    if (runConfig) {
+        /* initialise web configuration interface access */
+        ESP_ERROR_CHECK(WiFi::initAP());
+        ESP_ERROR_CHECK(WebServer::initConfig()); // do not use mDNS settings here since Config might not be initialised yet
+
+        ESP_ERROR_CHECK(Config::cli());
+        while (true) { // while CLI is running on another task, we flash the two LEDs alternately
+            ESP_ERROR_CHECK(StatusLED::actyOn()); ESP_ERROR_CHECK(StatusLED::errorOff()); vTaskDelay(500 / portTICK_PERIOD_MS);
+            ESP_ERROR_CHECK(StatusLED::actyOff()); ESP_ERROR_CHECK(StatusLED::errorOn()); vTaskDelay(500 / portTICK_PERIOD_MS);
         }
     }
     ESP_ERROR_CHECK(StatusLED::errorOff());
 
     if (Config::isWiFiEnterprise())
-        ESP_ERROR_CHECK(WiFi::init(Config::getWiFiSSID(), Config::getWiFiIdentity(), Config::getWiFiUsername(), Config::getWiFiPassword(), Config::getWiFiCertificate(), Config::getWiFiCertLength()));
+        ESP_ERROR_CHECK(WiFi::initSTA(Config::getWiFiSSID(), Config::getWiFiIdentity(), Config::getWiFiUsername(), Config::getWiFiPassword(), Config::getWiFiCertificate(), Config::getWiFiCertLength()));
     else
-        ESP_ERROR_CHECK(WiFi::init(Config::getWiFiSSID(), Config::getWiFiPassword()));
+        ESP_ERROR_CHECK(WiFi::initSTA(Config::getWiFiSSID(), Config::getWiFiPassword()));
 
     ESP_ERROR_CHECK(NTP::init(Config::getTimeServer()));
 

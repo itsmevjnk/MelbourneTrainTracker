@@ -23,7 +23,12 @@ void WebServer::sendLEDBufferWorker(void* arg) {
     int fd = (int)arg; // fd is passed in as arg
     esp_err_t ret = httpd_ws_send_frame_async(m_server, fd, &frame);
     LEDMatrix::releaseBuffer();
-    if (ret != ESP_OK) ESP_LOGE(kTag, "cannot send WebSocket data to client fd %d (%s)", fd, esp_err_to_name(ret));
+    if (ret != ESP_OK)
+#ifdef CONFIG_ESP_ERR_TO_NAME_LOOKUP
+        ESP_LOGE(kTag, "cannot send WebSocket data to client fd %d (%s)", fd, esp_err_to_name(ret));
+#else
+        ESP_LOGE(kTag, "cannot send WebSocket data to client fd %d (%d)", fd, ret);
+#endif
     else ESP_LOGD(kTag, "sent WebSocket data to client %d", fd);
 }
 

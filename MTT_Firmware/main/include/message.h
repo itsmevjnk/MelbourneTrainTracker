@@ -20,7 +20,9 @@ struct MessageEntry {
     struct Flags {
         uint8_t isDeparture : 1;
         uint8_t hasAdjacent : 1;
-        uint8_t reserved : 6;
+        uint8_t viaMunnel : 1;
+        uint8_t mtOriginating : 1;
+        uint8_t reserved : 4;
     } __attribute__((packed)) flags; // 20
     // 21 bytes
 

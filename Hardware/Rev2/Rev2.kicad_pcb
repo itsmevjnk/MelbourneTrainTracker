@@ -198681,7 +198681,7 @@
 		(uuid "34aab414-a277-425a-83e0-985e90d7ef45")
 	)
 	(gr_line
-		(start 130.8 106.6)
+		(start 126.2 102)
 		(end 150.6 126.4)
 		(stroke
 			(width 0.1)
@@ -200057,7 +200057,7 @@
 		(uuid "c6cdd648-a047-470d-a7c7-3b3e61df0de4")
 	)
 	(gr_line
-		(start 125 98.4)
+		(start 127.4 100.8)
 		(end 184.2 157.6)
 		(stroke
 			(width 0.1)
@@ -201528,7 +201528,7 @@
 			(justify right top)
 		)
 	)
-	(gr_text "Rev.2 / ESP32-S3 [Batch #1]\nFor more info: github.com/itsmevjnk/MelbourneTrainTracker\n\nTransport Pictograms, GTFS Schedule and GTFS Realtime API by the\nDepartment of Transport and Planning are licensed under CC BY 4.0."
+	(gr_text "Rev.2 / ESP32-S3\nFor more info: github.com/itsmevjnk/MelbourneTrainTracker\n\nTransport Pictograms, GTFS Schedule and GTFS Realtime API by the\nDepartment of Transport and Planning are licensed under CC BY 4.0."
 		(at 246.8 179.8 0)
 		(layer "F.SilkS")
 		(uuid "2938ac58-3684-4021-b5a9-dfbb44828923")

@@ -59,14 +59,25 @@
 #define LMAT_B(base)                        ((base) + 2)
 
 /* line LED offsets */
-#include "hwconfig/leds/burnley.h"
-#include "hwconfig/leds/clifton.h"
-#include "hwconfig/leds/crosscity.h"
-#include "hwconfig/leds/dandenong.h"
-#include "hwconfig/leds/munnel.h"
-#include "hwconfig/leds/northern.h"
-#include "hwconfig/leds/sandringham.h"
-#include "hwconfig/leds/vline.h"
+#if CONFIG_IDF_TARGET_ESP32S3 // TODO: new LED offsets
+#include "hwconfig/leds/rev1/burnley.h"
+#include "hwconfig/leds/rev1/clifton.h"
+#include "hwconfig/leds/rev1/crosscity.h"
+#include "hwconfig/leds/rev1/dandenong.h"
+#include "hwconfig/leds/rev1/munnel.h"
+#include "hwconfig/leds/rev1/northern.h"
+#include "hwconfig/leds/rev1/sandringham.h"
+#include "hwconfig/leds/rev1/vline.h"
+#else
+#include "hwconfig/leds/rev1/burnley.h"
+#include "hwconfig/leds/rev1/clifton.h"
+#include "hwconfig/leds/rev1/crosscity.h"
+#include "hwconfig/leds/rev1/dandenong.h"
+#include "hwconfig/leds/rev1/munnel.h"
+#include "hwconfig/leds/rev1/northern.h"
+#include "hwconfig/leds/rev1/sandringham.h"
+#include "hwconfig/leds/rev1/vline.h"
+#endif
 
 #define LMAT_NULL                           0xFFFF
 

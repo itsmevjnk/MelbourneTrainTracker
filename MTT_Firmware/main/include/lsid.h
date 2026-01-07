@@ -380,8 +380,13 @@ private:
     static size_t cbeGetLEDsBetween(infraid_t fromCode, infraid_t toCode, uint16_t* buffer, size_t maxLength);
 
     /* hack for Pakenham/Cranbourne via Metro Tunnel - not needed for Rev2 */
+#ifndef LMAT_DANDENONG_HAS_MAL
     static size_t cbeMunnelGetLEDsBetween(infraid_t fromCode, infraid_t toCode, uint16_t* buffer, size_t maxLength);
     static size_t pkmMunnelGetLEDsBetween(infraid_t fromCode, infraid_t toCode, uint16_t* buffer, size_t maxLength);
+#else // rename by macro so we don't end up cluttering lsid.cpp too much
+#define cbeMunnelGetLEDsBetween cbeGetLEDsBetween
+#define pkmMunnelGetLEDsBetween pkmGetLEDsBetween
+#endif
 
     /* Burnley city stations */
     static uint16_t blyCityGetLED(infraid_t code);

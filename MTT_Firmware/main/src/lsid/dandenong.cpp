@@ -33,7 +33,16 @@ static const station_t kDandenongHUG = { LMAT_DANDENONG_HUG, LMAT_DANDENONG_HUG_
 static const station_t kDandenongMRB = { LMAT_DANDENONG_MRB, LMAT_DANDENONG_MRB_ALT };
 static const station_t kDandenongCNE = { LMAT_DANDENONG_CNE, LMAT_DANDENONG_CNE_ALT };
 static const station_t kDandenongCFD = { LMAT_DANDENONG_CFD, LMAT_DANDENONG_CFD_ALT };
+
+#ifdef LMAT_DANDENONG_HAS_MAL
+static const station_t kDandenongMAL = { LMAT_DANDENONG_MAL, LMAT_DANDENONG_MAL_ALT };
+static const station_t kDandenongARM = { LMAT_DANDENONG_ARM, LMAT_DANDENONG_ARM_ALT };
+static const station_t kDandenongTOR = { LMAT_DANDENONG_TOR, LMAT_DANDENONG_TOR_ALT };
+static const station_t kDandenongHKN = { LMAT_DANDENONG_HKN, LMAT_DANDENONG_HKN_ALT };
+#else
 static const station_t kDandenongMAL = { LMAT_DANDENONG_CFD_ALT, LMAT_DANDENONG_CFD_ALT }; // use CFD alt (towards SYR) to represent MAL
+
+#endif
 static const station_t kDandenongSYR = { LMAT_DANDENONG_SYR, LMAT_DANDENONG_SYR_ALT };
 static const station_t kDandenongRMD = { LMAT_DANDENONG_RMD, LMAT_DANDENONG_RMD_ALT };
 
@@ -80,11 +89,20 @@ uint16_t LSID::dngCityGetLED(infraid_t code) {
 
 static const station_t* kPakenhamStations[] = {
     &kPakenhamEPH, &kPakenhamPKM, &kPakenhamCDA, &kPakenhamOFC, &kPakenhamBFD, &kPakenhamBEW, &kPakenhamNWA, &kPakenhamHLM,
-    &kDandenongDNG, &kDandenongYMN, &kDandenongNPK, &kDandenongSNP, &kDandenongSPG, &kDandenongWTL, &kDandenongCLA, &kDandenongHUN, &kDandenongOAK, &kDandenongHUG, &kDandenongMRB, &kDandenongCNE, &kDandenongCFD, &kDandenongMAL, &kDandenongSYR, &kDandenongRMD
+    &kDandenongDNG, &kDandenongYMN, &kDandenongNPK, &kDandenongSNP, &kDandenongSPG, &kDandenongWTL, &kDandenongCLA, &kDandenongHUN, &kDandenongOAK, &kDandenongHUG, &kDandenongMRB, &kDandenongCNE, &kDandenongCFD,
+    &kDandenongMAL,
+#ifdef LMAT_DANDENONG_HAS_MAL
+    &kDandenongARM, &kDandenongTOR, &kDandenongHKN,
+#else
+    &kDandenongMAL, &kDandenongMAL, &kDandenongMAL,
+#endif
+    &kDandenongSYR, &kDandenongRMD
 };
 static const infraid_t kPakenhamCodes[] = { 
     INFRAID_EPH, INFRAID_PKM, INFRAID_CDA, INFRAID_OFC, INFRAID_BFD, INFRAID_BEW, INFRAID_NWA, INFRAID_HLM,
-    INFRAID_DNG, INFRAID_YMN, INFRAID_NPK, INFRAID_SNP, INFRAID_SPG, INFRAID_WTL, INFRAID_CLA, INFRAID_HUN, INFRAID_OAK, INFRAID_HUG, INFRAID_MRB, INFRAID_CNE, INFRAID_CFD, INFRAID_MAL, INFRAID_SYR, INFRAID_RMD
+    INFRAID_DNG, INFRAID_YMN, INFRAID_NPK, INFRAID_SNP, INFRAID_SPG, INFRAID_WTL, INFRAID_CLA, INFRAID_HUN, INFRAID_OAK, INFRAID_HUG, INFRAID_MRB, INFRAID_CNE, INFRAID_CFD,
+    INFRAID_MAL, INFRAID_ARM, INFRAID_TOR, INFRAID_HKN,
+    INFRAID_SYR, INFRAID_RMD
 };
 static const size_t kPakenhamCount = sizeof(kPakenhamStations) / sizeof(station_t*);
 
@@ -103,11 +121,20 @@ size_t LSID::pkmGetLEDsBetween(infraid_t fromCode, infraid_t toCode, uint16_t* b
 
 static const station_t* kCranbourneStations[] = {
     &kCranbourneCBE, &kCranbourneMPK, &kCranbourneLBK,
-    &kDandenongDNG, &kDandenongYMN, &kDandenongNPK, &kDandenongSNP, &kDandenongSPG, &kDandenongWTL, &kDandenongCLA, &kDandenongHUN, &kDandenongOAK, &kDandenongHUG, &kDandenongMRB, &kDandenongCNE, &kDandenongCFD, &kDandenongMAL, &kDandenongSYR, &kDandenongRMD
+    &kDandenongDNG, &kDandenongYMN, &kDandenongNPK, &kDandenongSNP, &kDandenongSPG, &kDandenongWTL, &kDandenongCLA, &kDandenongHUN, &kDandenongOAK, &kDandenongHUG, &kDandenongMRB, &kDandenongCNE, &kDandenongCFD,
+    &kDandenongMAL,
+#ifdef LMAT_DANDENONG_HAS_MAL
+    &kDandenongARM, &kDandenongTOR, &kDandenongHKN,
+#else
+    &kDandenongMAL, &kDandenongMAL, &kDandenongMAL,
+#endif
+    &kDandenongSYR, &kDandenongRMD
 };
 static const infraid_t kCranbourneCodes[] = { 
     INFRAID_CBE, INFRAID_MPK, INFRAID_LBK,
-    INFRAID_DNG, INFRAID_YMN, INFRAID_NPK, INFRAID_SNP, INFRAID_SPG, INFRAID_WTL, INFRAID_CLA, INFRAID_HUN, INFRAID_OAK, INFRAID_HUG, INFRAID_MRB, INFRAID_CNE, INFRAID_CFD, INFRAID_MAL, INFRAID_SYR, INFRAID_RMD
+    INFRAID_DNG, INFRAID_YMN, INFRAID_NPK, INFRAID_SNP, INFRAID_SPG, INFRAID_WTL, INFRAID_CLA, INFRAID_HUN, INFRAID_OAK, INFRAID_HUG, INFRAID_MRB, INFRAID_CNE, INFRAID_CFD,
+    INFRAID_MAL, INFRAID_ARM, INFRAID_TOR, INFRAID_HKN,
+    INFRAID_SYR, INFRAID_RMD
 };
 static const size_t kCranbourneCount = sizeof(kCranbourneStations) / sizeof(station_t*);
 
@@ -137,22 +164,26 @@ size_t LSID::dngGetLEDsBetween(
         buffer[mtOffset++] = LMAT_MUNNEL_AZC;
         if (mtOffset == maxLength) return mtOffset;
         buffer[mtOffset++] = LMAT_MUNNEL_AZC_ALT;
-        if (mtOffset == maxLength || toCode == INFRAID_MAL || toCode == INFRAID_CFD) return mtOffset;
-        // TODO: this is a workaround for the rev1 board, which cannot show Dandenong services going to Malvern - make it proper for rev2
-
-        /* at this point we still have more space in the buffer, and we want to go beyond Caulfield */
-        buffer[mtOffset++] = LMAT_DANDENONG_CFD;
+        if (
+            mtOffset == maxLength
+            || toCode == INFRAID_HKN
+#ifndef LMAT_DANDENONG_HAS_MAL
+            || toCode == INFRAID_TOR || toCode == INFRAID_ARM || toCode == INFRAID_MAL || toCode == INFRAID_CFD
+#endif
+        ) return mtOffset;
+        /* at this point we still have more space in the buffer, and we want to go beyond Caulfield/Hawksburn */
+        buffer[mtOffset++] = LMAT_DANDENONG_LAST_BEFORE_MT;
         return mtOffset + rmdGetLEDsBetween(
             kDandenongCityCCWCodes, kDandenongCityCCWStations, kDandenongCityCWStations,
             stations, codes, count,
-            INFRAID_CFD, toCode, &buffer[mtOffset], maxLength - mtOffset
+            INFRAID_DANDENONG_LAST_BEFORE_MT, toCode, &buffer[mtOffset], maxLength - mtOffset
         );
     }
     
     if (toMunnel) { // Dandenong -> Metro Tunnel
-        size_t mtOffset = getLEDsBetweenCodes(stations, codes, count, fromCode, INFRAID_CFD, buffer, maxLength); // get to Caulfield
+        size_t mtOffset = getLEDsBetweenCodes(stations, codes, count, fromCode, INFRAID_DANDENONG_LAST_BEFORE_MT, buffer, maxLength); // get to Caulfield/Hawksburn
         if (mtOffset == maxLength) return mtOffset;
-        buffer[mtOffset++] = LMAT_DANDENONG_CFD;
+        buffer[mtOffset++] = LMAT_DANDENONG_LAST_BEFORE_MT;
         if (mtOffset == maxLength) return mtOffset;
         buffer[mtOffset++] = LMAT_MUNNEL_AZC_ALT;
         if (mtOffset == maxLength || toCode == INFRAID_AZC) return mtOffset;
@@ -162,18 +193,84 @@ size_t LSID::dngGetLEDsBetween(
         return mtOffset + mtGetLEDsBetween(INFRAID_AZC, toCode, &buffer[mtOffset], maxLength - mtOffset);
     }
 
+    /* normal handling */
+#ifndef LMAT_DANDENONG_FSS_ALT
     return rmdGetLEDsBetween(
         kDandenongCityCCWCodes, kDandenongCityCCWStations, kDandenongCityCWStations,
         stations, codes, count,
         fromCode, toCode, buffer, maxLength
-    ); // normal handling
+    );
+#else // forked rmdGetLEDsBetween - handle PAR-RMD connection
+    bool fromCity = isCityStation(fromCode), toCity = isCityStation(toCode);
+        
+    assert(codes[count - 1] == INFRAID_RMD);
+
+    // only handles entering/exiting Flinders St or City Loop stations as of now, and FSS and SSS are not skipped
+    if (fromCity && toCity) { // intra-city
+        return rmdCityGetLEDsBetween(kDandenongCityCCWCodes, kDandenongCityCCWStations, kDandenongCityCWStations, fromCode, toCode, buffer, maxLength);
+    } else if (fromCity) { // exiting from city
+        size_t outIndex = 0;
+        bool fromLoop = isCityLoopStation(fromCode);
+        outIndex = rmdCityGetLEDsBetween(
+            kDandenongCityCCWCodes, kDandenongCityCCWStations, kDandenongCityCWStations,
+            fromCode, (fromLoop) ? INFRAID_PAR : INFRAID_FSS, buffer, maxLength
+        );
+
+        if (fromLoop) { // PAR -> RMD
+            ESP_RETURN_ON_FALSE(
+                outIndex + 4 <= maxLength,
+                outIndex,
+                kTag, "not enough space to hold the PAR -> RMD leg"
+            );
+            buffer[outIndex + 0] = LMAT_DANDENONG_PAR;
+            buffer[outIndex + 1] = LMAT_DANDENONG_FSS_ALT;
+            buffer[outIndex + 2] = LMAT_DANDENONG_RMD_ALT;
+            buffer[outIndex + 3] = LMAT_DANDENONG_RMD;
+        } else {
+            ESP_RETURN_ON_FALSE(
+                outIndex + 3 <= maxLength,
+                outIndex,
+                kTag, "not enough space to hold the PAR -> RMD leg"
+            );
+            buffer[outIndex + 0] = LMAT_DANDENONG_FSS;
+            buffer[outIndex + 1] = LMAT_DANDENONG_RMD_ALT;
+            buffer[outIndex + 2] = LMAT_DANDENONG_RMD;
+        }
+        
+        outIndex += 3;
+        return outIndex + getLEDsBetweenCodes(stations, codes, count, INFRAID_RMD, toCode, &buffer[outIndex], maxLength - outIndex);
+    } else if (toCity) { // entering city
+        bool toLoop = isCityLoopStation(toCode);
+        size_t outIndex = getLEDsBetweenCodes(stations, codes, count, fromCode, INFRAID_RMD, buffer, maxLength); // get way into RMD first
+        ESP_RETURN_ON_FALSE(
+            outIndex + 1 <= maxLength,
+            outIndex,
+            kTag, "not enough space to hold RMD alt"
+        );
+        buffer[outIndex++] = LMAT_DANDENONG_RMD_ALT;
+        if (toCode == INFRAID_PAR || toCode == INFRAID_FSS) return outIndex; // nothing else to do
+
+        /* either PAR or FSS gets skipped (which is unusual) */
+        ESP_RETURN_ON_FALSE(
+            outIndex + 1 <= maxLength,
+            outIndex,
+            kTag, "not enough space to hold %s", (toLoop) ? "PAR" : "FSS"
+        );
+        buffer[outIndex++] = (toLoop) ? LMAT_DANDENONG_PAR : LMAT_DANDENONG_FSS;
+        return outIndex + rmdCityGetLEDsBetween(kDandenongCityCCWCodes, kDandenongCityCCWStations, kDandenongCityCWStations, (toLoop) ? INFRAID_PAR : INFRAID_FSS, toCode, &buffer[outIndex], maxLength - outIndex);
+    }
+    else return getLEDsBetweenCodes(stations, codes, count, fromCode, toCode, buffer, maxLength); // both source and destination are outside city
+#endif
 }
 
+#ifndef LMAT_DANDENONG_HAS_MAL
 static const station_t kDandenongMAL_AZC = { LMAT_MUNNEL_AZC_ALT, LMAT_MUNNEL_AZC_ALT }; // use AZC alt to represent MAL for Dandenong services going through the Metro Tunnel
 
 static const station_t* kPakenhamMunnelStations[] = {
     &kPakenhamEPH, &kPakenhamPKM, &kPakenhamCDA, &kPakenhamOFC, &kPakenhamBFD, &kPakenhamBEW, &kPakenhamNWA, &kPakenhamHLM,
-    &kDandenongDNG, &kDandenongYMN, &kDandenongNPK, &kDandenongSNP, &kDandenongSPG, &kDandenongWTL, &kDandenongCLA, &kDandenongHUN, &kDandenongOAK, &kDandenongHUG, &kDandenongMRB, &kDandenongCNE, &kDandenongCFD, &kDandenongMAL_AZC, &kDandenongSYR, &kDandenongRMD
+    &kDandenongDNG, &kDandenongYMN, &kDandenongNPK, &kDandenongSNP, &kDandenongSPG, &kDandenongWTL, &kDandenongCLA, &kDandenongHUN, &kDandenongOAK, &kDandenongHUG, &kDandenongMRB, &kDandenongCNE, &kDandenongCFD,
+    &kDandenongMAL_AZC, &kDandenongMAL_AZC, &kDandenongMAL_AZC, &kDandenongMAL_AZC, 
+    &kDandenongSYR, &kDandenongRMD
 };
 
 size_t LSID::pkmMunnelGetLEDsBetween(infraid_t fromCode, infraid_t toCode, uint16_t* buffer, size_t maxLength) {
@@ -185,12 +282,15 @@ size_t LSID::pkmMunnelGetLEDsBetween(infraid_t fromCode, infraid_t toCode, uint1
 
 static const station_t* kCranbourneMunnelStations[] = {
     &kCranbourneCBE, &kCranbourneMPK, &kCranbourneLBK,
-    &kDandenongDNG, &kDandenongYMN, &kDandenongNPK, &kDandenongSNP, &kDandenongSPG, &kDandenongWTL, &kDandenongCLA, &kDandenongHUN, &kDandenongOAK, &kDandenongHUG, &kDandenongMRB, &kDandenongCNE, &kDandenongCFD, &kDandenongMAL_AZC, &kDandenongSYR, &kDandenongRMD
+    &kDandenongDNG, &kDandenongYMN, &kDandenongNPK, &kDandenongSNP, &kDandenongSPG, &kDandenongWTL, &kDandenongCLA, &kDandenongHUN, &kDandenongOAK, &kDandenongHUG, &kDandenongMRB, &kDandenongCNE, &kDandenongCFD,
+    &kDandenongMAL_AZC, &kDandenongMAL_AZC, &kDandenongMAL_AZC, &kDandenongMAL_AZC, 
+    &kDandenongSYR, &kDandenongRMD
 };
 
 size_t LSID::cbeMunnelGetLEDsBetween(infraid_t fromCode, infraid_t toCode, uint16_t* buffer, size_t maxLength) {
     return dngGetLEDsBetween(
-        kPakenhamMunnelStations, kPakenhamCodes, kPakenhamCount,
+        kCranbourneMunnelStations, kCranbourneCodes, kCranbourneCount,
         fromCode, toCode, buffer, maxLength
     );
 }
+#endif

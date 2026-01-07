@@ -33416,7 +33416,7 @@
 			)
 		)
 	)
-	(global_label "L2_A1"
+	(global_label "L2_A10"
 		(shape input)
 		(at 261.62 289.56 90)
 		(fields_autoplaced yes)
@@ -33428,7 +33428,7 @@
 		)
 		(uuid "46e881dc-af6e-4b34-a791-384163f49e3a")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 261.62 281.0715 90)
+			(at 261.62 279.862 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -35506,7 +35506,7 @@
 			)
 		)
 	)
-	(global_label "L2_A5"
+	(global_label "L2_A6"
 		(shape input)
 		(at 297.18 289.56 90)
 		(fields_autoplaced yes)
@@ -38586,7 +38586,7 @@
 			)
 		)
 	)
-	(global_label "L2_A11"
+	(global_label "L2_A0"
 		(shape input)
 		(at 350.52 289.56 90)
 		(fields_autoplaced yes)
@@ -38598,7 +38598,7 @@
 		)
 		(uuid "d8b35621-75e8-49d1-bb15-1b4846e0b08a")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 350.52 279.862 90)
+			(at 350.52 281.0715 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -38850,7 +38850,7 @@
 			)
 		)
 	)
-	(global_label "L2_A3"
+	(global_label "L2_A8"
 		(shape input)
 		(at 279.4 289.56 90)
 		(fields_autoplaced yes)
@@ -39026,7 +39026,7 @@
 			)
 		)
 	)
-	(global_label "L2_A7"
+	(global_label "L2_A4"
 		(shape input)
 		(at 314.96 289.56 90)
 		(fields_autoplaced yes)
@@ -39466,7 +39466,7 @@
 			)
 		)
 	)
-	(global_label "L2_A9"
+	(global_label "L2_A2"
 		(shape input)
 		(at 332.74 289.56 90)
 		(fields_autoplaced yes)

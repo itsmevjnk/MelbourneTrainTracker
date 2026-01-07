@@ -51618,7 +51618,7 @@
 				(hide yes)
 			)
 		)
-		(property "Station" "Flinders Street (FKN)"
+		(property "Station" "Flinders Street (DNG)"
 			(at 199.39 19.558 0)
 			(effects
 				(font

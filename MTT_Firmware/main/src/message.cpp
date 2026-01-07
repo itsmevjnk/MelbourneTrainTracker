@@ -20,6 +20,7 @@ bool Message::m_started = false;
 #define ENTRY_BASE_SIZE                     (sizeof(MessageEntry) - (4 + 8))
 #define ENTRY_ADJ_SIZE                      sizeof(MessageEntry)
 
+// TODO: omit this completely for Rev2 once all V/Line LEDs have been mapped
 bool Message::checkVLine(infraid_t line, infraid_t station) {
     /* ignore V/Line lines not represented on map */
     if (
@@ -28,6 +29,7 @@ bool Message::checkVLine(infraid_t line, infraid_t station) {
     ) return false;
 
     /* check V/Line lines if stop is within bounds */
+#ifndef LMAT_VLINE_HAS_REGIONAL
     if (line == INFRAID_ART || line == INFRAID_BAT || line== INFRAID_MBY) { // V/Line Melton
         if (
             station != INFRAID_MEL && station != INFRAID_TLN && station != INFRAID_RBK && station != INFRAID_RVH
@@ -45,6 +47,7 @@ bool Message::checkVLine(infraid_t line, infraid_t station) {
             && station != INFRAID_ARR && station != INFRAID_SUN && station != INFRAID_FSY && station != INFRAID_SSS
         ) return false;
     }
+#endif
 
     return true;
 }

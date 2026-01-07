@@ -28,15 +28,15 @@ uint16_t LSID::getLED(infraid_t line, infraid_t code) {
         case INFRAID_UFD: return ufdGetLED(code);
 
         /* country lines */
-        case INFRAID_ART: return melGetLED(code); // Ararat
-        case INFRAID_BAT: return melGetLED(code); // Ballarat
-        case INFRAID_MBY: return melGetLED(code); // Maryborough
+        case INFRAID_ART: return artGetLED(code); // Ararat
+        case INFRAID_BAT: return artGetLED(code); // Ballarat
+        case INFRAID_MBY: return artGetLED(code); // Maryborough
 
         case INFRAID_BDE: return gplGetLED(code); // Bairnsdale
         case INFRAID_TRN: return gplGetLED(code); // Traralgon
 
-        case INFRAID_GEL: return wvlGetLED(code); // Geelong
-        case INFRAID_WBL: return wvlGetLED(code); // Warrnambool
+        case INFRAID_GEL: return gelGetLED(code); // Geelong
+        case INFRAID_WBL: return gelGetLED(code); // Warrnambool
 
         /* Metro Tunnel lines */
 #ifndef CONFIG_MUNNEL_COLOUR_NONE
@@ -79,15 +79,15 @@ size_t LSID::getLEDsBetween(infraid_t line, infraid_t fromCode, infraid_t toCode
         case INFRAID_UFD: return ufdGetLEDsBetween(fromCode, toCode, buffer, maxLength);
 
         /* country lines */
-        case INFRAID_ART: return melGetLEDsBetween(fromCode, toCode, buffer, maxLength); // Ararat
-        case INFRAID_BAT: return melGetLEDsBetween(fromCode, toCode, buffer, maxLength); // Ballarat
-        case INFRAID_MBY: return melGetLEDsBetween(fromCode, toCode, buffer, maxLength); // Maryborough
+        case INFRAID_ART: return artGetLEDsBetween(fromCode, toCode, buffer, maxLength); // Ararat
+        case INFRAID_BAT: return artGetLEDsBetween(fromCode, toCode, buffer, maxLength); // Ballarat - we'll share the same code as Ararat, since we're just terminating short
+        case INFRAID_MBY: return mbyGetLEDsBetween(fromCode, toCode, buffer, maxLength); // Maryborough
 
         case INFRAID_BDE: return gplGetLEDsBetween(fromCode, toCode, buffer, maxLength); // Bairnsdale
         case INFRAID_TRN: return gplGetLEDsBetween(fromCode, toCode, buffer, maxLength); // Traralgon
 
-        case INFRAID_GEL: return wvlGetLEDsBetween(fromCode, toCode, buffer, maxLength); // Geelong
-        case INFRAID_WBL: return wvlGetLEDsBetween(fromCode, toCode, buffer, maxLength); // Warrnambool
+        case INFRAID_GEL: return gelGetLEDsBetween(fromCode, toCode, buffer, maxLength); // Geelong
+        case INFRAID_WBL: return gelGetLEDsBetween(fromCode, toCode, buffer, maxLength); // Warrnambool
 
         /* Metro Tunnel lines */
 #ifndef CONFIG_MUNNEL_COLOUR_NONE

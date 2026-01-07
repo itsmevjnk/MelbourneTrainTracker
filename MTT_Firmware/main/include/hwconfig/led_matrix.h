@@ -75,7 +75,7 @@
 #include "hwconfig/leds/rev2/munnel.h"
 #include "hwconfig/leds/rev2/northern.h"
 #include "hwconfig/leds/rev2/sandringham.h"
-#include "hwconfig/leds/rev1/vline.h"
+#include "hwconfig/leds/rev2/vline.h"
 #else
 #include "hwconfig/leds/rev1/burnley.h"
 #include "hwconfig/leds/rev1/clifton.h"

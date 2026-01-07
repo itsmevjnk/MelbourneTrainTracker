@@ -16,7 +16,7 @@
 
 /* LED drivers */
 #define L0_SPI                          SPI3_HOST
-#define L0_CS                           GPIO_NUM_18
+#define L0_CS                           GPIO_NUM_10
 #define L1_SPI                          SPI3_HOST
 #define L1_CS                           GPIO_NUM_14
 #define L2_SPI                          SPI3_HOST

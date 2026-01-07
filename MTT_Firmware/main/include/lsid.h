@@ -253,6 +253,43 @@ typedef uint32_t infraid_t;
 #define INFRAID_TRN                                 INFRAID("TRN ")
 #define INFRAID_GEL                                 INFRAID("GEL ")
 #define INFRAID_WBL                                 INFRAID("WBL ")
+#define INFRAID_BET                                 INFRAID("BET ")
+#define INFRAID_WED                                 INFRAID("WED ")
+#define INFRAID_BATV                                INFRAID("BATV")
+#define INFRAID_BLN                                 INFRAID("BLN ")
+#define INFRAID_BAH                                 INFRAID("BAH ")
+#define INFRAID_TAT                                 INFRAID("TAT ")
+#define INFRAID_CLU                                 INFRAID("CLU ")
+#define INFRAID_CWK                                 INFRAID("CWK ")
+#define INFRAID_SDP                                 INFRAID("SDP ")
+#define INFRAID_TER                                 INFRAID("TER ")
+#define INFRAID_CPD                                 INFRAID("CPD ")
+#define INFRAID_COL                                 INFRAID("COL ")
+#define INFRAID_BGE                                 INFRAID("BGE ")
+#define INFRAID_WIA                                 INFRAID("WIA ")
+#define INFRAID_WPP                                 INFRAID("WPP ")
+#define INFRAID_MAS                                 INFRAID("MAS ")
+#define INFRAID_SOG                                 INFRAID("SOG ")
+#define INFRAID_NGL                                 INFRAID("NGL ")
+#define INFRAID_NSH                                 INFRAID("NSH ")
+#define INFRAID_COR                                 INFRAID("COR ")
+#define INFRAID_LRA                                 INFRAID("LRA ")
+#define INFRAID_LRR                                 INFRAID("LRR ")
+#define INFRAID_STD                                 INFRAID("STD ")
+#define INFRAID_SAE                                 INFRAID("SAE ")
+#define INFRAID_ROE                                 INFRAID("ROE ")
+#define INFRAID_MWL                                 INFRAID("MWL ")
+#define INFRAID_MOE                                 INFRAID("MOE ")
+#define INFRAID_TAR                                 INFRAID("TAR ")
+#define INFRAID_YON                                 INFRAID("YON ")
+#define INFRAID_WGL                                 INFRAID("WGL ")
+#define INFRAID_DRN                                 INFRAID("DRN ")
+#define INFRAID_LWY                                 INFRAID("LWY ")
+#define INFRAID_BYP                                 INFRAID("BYP ")
+#define INFRAID_GARV                                INFRAID("GARV")
+#define INFRAID_TYN                                 INFRAID("TYN ")
+#define INFRAID_NNG                                 INFRAID("NNG ")
+
 
 /* NEW: Metro Tunnel stations */
 #define INFRAID_ARN                                 INFRAID("ARN ") // Arden
@@ -322,15 +359,24 @@ private:
     static uint16_t shmGetLED(infraid_t code);
     static size_t shmGetLEDsBetween(infraid_t fromCode, infraid_t toCode, uint16_t* buffer, size_t maxLength);
     
-    /* Melton line */
-    static uint16_t melGetLED(infraid_t code);
-    static size_t melGetLEDsBetween(infraid_t fromCode, infraid_t toCode, uint16_t* buffer, size_t maxLength);
+    /* Ararat/Ballarat/Melton line */
+    static uint16_t artGetLED(infraid_t code);
+    static size_t artGetLEDsBetween(infraid_t fromCode, infraid_t toCode, uint16_t* buffer, size_t maxLength);
 
-    /* Wyndham Vale line */
-    static uint16_t wvlGetLED(infraid_t code);
-    static size_t wvlGetLEDsBetween(infraid_t fromCode, infraid_t toCode, uint16_t* buffer, size_t maxLength);
+    /* Maryborough line */
+#if LMAT_VLINE_HAS_REGIONAL
+    static uint16_t mbyGetLED(infraid_t code);
+    static size_t mbyGetLEDsBetween(infraid_t fromCode, infraid_t toCode, uint16_t* buffer, size_t maxLength);
+#else // since we're effectively only using the Melton part
+#define mbyGetLED artGetLED
+#define mbyGetLEDsBetween artGetLEDsBetween 
+#endif
 
-    /* Gippsland (V/Line Pakenham) line */
+    /* Warrnambool/Geelong/Wyndham Vale line */
+    static uint16_t gelGetLED(infraid_t code);
+    static size_t gelGetLEDsBetween(infraid_t fromCode, infraid_t toCode, uint16_t* buffer, size_t maxLength);
+
+    /* Gippsland/Pakenham (V/Line) line */
     static uint16_t gplGetLED(infraid_t code);
     static size_t gplGetLEDsBetween(infraid_t fromCode, infraid_t toCode, uint16_t* buffer, size_t maxLength);
 

@@ -72,7 +72,7 @@
 #include "hwconfig/leds/rev2/clifton.h"
 #include "hwconfig/leds/rev1/crosscity.h"
 #include "hwconfig/leds/rev2/dandenong.h"
-#include "hwconfig/leds/rev1/munnel.h"
+#include "hwconfig/leds/rev2/munnel.h"
 #include "hwconfig/leds/rev1/northern.h"
 #include "hwconfig/leds/rev1/sandringham.h"
 #include "hwconfig/leds/rev1/vline.h"

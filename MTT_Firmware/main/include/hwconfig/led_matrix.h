@@ -70,7 +70,7 @@
 #if CONFIG_IDF_TARGET_ESP32S3 // TODO: new LED offsets
 #include "hwconfig/leds/rev2/burnley.h"
 #include "hwconfig/leds/rev2/clifton.h"
-#include "hwconfig/leds/rev1/crosscity.h"
+#include "hwconfig/leds/rev2/crosscity.h"
 #include "hwconfig/leds/rev2/dandenong.h"
 #include "hwconfig/leds/rev2/munnel.h"
 #include "hwconfig/leds/rev1/northern.h"

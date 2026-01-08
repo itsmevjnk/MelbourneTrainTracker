@@ -65,6 +65,21 @@ extern "C" void app_main() {
     };
     ESP_ERROR_CHECK(gpio_config(&bootIOConf));
 
+#ifdef CONFIG_BATCH1_BODGE_TEST
+    ESP_LOGI(kTag, "running 1st batch bodge test - press and release Boot key to continue booting");
+    while (gpio_get_level(BTN_BOOT) == 1) {
+        static const size_t ledsNorthern[] = { LMAT_NORTHERN };
+        LEDMatrix::fill(kOff); LEDMatrix::setMulti(ledsNorthern, sizeof(ledsNorthern) / sizeof(size_t), kNorthern); LEDMatrix::update();
+        vTaskDelay(pdMS_TO_TICKS(1000));
+        
+        static const size_t ledsCrossCity[] = { LMAT_CROSSCITY };
+        LEDMatrix::fill(kOff); LEDMatrix::setMulti(ledsCrossCity, sizeof(ledsCrossCity) / sizeof(size_t), kCrossCity); LEDMatrix::update();
+        vTaskDelay(pdMS_TO_TICKS(1000));
+    }
+    LEDMatrix::fill(kOff); LEDMatrix::update();
+    while (gpio_get_level(BTN_BOOT) == 0); // wait for release
+#endif
+
     /* load config */
     esp_err_t ret = Config::init();
     bool runConfig = false;

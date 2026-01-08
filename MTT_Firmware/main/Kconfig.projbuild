@@ -123,4 +123,10 @@ menu "Firmware Configuration"
         help
             The status/management HTTP server's port.
 
+    config BATCH1_BODGE_TEST
+        bool "Run 1st batch bodge test prior to booting"
+        default n
+        help
+            When enabled, the board will continually flash the Northern and Cross-City group LEDs to allow for checking the Rev2 first batch bodge.
+
 endmenu

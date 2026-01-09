@@ -32392,7 +32392,7 @@
 			)
 		)
 	)
-	(global_label "L5_A6"
+	(global_label "L5_A7"
 		(shape input)
 		(at 534.67 166.37 90)
 		(fields_autoplaced yes)
@@ -33382,7 +33382,7 @@
 			)
 		)
 	)
-	(global_label "L5_A4"
+	(global_label "L5_A5"
 		(shape input)
 		(at 516.89 166.37 90)
 		(fields_autoplaced yes)
@@ -34724,7 +34724,7 @@
 			)
 		)
 	)
-	(global_label "L5_A10"
+	(global_label "L5_A9"
 		(shape input)
 		(at 570.23 166.37 90)
 		(fields_autoplaced yes)
@@ -34736,7 +34736,7 @@
 		)
 		(uuid "707c5055-a9eb-445a-9e6b-8d2b2a702db0")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 570.23 156.672 90)
+			(at 570.23 157.8815 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -36990,7 +36990,7 @@
 			)
 		)
 	)
-	(global_label "L5_A0"
+	(global_label "L5_A1"
 		(shape input)
 		(at 481.33 166.37 90)
 		(fields_autoplaced yes)
@@ -37254,7 +37254,7 @@
 			)
 		)
 	)
-	(global_label "L5_A2"
+	(global_label "L5_A3"
 		(shape input)
 		(at 499.11 166.37 90)
 		(fields_autoplaced yes)
@@ -38200,7 +38200,7 @@
 			)
 		)
 	)
-	(global_label "L5_A8"
+	(global_label "L5_A11"
 		(shape input)
 		(at 552.45 166.37 90)
 		(fields_autoplaced yes)
@@ -38212,7 +38212,7 @@
 		)
 		(uuid "d797b725-e768-479b-b062-c704732f6e66")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 552.45 157.8815 90)
+			(at 552.45 156.672 90)
 			(effects
 				(font
 					(size 1.27 1.27)

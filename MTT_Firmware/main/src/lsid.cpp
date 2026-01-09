@@ -30,7 +30,7 @@ uint16_t LSID::getLED(infraid_t line, infraid_t code) {
         /* country lines */
         case INFRAID_ART: return artGetLED(code); // Ararat
         case INFRAID_BAT: return artGetLED(code); // Ballarat
-        case INFRAID_MBY: return artGetLED(code); // Maryborough
+        case INFRAID_MBY: return mbyGetLED(code); // Maryborough
 
         case INFRAID_BDE: return gplGetLED(code); // Bairnsdale
         case INFRAID_TRN: return gplGetLED(code); // Traralgon

@@ -289,7 +289,49 @@ typedef uint32_t infraid_t;
 #define INFRAID_GARV                                INFRAID("GARV")
 #define INFRAID_TYN                                 INFRAID("TYN ")
 #define INFRAID_NNG                                 INFRAID("NNG ")
-
+#define INFRAID_SWL                                 INFRAID("SWL ")
+#define INFRAID_KER                                 INFRAID("KER ")
+#define INFRAID_PYD                                 INFRAID("PYD ")
+#define INFRAID_DGE                                 INFRAID("DGE ")
+#define INFRAID_RAY                                 INFRAID("RAY ")
+#define INFRAID_EAGV                                INFRAID("EAGV")
+#define INFRAID_BGO                                 INFRAID("BGO ")
+#define INFRAID_KFT                                 INFRAID("KFT ")
+#define INFRAID_CME                                 INFRAID("CME ")
+#define INFRAID_MMYV                                INFRAID("MMYV")
+#define INFRAID_KYN                                 INFRAID("KYN ")
+#define INFRAID_WNO                                 INFRAID("WNO ")
+#define INFRAID_MDN                                 INFRAID("MDN ")
+#define INFRAID_GIS                                 INFRAID("GIS ")
+#define INFRAID_RIK                                 INFRAID("RIK ")
+#define INFRAID_CKF                                 INFRAID("CKF ")
+#define INFRAID_ECH                                 INFRAID("ECH ")
+#define INFRAID_ROR                                 INFRAID("ROR ")
+#define INFRAID_EME                                 INFRAID("EME ")
+#define INFRAID_GRG                                 INFRAID("GRG ")
+#define INFRAID_HUY                                 INFRAID("HUY ")
+#define INFRAID_EPM                                 INFRAID("EPM ")
+#define INFRAID_SNH                                 INFRAID("SNH ")
+#define INFRAID_MPA                                 INFRAID("MPA ")
+#define INFRAID_MST                                 INFRAID("MST ")
+#define INFRAID_NGE                                 INFRAID("NGE ")
+#define INFRAID_SER                                 INFRAID("SER ")
+#define INFRAID_TOK                                 INFRAID("TOK ")
+#define INFRAID_BRF                                 INFRAID("BRF ")
+#define INFRAID_KET                                 INFRAID("KET ")
+#define INFRAID_WDG                                 INFRAID("WDG ")
+#define INFRAID_HCJ                                 INFRAID("HCJ ")
+#define INFRAID_WAN                                 INFRAID("WAN ")
+#define INFRAID_DBK                                 INFRAID("DBK ")
+#define INFRAID_ABY                                 INFRAID("ABY ")
+#define INFRAID_WOD                                 INFRAID("WOD ")
+#define INFRAID_CHI                                 INFRAID("CHI ")
+#define INFRAID_SPTV                                INFRAID("SPTV")
+#define INFRAID_WRT                                 INFRAID("WRT ")
+#define INFRAID_BXA                                 INFRAID("BXA ")
+#define INFRAID_VTN                                 INFRAID("VTN ")
+#define INFRAID_EOA                                 INFRAID("EOA ")
+#define INFRAID_AVL                                 INFRAID("AVL ")
 
 /* NEW: Metro Tunnel stations */
 #define INFRAID_ARN                                 INFRAID("ARN ") // Arden
@@ -329,6 +371,12 @@ public:
             line == INFRAID_WIL || line == INFRAID_WER || line == INFRAID_CGB || line == INFRAID_SUY ||
             line == INFRAID_RCE || line == INFRAID_UFD || line == INFRAID_ART || line == INFRAID_BAT ||
             line == INFRAID_MBY || line == INFRAID_BDE || line == INFRAID_TRN || line == INFRAID_GEL || 
+#if LMAT_VLINE_HAS_BENDIGO
+            line == INFRAID_BGO || line == INFRAID_SWL || line == INFRAID_ECH ||
+#endif
+#if LMAT_VLINE_HAS_SEYMOUR
+            line == INFRAID_SER || line == INFRAID_SNH || line == INFRAID_ABY ||
+#endif
 #ifndef CONFIG_MUNNEL_COLOUR_NONE
             line == INFRAID_SUYM || line == INFRAID_CBEM || line == INFRAID_PKMM ||
 #endif
@@ -497,5 +545,33 @@ private:
     /* Metro Tunnel */
     static uint16_t mtGetLED(infraid_t code);
     static size_t mtGetLEDsBetween(infraid_t fromCode, infraid_t toCode, uint16_t* buffer, size_t maxLength);
+
+#if LMAT_VLINE_HAS_BENDIGO
+    static uint16_t swlGetLED(infraid_t code);
+    static size_t swlGetLEDsBetween(infraid_t fromCode, infraid_t toCode, uint16_t* buffer, size_t maxLength);
+    static size_t bgoGetLEDsBetweenStub(
+        const station_t** stations, const infraid_t* codes, size_t count,
+        infraid_t fromCode, infraid_t toCode, uint16_t* buffer, size_t maxLength
+    );
+#if LMAT_VLINE_HAS_REGIONAL
+    static uint16_t echGetLED(infraid_t code);
+    static size_t echGetLEDsBetween(infraid_t fromCode, infraid_t toCode, uint16_t* buffer, size_t maxLength);
+#else
+#define echGetLED swlGetLED
+#define echGetLEDsBetween swlGetLEDsBetween
+#endif
+#endif
+
+#if LMAT_VLINE_HAS_SEYMOUR
+    static uint16_t snhGetLED(infraid_t code);
+    static size_t snhGetLEDsBetween(infraid_t fromCode, infraid_t toCode, uint16_t* buffer, size_t maxLength);
+#if LMAT_VLINE_HAS_REGIONAL
+    static uint16_t abyGetLED(infraid_t code);
+    static size_t abyGetLEDsBetween(infraid_t fromCode, infraid_t toCode, uint16_t* buffer, size_t maxLength);
+#else
+#define abyGetLED snhGetLED
+#define abyGetLEDsBetween snhGetLEDsBetween
+#endif
+#endif
 };
 

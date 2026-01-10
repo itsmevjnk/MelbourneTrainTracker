@@ -1,5 +1,6 @@
 #include "services.h"
 
+#include "lsid.h"
 #include "subsystems/led_matrix.h"
 #include "esp_check.h"
 
@@ -193,13 +194,21 @@ const infraid_t Services::kLineIDs[] = {
     INFRAID_GEL, // Geelong
     INFRAID_WBL,  // Warrnambool
 
+    INFRAID_BGO, // Bendigo
+    INFRAID_SWL, // Swan Hill
+    INFRAID_ECH, // Echuca
+
+    INFRAID_SER, // Seymour
+    INFRAID_SNH, // Shepparton
+    INFRAID_ABY, // Albury
+
     /* lines via Metro Tunnel */
     INFRAID_SUYM,
     INFRAID_CBEM,
     INFRAID_PKMM,
     INFRAID_SUYm,
     INFRAID_CBEm,
-    INFRAID_PKMm
+    INFRAID_PKMm,
     // TODO: properly do this for web interface
 }; // line IDs to match with m_lines flag
 const size_t Services::kNumLines = (sizeof(kLineIDs) / sizeof(infraid_t));

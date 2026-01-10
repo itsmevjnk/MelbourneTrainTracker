@@ -38,6 +38,18 @@ uint16_t LSID::getLED(infraid_t line, infraid_t code) {
         case INFRAID_GEL: return gelGetLED(code); // Geelong
         case INFRAID_WBL: return gelGetLED(code); // Warrnambool
 
+#if LMAT_VLINE_HAS_BENDIGO
+        case INFRAID_BGO: return swlGetLED(code); // Bendigo
+        case INFRAID_SWL: return swlGetLED(code); // Swan Hill
+        case INFRAID_ECH: return echGetLED(code); // Echuca
+#endif
+
+#if LMAT_VLINE_HAS_SEYMOUR
+        case INFRAID_SER: return snhGetLED(code); // Seymour
+        case INFRAID_SNH: return snhGetLED(code); // Shepparton
+        case INFRAID_ABY: return abyGetLED(code); // Albury
+#endif
+
         /* Metro Tunnel lines */
 #ifndef CONFIG_MUNNEL_COLOUR_NONE
         case INFRAID_SUYM: return suyGetLED(code);
@@ -88,6 +100,18 @@ size_t LSID::getLEDsBetween(infraid_t line, infraid_t fromCode, infraid_t toCode
 
         case INFRAID_GEL: return gelGetLEDsBetween(fromCode, toCode, buffer, maxLength); // Geelong
         case INFRAID_WBL: return gelGetLEDsBetween(fromCode, toCode, buffer, maxLength); // Warrnambool
+
+#if LMAT_VLINE_HAS_BENDIGO
+        case INFRAID_BGO: return swlGetLEDsBetween(fromCode, toCode, buffer, maxLength); // Bendigo
+        case INFRAID_SWL: return swlGetLEDsBetween(fromCode, toCode, buffer, maxLength); // Swan Hill
+        case INFRAID_ECH: return echGetLEDsBetween(fromCode, toCode, buffer, maxLength); // Echuca
+#endif
+
+#if LMAT_VLINE_HAS_SEYMOUR
+        case INFRAID_SER: return snhGetLEDsBetween(fromCode, toCode, buffer, maxLength); // Seymour
+        case INFRAID_SNH: return snhGetLEDsBetween(fromCode, toCode, buffer, maxLength); // Shepparton
+        case INFRAID_ABY: return abyGetLEDsBetween(fromCode, toCode, buffer, maxLength); // Albury
+#endif
 
         /* Metro Tunnel lines */
 #ifndef CONFIG_MUNNEL_COLOUR_NONE
@@ -142,6 +166,16 @@ colour_t LSID::getLineColour(infraid_t line) {
         case INFRAID_TRN: return kVLine;
         case INFRAID_GEL: return kVLine;
         case INFRAID_WBL: return kVLine;
+#if LMAT_VLINE_HAS_BENDIGO
+        case INFRAID_BGO: return kVLine;
+        case INFRAID_SWL: return kVLine;
+        case INFRAID_ECH: return kVLine;
+#endif
+#if LMAT_VLINE_HAS_SEYMOUR
+        case INFRAID_SER: return kVLine;
+        case INFRAID_SNH: return kVLine;
+        case INFRAID_ABY: return kVLine;
+#endif
 
 #ifdef CONFIG_MUNNEL_COLOUR_BLUE
         case INFRAID_SUYM: return kDandenong;

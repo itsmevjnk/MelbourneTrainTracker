@@ -68,12 +68,38 @@ extern "C" void app_main() {
 #ifdef CONFIG_BATCH1_BODGE_TEST
     ESP_LOGI(kTag, "running 1st batch bodge test - press and release Boot key to continue booting");
     while (gpio_get_level(BTN_BOOT) == 1) {
-        static const size_t ledsNorthern[] = { LMAT_NORTHERN };
-        LEDMatrix::fill(kOff); LEDMatrix::setMulti(ledsNorthern, sizeof(ledsNorthern) / sizeof(size_t), kNorthern); LEDMatrix::update();
+        /* L2_K5 test */
+        static const size_t ledsL2K5_1[] = { 
+            LMAT_NEWPORT_NME, LMAT_NEWPORT_NME_ALT,
+            LMAT_SEYMOUR_NME, LMAT_SEYMOUR_NME_ALT,
+            LMAT_NORTHERN_NME, LMAT_NORTHERN_NME_ALT
+        };
+        LEDMatrix::fill(kOff); LEDMatrix::setMulti(ledsL2K5_1, sizeof(ledsL2K5_1) / sizeof(size_t), kNorthern); LEDMatrix::update();
         vTaskDelay(pdMS_TO_TICKS(1000));
         
-        static const size_t ledsCrossCity[] = { LMAT_CROSSCITY };
-        LEDMatrix::fill(kOff); LEDMatrix::setMulti(ledsCrossCity, sizeof(ledsCrossCity) / sizeof(size_t), kCrossCity); LEDMatrix::update();
+        static const size_t ledsL2K5_2[] = { 
+            LMAT_FRANKSTON_ARM, LMAT_FRANKSTON_ARM_ALT,
+            LMAT_FRANKSTON_HKN, LMAT_FRANKSTON_HKN_ALT,
+            LMAT_FRANKSTON_TOR, LMAT_FRANKSTON_TOR_ALT
+        };
+        LEDMatrix::fill(kOff); LEDMatrix::setMulti(ledsL2K5_2, sizeof(ledsL2K5_2) / sizeof(size_t), kCrossCity); LEDMatrix::update();
+        vTaskDelay(pdMS_TO_TICKS(1000));
+
+        /* L5_K4 test */
+        static const size_t ledsL5K4_1[] = { 
+            LMAT_SHEPPARTON_SNH, LMAT_SHEPPARTON_SNH_ALT, 
+            LMAT_SHEPPARTON_MPA, LMAT_SHEPPARTON_MPA_ALT, 
+            LMAT_SHEPPARTON_MST, LMAT_SHEPPARTON_MST_ALT
+        };
+        LEDMatrix::fill(kOff); LEDMatrix::setMulti(ledsL5K4_1, sizeof(ledsL5K4_1) / sizeof(size_t), kVLine); LEDMatrix::update();
+        vTaskDelay(pdMS_TO_TICKS(1000));
+        
+        static const size_t ledsL5K4_2[] = { 
+            LMAT_SHEPPARTON_NGE, LMAT_SHEPPARTON_NGE_ALT,
+            LMAT_SEYMOUR_SER, LMAT_SEYMOUR_SER_ALT,
+            LMAT_SEYMOUR_TOK, LMAT_SEYMOUR_TOK_ALT
+        };
+        LEDMatrix::fill(kOff); LEDMatrix::setMulti(ledsL5K4_2, sizeof(ledsL5K4_2) / sizeof(size_t), kVLine); LEDMatrix::update();
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
     LEDMatrix::fill(kOff); LEDMatrix::update();

@@ -198,14 +198,14 @@
 // NOTE: WGS <-> FSY transition for Bendigo line will have two LEDs between the stations: LMAT_BENDIGO_WGS_ALT (WGS side) and LMAT_VLWEST_SUN_ALT (FSY side)
 
 /* Shepparton line */
-#define LMAT_SHEPPARTON_SNH                             LMAT_BASE(5, 0, 4)
-#define LMAT_SHEPPARTON_SNH_ALT                         LMAT_BASE(5, 2, 4)
-#define LMAT_SHEPPARTON_MPA                             LMAT_BASE(5, 4, 4)
-#define LMAT_SHEPPARTON_MPA_ALT                         LMAT_BASE(5, 6, 4)
-#define LMAT_SHEPPARTON_MST                             LMAT_BASE(5, 8, 4)
-#define LMAT_SHEPPARTON_MST_ALT                         LMAT_BASE(5, 10, 4)
-#define LMAT_SHEPPARTON_NGE                             LMAT_BASE(5, 1, 4)
-#define LMAT_SHEPPARTON_NGE_ALT                         LMAT_BASE(5, 3, 4)
+#define LMAT_SHEPPARTON_SNH                             LMAT_BASE(5, 1, 4)
+#define LMAT_SHEPPARTON_SNH_ALT                         LMAT_BASE(5, 5, 4)
+#define LMAT_SHEPPARTON_MPA                             LMAT_BASE(5, 7, 4)
+#define LMAT_SHEPPARTON_MPA_ALT                         LMAT_BASE(5, 9, 4)
+#define LMAT_SHEPPARTON_MST                             LMAT_BASE(5, 11, 4)
+#define LMAT_SHEPPARTON_MST_ALT                         LMAT_BASE(5, 3, 4)
+#define LMAT_SHEPPARTON_NGE                             LMAT_BASE(5, 0, 4)
+#define LMAT_SHEPPARTON_NGE_ALT                         LMAT_BASE(5, 2, 4)
 
 /* Albury line */
 #define LMAT_ALBURY_ABY                                 LMAT_BASE(5, 0, 0) // this is in NSW, but luckily there are no Victorian stations with the code ABY
@@ -228,10 +228,10 @@
 #define LMAT_ALBURY_AVL_ALT                             LMAT_BASE(5, 10, 5)
 
 /* Seymour shared track */
-#define LMAT_SEYMOUR_SER                                LMAT_BASE(5, 5, 4)
-#define LMAT_SEYMOUR_SER_ALT                            LMAT_BASE(5, 7, 4)
-#define LMAT_SEYMOUR_TOK                                LMAT_BASE(5, 11, 4)
-#define LMAT_SEYMOUR_TOK_ALT                            LMAT_BASE(5, 9, 4)
+#define LMAT_SEYMOUR_SER                                LMAT_BASE(5, 4, 4)
+#define LMAT_SEYMOUR_SER_ALT                            LMAT_BASE(5, 6, 4)
+#define LMAT_SEYMOUR_TOK                                LMAT_BASE(5, 8, 4)
+#define LMAT_SEYMOUR_TOK_ALT                            LMAT_BASE(5, 10, 4)
 #define LMAT_SEYMOUR_BRF                                LMAT_BASE(5, 0, 3)
 #define LMAT_SEYMOUR_BRF_ALT                            LMAT_BASE(5, 2, 3)
 #define LMAT_SEYMOUR_KET                                LMAT_BASE(5, 4, 3)

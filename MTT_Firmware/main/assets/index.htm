@@ -89,7 +89,13 @@
                 BDE: "Bairnsdale via Pakenham",
                 TRN: "Traralgon via Pakenham",
                 GEL: "Geelong via Wyndham Vale",
-                WBL: "Warrnambool via Wyndham Vale"
+                WBL: "Warrnambool via Wyndham Vale",
+                BGO: "Bendigo via Sunbury",
+                SWL: "Swan Hill via Sunbury",
+                ECH: "Echuca via Sunbury",
+                SER: "Seymour via Craigieburn",
+                SNH: "Shepparton via Craigieburn",
+                ABY: "Albury via Craigieburn"
             };
             const lineBoxes = document.getElementById('lines');
             const enableLine = (line) => fetch(`http://${host}/lines?l=${line}`, {method: 'PUT'});

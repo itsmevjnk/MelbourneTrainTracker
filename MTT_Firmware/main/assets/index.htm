@@ -106,7 +106,7 @@
             }
             const board = document.getElementById('bview');
             const updateBoardHeight = () => {
-                board.setAttribute('height', board.clientWidth / 423.5 * 402.4 + 'px');
+                board.style.height = board.contentWindow.document.documentElement.scrollHeight + "px";
             };
             window.addEventListener('load', updateBoardHeight);
             window.addEventListener('resize', updateBoardHeight);

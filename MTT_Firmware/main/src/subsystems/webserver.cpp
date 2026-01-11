@@ -39,7 +39,7 @@ const httpd_uri_t* WebServer::kConfigHandlers[] = {
 };
 
 mdns_txt_item_t WebServer::kMDNSServiceTXT[] = {
-    { "device", "melbtrains" },
+    { "device", "victrains" },
     { "board", "esp32" }
 };
 

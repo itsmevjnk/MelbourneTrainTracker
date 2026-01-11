@@ -176,7 +176,7 @@ const char* Config::getMQTTBroker() {
 }
 
 #ifndef CONFIG_DEFAULT_MDNS_HOSTNAME
-#define CONFIG_DEFAULT_MDNS_HOSTNAME                        "melbtrains"
+#define CONFIG_DEFAULT_MDNS_HOSTNAME                        "victrains"
 #endif
 char Config::m_mdnsHostname[32] = CONFIG_DEFAULT_MDNS_HOSTNAME;
 const char* Config::getMDNSHostname() {
@@ -185,7 +185,7 @@ const char* Config::getMDNSHostname() {
 }
 
 #ifndef CONFIG_DEFAULT_MDNS_INSTANCE_NAME
-#define CONFIG_DEFAULT_MDNS_INSTANCE_NAME                   "Melbourne Train Tracker"
+#define CONFIG_DEFAULT_MDNS_INSTANCE_NAME                   "Victorian Train Tracker"
 #endif
 char Config::m_mdnsInstanceName[64] = CONFIG_DEFAULT_MDNS_INSTANCE_NAME;
 const char* Config::getMDNSInstanceName() {

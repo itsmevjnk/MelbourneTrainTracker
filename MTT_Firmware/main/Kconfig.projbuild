@@ -12,7 +12,7 @@ menu "Firmware Configuration"
 
     config WIFI_CONFIGAP_SSID_PREFIX
         string "Configuration AP SSID prefix"
-        default "melbtrains"
+        default "victrains"
         help
             Sets the SSID prefix for the configuration Wi-Fi access point.
     
@@ -50,13 +50,13 @@ menu "Firmware Configuration"
 
     config DEFAULT_MDNS_HOSTNAME
         string "Default mDNS hostname"
-        default "melbtrains"
+        default "victrains"
         help
             Sets the default mDNS hostname to use if it is not configured in the NVS.
     
     config DEFAULT_MDNS_INSTANCE_NAME
         string "Default mDNS instance name"
-        default "Melbourne Train Tracker"
+        default "Victorian Train Tracker"
         help
             Sets the default mDNS instance name (user-friendly description) to use if it is not configured in the NVS.
 

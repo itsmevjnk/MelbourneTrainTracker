@@ -1,0 +1,30 @@
+name: build-firmware-esp32s3
+run-name: Build board firmware for ESP32S3
+
+on:
+    push:
+        branches:
+            - '**'
+        paths:
+            - 'MTT_Firmware/**'
+    workflow_dispatch:
+
+jobs:
+    docker:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v5
+              with:
+                submodules: 'recursive' # in case we have submodules in the future
+            - name: Build firmware for esp32
+              uses: espressif/esp-idf-ci-action@v1
+              with:
+                esp_idf_version: v5.5.1
+                target: esp32
+                path: 'MTT_Firmware'
+            - name: Upload ESP32 build artifacts
+              uses: actions/upload-artifact@v4
+              with:
+                name: mtt_firmware_esp32
+                path: ./MTT_Firmware/build/mtt_firmware.*

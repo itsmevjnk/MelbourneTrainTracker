@@ -1,5 +1,5 @@
 name: build-firmware-esp32s3
-run-name: Build board firmware for ESP32S3
+run-name: Build board firmware for ESP32-S3
 
 on:
     push:
@@ -17,14 +17,14 @@ jobs:
               uses: actions/checkout@v5
               with:
                 submodules: 'recursive' # in case we have submodules in the future
-            - name: Build firmware for esp32
+            - name: Build firmware for esp32s3
               uses: espressif/esp-idf-ci-action@v1
               with:
                 esp_idf_version: v5.5.1
-                target: esp32
+                target: esp32s3
                 path: 'MTT_Firmware'
-            - name: Upload ESP32 build artifacts
+            - name: Upload ESP32-S3 build artifacts
               uses: actions/upload-artifact@v4
               with:
-                name: mtt_firmware_esp32
+                name: mtt_firmware_esp32s3
                 path: ./MTT_Firmware/build/mtt_firmware.*

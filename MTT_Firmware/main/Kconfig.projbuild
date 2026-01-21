@@ -129,4 +129,17 @@ menu "Firmware Configuration"
         help
             When enabled, the board will continually flash the Northern and Cross-City group LEDs to allow for checking the Rev2 first batch bodge.
 
+    config OTA_GITHUB_REPO
+        string "GitHub repository for OTA releases"
+        default "itsmevjnk/MelbourneTrainTracker"
+        help
+            The GitHub repository where OTA firmware releases are published.
+
+    config OTA_UPDATE_INTERVAL
+        int "OTA update check interval (days)"
+        range 1 365
+        default 7
+        help
+            The number of days between OTA update checks.
+
 endmenu

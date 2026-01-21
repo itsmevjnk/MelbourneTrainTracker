@@ -1,4 +1,5 @@
 /* subsystems */
+#include "esp_err.h"
 #include "subsystems/status_led.h"
 #include "subsystems/led_matrix.h"
 #include "subsystems/wifi.h"
@@ -6,6 +7,7 @@
 #include "subsystems/ntp.h"
 #include "subsystems/mqtt.h"
 #include "subsystems/webserver.h"
+#include "subsystems/ota.h"
 
 #include "driver/gpio.h"
 
@@ -146,7 +148,12 @@ extern "C" void app_main() {
     else
         ESP_ERROR_CHECK(WiFi::initSTA(Config::getWiFiSSID(), Config::getWiFiPassword()));
 
+    ESP_ERROR_CHECK(OTA::confirmUpdate());
+
     ESP_ERROR_CHECK(NTP::init(Config::getTimeServer()));
+
+    ESP_ERROR_CHECK(OTA::doUpdate()); // should occur before setting up MQTT and web server
+    ESP_ERROR_CHECK(OTA::initUpdateTimer());
 
     ESP_ERROR_CHECK(MQTT::init(Config::getMQTTBroker()));
 

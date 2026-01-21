@@ -135,4 +135,11 @@ menu "Firmware Configuration"
         help
             The GitHub repository where OTA firmware releases are published.
 
+    config OTA_UPDATE_INTERVAL
+        int "OTA update check interval (days)"
+        range 1 365
+        default 7
+        help
+            The number of days between OTA update checks.
+
 endmenu

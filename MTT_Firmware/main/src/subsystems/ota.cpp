@@ -6,8 +6,6 @@
 #include "esp_https_ota.h"
 #include "esp_ota_ops.h"
 #include "esp_partition.h"
-#include "freertos/idf_additions.h"
-#include "freertos/projdefs.h"
 #include "sdkconfig.h" // for config
 #include "esp_check.h"
 
@@ -191,4 +189,33 @@ esp_err_t OTA::confirmUpdate() {
     }
 
     return ESP_OK;
+}
+
+#ifndef CONFIG_OTA_UPDATE_INTERVAL
+#define CONFIG_OTA_UPDATE_INTERVAL              7
+#endif
+
+esp_err_t OTA::initUpdateTimer() {
+    const TickType_t ticks = pdMS_TO_TICKS(CONFIG_OTA_UPDATE_INTERVAL * 86400000ULL);
+
+    TimerHandle_t timer = xTimerCreate(
+        "ota_update",
+        ticks,
+        pdTRUE,
+        NULL,
+        OTA::updateCallback
+    );
+
+    if (!timer) {
+        ESP_LOGE(kTag, "cannot create update timer");
+        return ESP_FAIL;
+    }
+
+    xTimerStart(timer, 0);
+    return ESP_OK;
+}
+
+void OTA::updateCallback(TimerHandle_t xTimer) {
+    ESP_LOGI(kTag, "executing update check");
+    doUpdate();
 }

@@ -88,7 +88,7 @@ esp_err_t LEDMatrix::init() {
 
     /* initialise DRV_EN pin */
     ESP_RETURN_ON_ERROR(gpio_set_direction(DRV_EN, GPIO_MODE_OUTPUT), kTag, "cannot set pin %u direction", DRV_EN);
-    ESP_RETURN_ON_ERROR(enableDrivers(), kTag, "cannot enable driver output");
+    ESP_RETURN_ON_ERROR(disableDrivers(), kTag, "cannot disable driver output initially");
 
     /* initialise SPI buses */
 #if CONFIG_IDF_TARGET_ESP32 && !defined(CONFIG_SPI3_ONLY)
@@ -136,6 +136,11 @@ esp_err_t LEDMatrix::init() {
     m_drivers[9] = new AW20216S("aw9", SPI_HANDLE(L9_SPI), L9_CS, &m_buffer[kBufferOffsets[9]], L9_ROWS); ESP_RETURN_ON_ERROR(m_drivers[9]->init(), kTag, "L9 init failed");
     m_drivers[10] = new AW20216S("aw10", SPI_HANDLE(L10_SPI), L10_CS, &m_buffer[kBufferOffsets[10]], L10_ROWS); ESP_RETURN_ON_ERROR(m_drivers[10]->init(), kTag, "L10 init failed");
 #endif
+
+    fill(kOff);
+    update();
+    ESP_RETURN_ON_ERROR(enableDrivers(), kTag, "cannot enable driver output");
+
     return ESP_OK;
 }
 

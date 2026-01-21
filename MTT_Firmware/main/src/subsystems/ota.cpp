@@ -97,46 +97,53 @@ esp_err_t OTA::checkForUpdates(bool* update, char* url) {
     esp_err_t err = esp_http_client_perform(client);
 
     if (err == ESP_OK) {
-        JsonDocument filter;
-        filter["tag_name"] = true;
-        filter["assets"][0]["name"] = true;
-        filter["assets"][0]["browser_download_url"] = true;
-
-        JsonDocument doc;
-        DeserializationError jsonErr = deserializeJson(doc, m_jsonResponse, DeserializationOption::Filter(filter));
-
-        if (!jsonErr) {
-            const char* tagName = doc["tag_name"];
-            const esp_app_desc_t* desc = esp_app_get_description();
-            ESP_LOGI(kTag, "latest release tag on GitHub: %s, current build: %s", tagName, desc->version);
-
-            /* check against current app version */
-            if (strcmp(desc->version, tagName)) { // mismatch - possible update
-                bool updateNeeded = true;
-                size_t currentVersionLen = strlen(desc->version);
-                if (currentVersionLen > 6 && !memcmp(&desc->version[currentVersionLen - 6], "-dirty", 6)) { // current app version is built from dirty tree - likely to be dev build, so no OTA
-                    ESP_LOGI(kTag, "current build is development build, skipping update");
-                    updateNeeded = false;
-                }
-
-                if (update) *update = updateNeeded;
-
-                if (updateNeeded && url) { // retrieve firmware URL
-                    *url = '\0'; // fall back to empty URL if a suitable one cannot be found
-                    for (JsonVariant asset : doc["assets"].as<JsonArray>()) {
-                        const char* name = asset["name"];
-                        if (!strcmp(name, OTA_FIRMWARE_NAME)) {
-                            const char* firmwareURL = asset["browser_download_url"];
-                            ESP_LOGI(kTag, "found %s firmware at %s", OTA_FIRMWARE_NAME, firmwareURL);
-                            strcpy(url, firmwareURL);
-                            break;
-                        }
-                    }
-                }                
-            }
+        int status = esp_http_client_get_status_code(client);
+        if (status >= 400) {
+            ESP_LOGE(kTag, "received invalid HTTP status code %d when querying latest firmware release", status);
         } else {
-            ESP_LOGE(kTag, "JSON parsing failed: %s", jsonErr.c_str());
+            JsonDocument filter;
+            filter["tag_name"] = true;
+            filter["assets"][0]["name"] = true;
+            filter["assets"][0]["browser_download_url"] = true;
+
+            JsonDocument doc;
+            DeserializationError jsonErr = deserializeJson(doc, m_jsonResponse, DeserializationOption::Filter(filter));
+
+            if (!jsonErr) {
+                const char* tagName = doc["tag_name"];
+                const esp_app_desc_t* desc = esp_app_get_description();
+                ESP_LOGI(kTag, "latest release tag on GitHub: %s, current build: %s", tagName, desc->version);
+
+                /* check against current app version */
+                if (strcmp(desc->version, tagName)) { // mismatch - possible update
+                    bool updateNeeded = true;
+                    size_t currentVersionLen = strlen(desc->version);
+                    if (currentVersionLen > 6 && !memcmp(&desc->version[currentVersionLen - 6], "-dirty", 6)) { // current app version is built from dirty tree - likely to be dev build, so no OTA
+                        ESP_LOGI(kTag, "current build is development build, skipping update");
+                        updateNeeded = false;
+                    }
+
+                    if (update) *update = updateNeeded;
+
+                    if (updateNeeded && url) { // retrieve firmware URL
+                        *url = '\0'; // fall back to empty URL if a suitable one cannot be found
+                        for (JsonVariant asset : doc["assets"].as<JsonArray>()) {
+                            const char* name = asset["name"];
+                            if (!strcmp(name, OTA_FIRMWARE_NAME)) {
+                                const char* firmwareURL = asset["browser_download_url"];
+                                ESP_LOGI(kTag, "found %s firmware at %s", OTA_FIRMWARE_NAME, firmwareURL);
+                                strcpy(url, firmwareURL);
+                                break;
+                            }
+                        }
+                    }                
+                }
+            } else {
+                ESP_LOGE(kTag, "JSON parsing failed: %s", jsonErr.c_str());
+            }
         }
+    } else {
+        ESP_LOGE(kTag, "error querying latest firmware release (%d)", err);
     }
 
     m_jsonResponse.clear(); m_jsonResponse.shrink_to_fit(); // shrink JSON response to minimum as we're done with it

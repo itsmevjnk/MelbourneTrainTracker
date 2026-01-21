@@ -94,8 +94,8 @@ private:
     static const httpd_uri_t kConfigReset;
     static esp_err_t configReset(httpd_req_t* req);
     
-    static const httpd_uri_t kConfigGetBuildTime;
-    static esp_err_t configGetBuildTime(httpd_req_t* req);
+    static const httpd_uri_t kConfigGetBuild;
+    static esp_err_t configGetBuild(httpd_req_t* req);
     
     static const httpd_uri_t kConfigGetUptime;
     static esp_err_t configGetUptime(httpd_req_t* req);

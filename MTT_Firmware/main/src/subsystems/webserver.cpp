@@ -21,7 +21,7 @@ const httpd_uri_t* WebServer::kHandlers[] = {
     &kConfigGetMDNSHost, &kConfigGetMDNSInst,
     &kConfigGetWiFiSSID,
     &kGetBootstrapCSS,
-    &kConfigGetBuildTime, &kConfigGetUptime
+    &kConfigGetBuild, &kConfigGetUptime
 };
 
 const httpd_uri_t* WebServer::kConfigHandlers[] = {
@@ -34,7 +34,7 @@ const httpd_uri_t* WebServer::kConfigHandlers[] = {
     &kConfigSetWiFiUnauth, &kConfigSetWiFiPass, &kConfigSetWiFiEnt, &kConfigSetWiFiEntCert,
     &kConfigReset,
     &kGetBootstrapCSS,
-    &kConfigGetBuildTime, &kConfigGetUptime,
+    &kConfigGetBuild, &kConfigGetUptime,
     &kGetConfigIndex, &kGetConfigRoot
 };
 

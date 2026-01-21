@@ -51,8 +51,8 @@
                             <td id="ap_mac"></td>
                         </tr>
                         <tr>
-                            <th scope="row">Build timestamp</th>
-                            <td id="buildtime"></td>
+                            <th scope="row">Build revision</th>
+                            <td id="buildrev"></td>
                         </tr>
                         <tr>
                             <th scope="row">Uptime</th>
@@ -134,7 +134,7 @@
                                 return fetch(`http://${host}/config/mac/ap`).then((resp) => resp.text()).then((data) => {
                                     document.getElementById('ap_mac').innerHTML = data;
                                     return fetch(`http://${host}/config/build`).then((resp) => resp.text()).then((data) => {
-                                        document.getElementById('buildtime').innerHTML = data;
+                                        document.getElementById('buildrev').innerHTML = data;
                                         return fetch(`http://${host}/config/uptime`).then((resp) => resp.text()).then((data) => {
                                             const h = Math.floor(data / 3600);
                                             const m = Math.floor((data % 3600) / 60);

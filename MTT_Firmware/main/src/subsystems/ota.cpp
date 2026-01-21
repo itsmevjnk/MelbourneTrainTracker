@@ -148,7 +148,7 @@ esp_err_t OTA::performUpdate(const char* url) {
     esp_http_client_config_t config = {
         .url = url,
         .buffer_size = CONFIG_MBEDTLS_SSL_IN_CONTENT_LEN,
-        .buffer_size_tx = CONFIG_MBEDTLS_SSL_IN_CONTENT_LEN,
+        .buffer_size_tx = CONFIG_MBEDTLS_SSL_OUT_CONTENT_LEN,
         .crt_bundle_attach = esp_crt_bundle_attach
     };
     esp_https_ota_config_t ota_config = {

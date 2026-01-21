@@ -1,4 +1,3 @@
-#include "hwconfig/leds/rev2/vline.h"
 #include "colours.h"
 #include "lsid.h"
 #include "hwconfig/led_matrix.h"

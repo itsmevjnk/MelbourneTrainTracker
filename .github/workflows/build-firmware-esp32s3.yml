@@ -27,4 +27,8 @@ jobs:
               uses: actions/upload-artifact@v4
               with:
                 name: mtt_firmware_esp32s3
-                path: ./MTT_Firmware/build/mtt_firmware.*
+                path: |
+                    ./MTT_Firmware/build/mtt_firmware.*
+                    ./MTT_Firmware/build/bootloader/bootloader.*
+                    ./MTT_Firmware/build/partition_table/partition-table.bin
+                    ./MTT_Firmware/build/ota_data_initial.bin

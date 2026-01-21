@@ -14,22 +14,28 @@ esp_err_t WebServer::serveStaticData(httpd_req_t* req) {
     return ESP_OK;
 }
 
-extern const uint8_t board_jpg_start[] asm("_binary_board_jpg_gz_start");
-extern const uint8_t board_jpg_end[] asm("_binary_board_jpg_gz_end");
+#if CONFIG_IDF_TARGET_ESP32S3
+#define REVISION "rev2"
+#else
+#define REVISION "rev1"
+#endif
+
+extern const uint8_t board_svg_start[] asm("_binary_board_" REVISION "_svg_gz_start");
+extern const uint8_t board_svg_end[] asm("_binary_board_" REVISION "_svg_gz_end");
 const WebServer::StaticData WebServer::kBoardImage = {
-    board_jpg_start,
-    (uintptr_t)board_jpg_end - (uintptr_t)board_jpg_start,
-    "image/jpeg", true
+    board_svg_start,
+    (uintptr_t)board_svg_end - (uintptr_t)board_svg_start,
+    "image/svg+xml", true
 };
 const httpd_uri_t WebServer::kGetBoardImage = {
-    .uri = "/board.jpg",
+    .uri = "/board.svg",
     .method = HTTP_GET,
     .handler = serveStaticData,
     .user_ctx = (void*)&kBoardImage
 };
 
-extern const uint8_t board_htm_start[] asm("_binary_board_min_htm_gz_start");
-extern const uint8_t board_htm_end[] asm("_binary_board_min_htm_gz_end");
+extern const uint8_t board_htm_start[] asm("_binary_board_" REVISION "_htm_gz_start");
+extern const uint8_t board_htm_end[] asm("_binary_board_" REVISION "_htm_gz_end");
 const WebServer::StaticData WebServer::kBoardView = {
     board_htm_start,
     (uintptr_t)board_htm_end - (uintptr_t)board_htm_start,
@@ -42,8 +48,8 @@ const httpd_uri_t WebServer::kGetBoardView = {
     .user_ctx = (void*)&kBoardView
 };
 
-extern const uint8_t index_htm_start[] asm("_binary_index_min_htm_gz_start");
-extern const uint8_t index_htm_end[] asm("_binary_index_min_htm_gz_end");
+extern const uint8_t index_htm_start[] asm("_binary_index_htm_gz_start");
+extern const uint8_t index_htm_end[] asm("_binary_index_htm_gz_end");
 const WebServer::StaticData WebServer::kIndex = {
     index_htm_start,
     (uintptr_t)index_htm_end - (uintptr_t)index_htm_start,
@@ -76,8 +82,8 @@ const httpd_uri_t WebServer::kGetBootstrapCSS = {
     .user_ctx = (void*)&kBootstrapCSS
 };
 
-extern const uint8_t config_htm_start[] asm("_binary_config_min_htm_gz_start");
-extern const uint8_t config_htm_end[] asm("_binary_config_min_htm_gz_end");
+extern const uint8_t config_htm_start[] asm("_binary_config_htm_gz_start");
+extern const uint8_t config_htm_end[] asm("_binary_config_htm_gz_end");
 const WebServer::StaticData WebServer::kConfigIndex = {
     config_htm_start,
     (uintptr_t)config_htm_end - (uintptr_t)config_htm_start,

@@ -59,7 +59,14 @@ static const station_t kUpfieldMAC = { LMAT_UPFIELD_MAC, LMAT_UPFIELD_MAC_ALT };
 
 /* Northern city stations - counterclockwise (direct to FSS in the Up direction) */
 static const station_t kNorthernSSS_CCW = { LMAT_NORTHERN_SSS, LMAT_NORTHERN_SSS_ALT };
-static const station_t kNorthernFSS_CCW = { LMAT_NORTHERN_FSS, LMAT_NULL }; // no LED between Flinders St and Parliament - in hindsight we should have put one there
+static const station_t kNorthernFSS_CCW = { 
+    LMAT_NORTHERN_FSS, 
+#ifdef LMAT_NORTHERN_FSS_ALT
+    LMAT_NORTHERN_FSS_ALT
+#else
+    LMAT_NULL 
+#endif
+};
 static const station_t kNorthernPAR_CCW = { LMAT_NORTHERN_PAR, LMAT_NORTHERN_PAR_ALT };
 static const station_t kNorthernMCE_CCW = { LMAT_NORTHERN_MCE, LMAT_NORTHERN_MCE_ALT };
 static const station_t kNorthernFGS_CCW = { LMAT_NORTHERN_FGS, LMAT_NORTHERN_FGS_ALT };
@@ -67,7 +74,14 @@ static const station_t kNorthernFGS_CCW = { LMAT_NORTHERN_FGS, LMAT_NORTHERN_FGS
 /* Northern city stations - clockwise (via City Loop in the Up direction) */
 static const station_t kNorthernFGS_CW = { LMAT_NORTHERN_FGS, LMAT_NORTHERN_MCE_ALT };
 static const station_t kNorthernMCE_CW = { LMAT_NORTHERN_MCE, LMAT_NORTHERN_PAR_ALT };
-static const station_t kNorthernPAR_CW = { LMAT_NORTHERN_PAR, LMAT_NULL };
+static const station_t kNorthernPAR_CW = { 
+    LMAT_NORTHERN_PAR, 
+#ifdef LMAT_NORTHERN_FSS_ALT
+    LMAT_NORTHERN_FSS_ALT
+#else
+    LMAT_NULL 
+#endif
+};
 static const station_t kNorthernFSS_CW = { LMAT_NORTHERN_FSS, LMAT_NORTHERN_SSS_ALT };
 static const station_t kNorthernSSS_CW = { LMAT_NORTHERN_SSS, LMAT_NULL };
 
@@ -141,15 +155,17 @@ size_t LSID::nmeGetLEDsBetween(
         size_t outIndex = 0;
         bool fromLoop = isCityLoopStation(fromCode);
         outIndex = nmeCityGetLEDsBetween(fromCode, (fromLoop) ? INFRAID_FGS : INFRAID_SSS, buffer, maxLength);
+        size_t reserveSpace = (toCode == INFRAID_NME) ? 2 : 3; // stop short of NME if going there
         ESP_RETURN_ON_FALSE(
-            outIndex + 3 <= maxLength,
+            outIndex + reserveSpace <= maxLength,
             outIndex,
             kTag, "not enough space to hold the %s -> NME leg", (fromLoop) ? "FGS" : "SSS"
         );
         buffer[outIndex + 0] = (fromLoop) ? LMAT_NORTHERN_FGS : LMAT_NORTHERN_SSS;
         buffer[outIndex + 1] = (fromLoop) ? LMAT_NORTHERN_FGS_ALT : LMAT_NORTHERN_NME_ALT;
+        if (toCode == INFRAID_NME) return outIndex + 2;
         buffer[outIndex + 2] = LMAT_NORTHERN_NME;
-        outIndex += 3;
+        outIndex += reserveSpace;
         return outIndex + getLEDsBetweenCodes(stations, codes, count, INFRAID_NME, toCode, &buffer[outIndex], maxLength - outIndex);
     } else if (toCity) { // entering city
         bool toLoop = isCityLoopStation(toCode);

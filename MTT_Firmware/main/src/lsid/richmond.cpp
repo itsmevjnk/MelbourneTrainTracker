@@ -58,7 +58,7 @@ size_t LSID::rmdGetLEDsBetween(
         ESP_RETURN_ON_FALSE(
             outIndex + 3 <= maxLength,
             outIndex,
-            kTag, "not enough space to hold the %s -> RMD leg", (fromLoop) ? "FSS" : "PAR"
+            kTag, "not enough space to hold the %s -> RMD leg", (fromLoop) ? "PAR" : "RMD"
         );
         buffer[outIndex + 0] = cityCCWStations[(fromLoop) ? 0 : 4]->led; // FSS/PAR
         buffer[outIndex + 1] = rmdStation->nextLED; // RMD alt

@@ -250,7 +250,7 @@ void WiFi::ipEventHandler(void* arg, esp_event_base_t eventBase, int32_t eventID
 }
 
 #ifndef CONFIG_WIFI_CONFIGAP_SSID_PREFIX
-#define CONFIG_WIFI_CONFIGAP_SSID_PREFIX "melbtrains"
+#define CONFIG_WIFI_CONFIGAP_SSID_PREFIX "victrains"
 #endif
 
 #ifndef CONFIG_WIFI_CONFIGAP_CHANNEL

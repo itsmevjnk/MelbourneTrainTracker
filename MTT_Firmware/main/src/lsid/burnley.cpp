@@ -71,14 +71,29 @@ static const station_t kBurnleyPAR_CCW = { LMAT_BURNLEY_PAR, LMAT_BURNLEY_PAR_AL
 static const station_t kBurnleyMCE_CCW = { LMAT_BURNLEY_MCE, LMAT_BURNLEY_MCE_ALT };
 static const station_t kBurnleyFGS_CCW = { LMAT_BURNLEY_FGS, LMAT_BURNLEY_FGS_ALT };
 static const station_t kBurnleySSS_CCW = { LMAT_BURNLEY_SSS, LMAT_BURNLEY_SSS_ALT };
-static const station_t kBurnleyFSS_CCW = { LMAT_BURNLEY_FSS, LMAT_NULL };
+
+static const station_t kBurnleyFSS_CCW = {
+    LMAT_BURNLEY_FSS,
+#ifdef LMAT_BURNLEY_FSS_ALT
+    LMAT_BURNLEY_FSS_ALT
+#else
+    LMAT_NULL
+#endif
+};
 
 /* Burnley city stations - clockwise (direct to Flinders St in the Up direction) */
 static const station_t kBurnleyFSS_CW = { LMAT_BURNLEY_FSS, LMAT_BURNLEY_SSS_ALT };
 static const station_t kBurnleySSS_CW = { LMAT_BURNLEY_SSS, LMAT_BURNLEY_FGS_ALT };
 static const station_t kBurnleyFGS_CW = { LMAT_BURNLEY_FGS, LMAT_BURNLEY_MCE_ALT };
 static const station_t kBurnleyMCE_CW = { LMAT_BURNLEY_MCE, LMAT_BURNLEY_PAR_ALT };
-static const station_t kBurnleyPAR_CW = { LMAT_BURNLEY_PAR, LMAT_NULL };
+static const station_t kBurnleyPAR_CW = { 
+    LMAT_BURNLEY_PAR,
+#ifdef LMAT_BURNLEY_FSS_ALT
+LMAT_BURNLEY_FSS_ALT
+#else
+    LMAT_NULL
+#endif
+};
 
 static const station_t* kBurnleyCityCCWStations[] = {
     &kBurnleyPAR_CCW, &kBurnleyMCE_CCW, &kBurnleyFGS_CCW, &kBurnleySSS_CCW, &kBurnleyFSS_CCW

@@ -12,7 +12,7 @@ menu "Firmware Configuration"
 
     config WIFI_CONFIGAP_SSID_PREFIX
         string "Configuration AP SSID prefix"
-        default "melbtrains"
+        default "victrains"
         help
             Sets the SSID prefix for the configuration Wi-Fi access point.
     
@@ -50,13 +50,13 @@ menu "Firmware Configuration"
 
     config DEFAULT_MDNS_HOSTNAME
         string "Default mDNS hostname"
-        default "melbtrains"
+        default "victrains"
         help
             Sets the default mDNS hostname to use if it is not configured in the NVS.
     
     config DEFAULT_MDNS_INSTANCE_NAME
         string "Default mDNS instance name"
-        default "Melbourne Train Tracker"
+        default "Victorian Train Tracker"
         help
             Sets the default mDNS instance name (user-friendly description) to use if it is not configured in the NVS.
 
@@ -100,6 +100,7 @@ menu "Firmware Configuration"
         help
             Enable this if the board is wired to have all LED matrix drivers' SPI buses connected to SPI3/VSPI (GPIO 18/19/21).
             This allows the SPI2/HSPI pins to be used for JTAG debugging.
+            NOTE: This only applies to the original ESP32 revision; the ESP32-S3 revision has all LED matrix drivers connected to SPI3.
     
     config UPDATE_FLASH_LED
         bool "Flash activity LED during LED state updates"
@@ -121,5 +122,11 @@ menu "Firmware Configuration"
         default 80
         help
             The status/management HTTP server's port.
+
+    config BATCH1_BODGE_TEST
+        bool "Run 1st batch bodge test prior to booting"
+        default n
+        help
+            When enabled, the board will continually flash the Northern and Cross-City group LEDs to allow for checking the Rev2 first batch bodge.
 
 endmenu

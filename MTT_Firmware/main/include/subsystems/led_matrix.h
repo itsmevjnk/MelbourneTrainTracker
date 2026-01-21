@@ -60,8 +60,8 @@ public:
     }
 
 private:
-    static AW20216S* m_drivers[8]; // LED driver objects - initialised in init()
-    static const size_t kBufferOffsets[8]; // offsets into the buffer for each LED driver
+    static AW20216S* m_drivers[NUM_DRIVERS]; // LED driver objects - initialised in init()
+    static const size_t kBufferOffsets[NUM_DRIVERS]; // offsets into the buffer for each LED driver
 
     static bool m_driverState;
 

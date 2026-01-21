@@ -253,6 +253,85 @@ typedef uint32_t infraid_t;
 #define INFRAID_TRN                                 INFRAID("TRN ")
 #define INFRAID_GEL                                 INFRAID("GEL ")
 #define INFRAID_WBL                                 INFRAID("WBL ")
+#define INFRAID_BET                                 INFRAID("BET ")
+#define INFRAID_WED                                 INFRAID("WED ")
+#define INFRAID_BATV                                INFRAID("BATV")
+#define INFRAID_BLN                                 INFRAID("BLN ")
+#define INFRAID_BAH                                 INFRAID("BAH ")
+#define INFRAID_TAT                                 INFRAID("TAT ")
+#define INFRAID_CLU                                 INFRAID("CLU ")
+#define INFRAID_CWK                                 INFRAID("CWK ")
+#define INFRAID_SDP                                 INFRAID("SDP ")
+#define INFRAID_TER                                 INFRAID("TER ")
+#define INFRAID_CPD                                 INFRAID("CPD ")
+#define INFRAID_COL                                 INFRAID("COL ")
+#define INFRAID_BGE                                 INFRAID("BGE ")
+#define INFRAID_WIA                                 INFRAID("WIA ")
+#define INFRAID_WPP                                 INFRAID("WPP ")
+#define INFRAID_MAS                                 INFRAID("MAS ")
+#define INFRAID_SOG                                 INFRAID("SOG ")
+#define INFRAID_NGL                                 INFRAID("NGL ")
+#define INFRAID_NSH                                 INFRAID("NSH ")
+#define INFRAID_COR                                 INFRAID("COR ")
+#define INFRAID_LRA                                 INFRAID("LRA ")
+#define INFRAID_LRR                                 INFRAID("LRR ")
+#define INFRAID_STD                                 INFRAID("STD ")
+#define INFRAID_SAE                                 INFRAID("SAE ")
+#define INFRAID_ROE                                 INFRAID("ROE ")
+#define INFRAID_MWL                                 INFRAID("MWL ")
+#define INFRAID_MOE                                 INFRAID("MOE ")
+#define INFRAID_TAR                                 INFRAID("TAR ")
+#define INFRAID_YON                                 INFRAID("YON ")
+#define INFRAID_WGL                                 INFRAID("WGL ")
+#define INFRAID_DRN                                 INFRAID("DRN ")
+#define INFRAID_LWY                                 INFRAID("LWY ")
+#define INFRAID_BYP                                 INFRAID("BYP ")
+#define INFRAID_GARV                                INFRAID("GARV")
+#define INFRAID_TYN                                 INFRAID("TYN ")
+#define INFRAID_NNG                                 INFRAID("NNG ")
+#define INFRAID_SWL                                 INFRAID("SWL ")
+#define INFRAID_KER                                 INFRAID("KER ")
+#define INFRAID_PYD                                 INFRAID("PYD ")
+#define INFRAID_DGE                                 INFRAID("DGE ")
+#define INFRAID_RAY                                 INFRAID("RAY ")
+#define INFRAID_EAGV                                INFRAID("EAGV")
+#define INFRAID_BGO                                 INFRAID("BGO ")
+#define INFRAID_KFT                                 INFRAID("KFT ")
+#define INFRAID_CME                                 INFRAID("CME ")
+#define INFRAID_MMYV                                INFRAID("MMYV")
+#define INFRAID_KYN                                 INFRAID("KYN ")
+#define INFRAID_WNO                                 INFRAID("WNO ")
+#define INFRAID_MDN                                 INFRAID("MDN ")
+#define INFRAID_GIS                                 INFRAID("GIS ")
+#define INFRAID_RIK                                 INFRAID("RIK ")
+#define INFRAID_CKF                                 INFRAID("CKF ")
+#define INFRAID_ECH                                 INFRAID("ECH ")
+#define INFRAID_ROR                                 INFRAID("ROR ")
+#define INFRAID_EME                                 INFRAID("EME ")
+#define INFRAID_GRG                                 INFRAID("GRG ")
+#define INFRAID_HUY                                 INFRAID("HUY ")
+#define INFRAID_EPM                                 INFRAID("EPM ")
+#define INFRAID_SNH                                 INFRAID("SNH ")
+#define INFRAID_MPA                                 INFRAID("MPA ")
+#define INFRAID_MST                                 INFRAID("MST ")
+#define INFRAID_NGE                                 INFRAID("NGE ")
+#define INFRAID_SER                                 INFRAID("SER ")
+#define INFRAID_TOK                                 INFRAID("TOK ")
+#define INFRAID_BRF                                 INFRAID("BRF ")
+#define INFRAID_KET                                 INFRAID("KET ")
+#define INFRAID_WDG                                 INFRAID("WDG ")
+#define INFRAID_HCJ                                 INFRAID("HCJ ")
+#define INFRAID_WAN                                 INFRAID("WAN ")
+#define INFRAID_DBK                                 INFRAID("DBK ")
+#define INFRAID_ABY                                 INFRAID("ABY ")
+#define INFRAID_WOD                                 INFRAID("WOD ")
+#define INFRAID_CHI                                 INFRAID("CHI ")
+#define INFRAID_SPTV                                INFRAID("SPTV")
+#define INFRAID_WRT                                 INFRAID("WRT ")
+#define INFRAID_BXA                                 INFRAID("BXA ")
+#define INFRAID_VTN                                 INFRAID("VTN ")
+#define INFRAID_EOA                                 INFRAID("EOA ")
+#define INFRAID_AVL                                 INFRAID("AVL ")
 
 /* NEW: Metro Tunnel stations */
 #define INFRAID_ARN                                 INFRAID("ARN ") // Arden
@@ -292,6 +371,12 @@ public:
             line == INFRAID_WIL || line == INFRAID_WER || line == INFRAID_CGB || line == INFRAID_SUY ||
             line == INFRAID_RCE || line == INFRAID_UFD || line == INFRAID_ART || line == INFRAID_BAT ||
             line == INFRAID_MBY || line == INFRAID_BDE || line == INFRAID_TRN || line == INFRAID_GEL || 
+#if LMAT_VLINE_HAS_BENDIGO
+            line == INFRAID_BGO || line == INFRAID_SWL || line == INFRAID_ECH ||
+#endif
+#if LMAT_VLINE_HAS_SEYMOUR
+            line == INFRAID_SER || line == INFRAID_SNH || line == INFRAID_ABY ||
+#endif
 #ifndef CONFIG_MUNNEL_COLOUR_NONE
             line == INFRAID_SUYM || line == INFRAID_CBEM || line == INFRAID_PKMM ||
 #endif
@@ -322,15 +407,24 @@ private:
     static uint16_t shmGetLED(infraid_t code);
     static size_t shmGetLEDsBetween(infraid_t fromCode, infraid_t toCode, uint16_t* buffer, size_t maxLength);
     
-    /* Melton line */
-    static uint16_t melGetLED(infraid_t code);
-    static size_t melGetLEDsBetween(infraid_t fromCode, infraid_t toCode, uint16_t* buffer, size_t maxLength);
+    /* Ararat/Ballarat/Melton line */
+    static uint16_t artGetLED(infraid_t code);
+    static size_t artGetLEDsBetween(infraid_t fromCode, infraid_t toCode, uint16_t* buffer, size_t maxLength);
 
-    /* Wyndham Vale line */
-    static uint16_t wvlGetLED(infraid_t code);
-    static size_t wvlGetLEDsBetween(infraid_t fromCode, infraid_t toCode, uint16_t* buffer, size_t maxLength);
+    /* Maryborough line */
+#if LMAT_VLINE_HAS_REGIONAL
+    static uint16_t mbyGetLED(infraid_t code);
+    static size_t mbyGetLEDsBetween(infraid_t fromCode, infraid_t toCode, uint16_t* buffer, size_t maxLength);
+#else // since we're effectively only using the Melton part
+#define mbyGetLED artGetLED
+#define mbyGetLEDsBetween artGetLEDsBetween 
+#endif
 
-    /* Gippsland (V/Line Pakenham) line */
+    /* Warrnambool/Geelong/Wyndham Vale line */
+    static uint16_t gelGetLED(infraid_t code);
+    static size_t gelGetLEDsBetween(infraid_t fromCode, infraid_t toCode, uint16_t* buffer, size_t maxLength);
+
+    /* Gippsland/Pakenham (V/Line) line */
     static uint16_t gplGetLED(infraid_t code);
     static size_t gplGetLEDsBetween(infraid_t fromCode, infraid_t toCode, uint16_t* buffer, size_t maxLength);
 
@@ -380,8 +474,13 @@ private:
     static size_t cbeGetLEDsBetween(infraid_t fromCode, infraid_t toCode, uint16_t* buffer, size_t maxLength);
 
     /* hack for Pakenham/Cranbourne via Metro Tunnel - not needed for Rev2 */
+#ifndef LMAT_DANDENONG_HAS_MAL
     static size_t cbeMunnelGetLEDsBetween(infraid_t fromCode, infraid_t toCode, uint16_t* buffer, size_t maxLength);
     static size_t pkmMunnelGetLEDsBetween(infraid_t fromCode, infraid_t toCode, uint16_t* buffer, size_t maxLength);
+#else // rename by macro so we don't end up cluttering lsid.cpp too much
+#define cbeMunnelGetLEDsBetween cbeGetLEDsBetween
+#define pkmMunnelGetLEDsBetween pkmGetLEDsBetween
+#endif
 
     /* Burnley city stations */
     static uint16_t blyCityGetLED(infraid_t code);
@@ -446,5 +545,33 @@ private:
     /* Metro Tunnel */
     static uint16_t mtGetLED(infraid_t code);
     static size_t mtGetLEDsBetween(infraid_t fromCode, infraid_t toCode, uint16_t* buffer, size_t maxLength);
+
+#if LMAT_VLINE_HAS_BENDIGO
+    static uint16_t swlGetLED(infraid_t code);
+    static size_t swlGetLEDsBetween(infraid_t fromCode, infraid_t toCode, uint16_t* buffer, size_t maxLength);
+    static size_t bgoGetLEDsBetweenStub(
+        const station_t** stations, const infraid_t* codes, size_t count,
+        infraid_t fromCode, infraid_t toCode, uint16_t* buffer, size_t maxLength
+    );
+#if LMAT_VLINE_HAS_REGIONAL
+    static uint16_t echGetLED(infraid_t code);
+    static size_t echGetLEDsBetween(infraid_t fromCode, infraid_t toCode, uint16_t* buffer, size_t maxLength);
+#else
+#define echGetLED swlGetLED
+#define echGetLEDsBetween swlGetLEDsBetween
+#endif
+#endif
+
+#if LMAT_VLINE_HAS_SEYMOUR
+    static uint16_t snhGetLED(infraid_t code);
+    static size_t snhGetLEDsBetween(infraid_t fromCode, infraid_t toCode, uint16_t* buffer, size_t maxLength);
+#if LMAT_VLINE_HAS_REGIONAL
+    static uint16_t abyGetLED(infraid_t code);
+    static size_t abyGetLEDsBetween(infraid_t fromCode, infraid_t toCode, uint16_t* buffer, size_t maxLength);
+#else
+#define abyGetLED snhGetLED
+#define abyGetLEDsBetween snhGetLEDsBetween
+#endif
+#endif
 };
 

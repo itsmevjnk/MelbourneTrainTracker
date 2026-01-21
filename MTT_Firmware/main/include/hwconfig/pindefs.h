@@ -7,6 +7,45 @@
 
 #define BTN_BOOT                        GPIO_NUM_0 // BOOT button
 
+#if CONFIG_IDF_TARGET_ESP32S3
+
+/* SPI buses */
+#define SPI3_MISO                       GPIO_NUM_13
+#define SPI3_MOSI                       GPIO_NUM_11
+#define SPI3_SCK                        GPIO_NUM_12
+
+/* LED drivers */
+#define L0_SPI                          SPI3_HOST
+#define L0_CS                           GPIO_NUM_10
+#define L1_SPI                          SPI3_HOST
+#define L1_CS                           GPIO_NUM_14
+#define L2_SPI                          SPI3_HOST
+#define L2_CS                           GPIO_NUM_9
+#define L3_SPI                          SPI3_HOST
+#define L3_CS                           GPIO_NUM_46
+#define L4_SPI                          SPI3_HOST
+#define L4_CS                           GPIO_NUM_21
+#define L5_SPI                          SPI3_HOST
+#define L5_CS                           GPIO_NUM_47
+#define L6_SPI                          SPI3_HOST
+#define L6_CS                           GPIO_NUM_48
+#define L7_SPI                          SPI3_HOST
+#define L7_CS                           GPIO_NUM_45
+#define L8_SPI                          SPI3_HOST
+#define L8_CS                           GPIO_NUM_38
+#define L9_SPI                          SPI3_HOST
+#define L9_CS                           GPIO_NUM_1
+#define L10_SPI                         SPI3_HOST
+#define L10_CS                          GPIO_NUM_2
+
+#define DRV_EN                          GPIO_NUM_17
+
+/* status LEDs */
+#define LED_ACTY                        GPIO_NUM_18
+#define LED_ERROR                       GPIO_NUM_8
+
+#else // original ESP32 revision
+
 /* SPI buses */
 #define SPI2_MISO                       GPIO_NUM_12
 #define SPI2_MOSI                       GPIO_NUM_13
@@ -57,4 +96,6 @@
 #define L6_SPI SPI3_HOST
 #undef L7_SPI
 #define L7_SPI SPI3_HOST
+#endif
+
 #endif

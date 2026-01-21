@@ -20,14 +20,23 @@ bool Message::m_started = false;
 #define ENTRY_BASE_SIZE                     (sizeof(MessageEntry) - (4 + 8))
 #define ENTRY_ADJ_SIZE                      sizeof(MessageEntry)
 
+// TODO: omit this completely for Rev2 once all V/Line LEDs have been mapped
 bool Message::checkVLine(infraid_t line, infraid_t station) {
     /* ignore V/Line lines not represented on map */
-    if (
-        line == INFRAID("ABY ") || line == INFRAID("SER ") || line == INFRAID("SNH ") // Seymour/Shepparton/Albury - via Craigieburn
-        || line == INFRAID("BGO ") || line == INFRAID("ECH ") || line == INFRAID("SWL ") // Bendigo/Echuca/Swan Hill - via Sunbury
-    ) return false;
+#if LMAT_VLINE_HAS_BENDIGO
+    bool isBendigo = false;
+#else
+    bool isBendigo = line == INFRAID_BGO || line == INFRAID_ECH || line == INFRAID_SWL;
+#endif
+#if LMAT_VLINE_HAS_SEYMOUR
+    bool isSeymour = false;
+#else
+    bool isSeymour = line == INFRAID_SER || line == INFRAID_SNH || line == INFRAID_ABY;
+#endif
+    if (isBendigo || isSeymour) return false;
 
     /* check V/Line lines if stop is within bounds */
+#ifndef LMAT_VLINE_HAS_REGIONAL
     if (line == INFRAID_ART || line == INFRAID_BAT || line== INFRAID_MBY) { // V/Line Melton
         if (
             station != INFRAID_MEL && station != INFRAID_TLN && station != INFRAID_RBK && station != INFRAID_RVH
@@ -45,6 +54,21 @@ bool Message::checkVLine(infraid_t line, infraid_t station) {
             && station != INFRAID_ARR && station != INFRAID_SUN && station != INFRAID_FSY && station != INFRAID_SSS
         ) return false;
     }
+#if LMAT_VLINE_HAS_BENDIGO
+    else if (line == INFRAID_BGO || line == INFRAID_ECH || line == INFRAID_SWL) { // V/Line Bendigo via Sunbury
+        if (
+            station != INFRAID_SUY && station != INFRAID_WGS && station != INFRAID_FSY && station != INFRAID_SSS
+        ) return false;
+    }
+#endif
+#if LMAT_VLINE_HAS_SEYMOUR
+    else if (line == INFRAID_SER || line == INFRAID_SNH || line == INFRAID_ABY) { // V/Line Seymour via Craigieburn
+        if (
+            station != INFRAID_CGB && station != INFRAID_BMS && station != INFRAID_ESD && station != INFRAID_SSS
+        ) return false;
+    }
+#endif
+#endif
 
     return true;
 }

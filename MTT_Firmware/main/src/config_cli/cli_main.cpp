@@ -41,9 +41,16 @@ esp_err_t Config::cli() {
     ESP_RETURN_ON_ERROR(esp_console_register_help_command(), kTag, "cannot register help command");
     ESP_RETURN_ON_ERROR(cliRegisterCommands(), kTag, "error encountered registering commands");
 
+#if CONFIG_IDF_TARGET_ESP32S3
+    /* bind repl with native USB-JTAG interface */
+    esp_console_dev_usb_serial_jtag_config_t hwConfig = ESP_CONSOLE_DEV_USB_SERIAL_JTAG_CONFIG_DEFAULT();
+    ESP_RETURN_ON_ERROR(esp_console_new_repl_usb_serial_jtag(&hwConfig, &replConfig, &m_repl), kTag, "cannot set up repl on USB-JTAG");
+#else
     /* bind repl with serial console on UART */
     esp_console_dev_uart_config_t hwConfig = ESP_CONSOLE_DEV_UART_CONFIG_DEFAULT();
     ESP_RETURN_ON_ERROR(esp_console_new_repl_uart(&hwConfig, &replConfig, &m_repl), kTag, "cannot set up repl on UART");
+#endif
+
     ESP_RETURN_ON_ERROR(esp_console_start_repl(m_repl), kTag, "cannot start repl");
 
     return ESP_OK;

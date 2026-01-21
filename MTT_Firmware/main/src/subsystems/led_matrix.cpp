@@ -6,9 +6,11 @@
 
 /* for logging */
 #include "esp_log.h"
+#include "hwconfig/led_matrix.h"
 const char* LEDMatrix::kTag = "led_matrix";
 
 /* SPI configs */
+#if CONFIG_IDF_TARGET_ESP32
 static const spi_bus_config_t kSPI2BusConfig = {
     .mosi_io_num = SPI2_MOSI,
     .miso_io_num = SPI2_MISO,
@@ -22,6 +24,7 @@ static const spi_bus_config_t kSPI2BusConfig = {
     .max_transfer_sz = 216 + 2,
     
 };
+#endif
 static const spi_bus_config_t kSPI3BusConfig = {
     .mosi_io_num = SPI3_MOSI,
     .miso_io_num = SPI3_MISO,
@@ -35,9 +38,14 @@ static const spi_bus_config_t kSPI3BusConfig = {
     .max_transfer_sz = 216 + 2
 };
 
-const size_t LEDMatrix::kBufferOffsets[8] = { L0_OFFSET, L1_OFFSET, L2_OFFSET, L3_OFFSET, L4_OFFSET, L5_OFFSET, L6_OFFSET, L7_OFFSET };
+const size_t LEDMatrix::kBufferOffsets[NUM_DRIVERS] = {
+    L0_OFFSET, L1_OFFSET, L2_OFFSET, L3_OFFSET, L4_OFFSET, L5_OFFSET, L6_OFFSET, L7_OFFSET,
+#if CONFIG_IDF_TARGET_ESP32S3
+    L8_OFFSET, L9_OFFSET, L10_OFFSET
+#endif
+};
 
-AW20216S* LEDMatrix::m_drivers[8];
+AW20216S* LEDMatrix::m_drivers[NUM_DRIVERS];
 uint8_t* LEDMatrix::m_buffer; // LED matrix frame buffer
 bool LEDMatrix::m_driverState = false;
 
@@ -83,7 +91,7 @@ esp_err_t LEDMatrix::init() {
     ESP_RETURN_ON_ERROR(enableDrivers(), kTag, "cannot enable driver output");
 
     /* initialise SPI buses */
-#if !defined(CONFIG_SPI3_ONLY)
+#if CONFIG_IDF_TARGET_ESP32 && !defined(CONFIG_SPI3_ONLY)
     ESP_RETURN_ON_ERROR(spi_bus_initialize(
         SPI2_HOST,
         &kSPI2BusConfig,
@@ -110,7 +118,7 @@ esp_err_t LEDMatrix::init() {
     ), kTag, "SPI3 device add failed");
 
     /* initialise LED drivers */
-#if defined(CONFIG_SPI3_ONLY)
+#if CONFIG_IDF_TARGET_ESP32S3 || defined(CONFIG_SPI3_ONLY)
 #define SPI_HANDLE(host)                spi3Handle
 #else
 #define SPI_HANDLE(host)                (((host) == SPI2_HOST) ? spi2Handle : spi3Handle) // macro to select SPI handle
@@ -123,7 +131,11 @@ esp_err_t LEDMatrix::init() {
     m_drivers[5] = new AW20216S("aw5", SPI_HANDLE(L5_SPI), L5_CS, &m_buffer[kBufferOffsets[5]], L5_ROWS); ESP_RETURN_ON_ERROR(m_drivers[5]->init(), kTag, "L5 init failed");
     m_drivers[6] = new AW20216S("aw6", SPI_HANDLE(L6_SPI), L6_CS, &m_buffer[kBufferOffsets[6]], L6_ROWS); ESP_RETURN_ON_ERROR(m_drivers[6]->init(), kTag, "L6 init failed");
     m_drivers[7] = new AW20216S("aw7", SPI_HANDLE(L7_SPI), L7_CS, &m_buffer[kBufferOffsets[7]], L7_ROWS); ESP_RETURN_ON_ERROR(m_drivers[7]->init(), kTag, "L7 init failed");
-
+#if CONFIG_IDF_TARGET_ESP32S3
+    m_drivers[8] = new AW20216S("aw8", SPI_HANDLE(L8_SPI), L8_CS, &m_buffer[kBufferOffsets[8]], L8_ROWS); ESP_RETURN_ON_ERROR(m_drivers[8]->init(), kTag, "L8 init failed");
+    m_drivers[9] = new AW20216S("aw9", SPI_HANDLE(L9_SPI), L9_CS, &m_buffer[kBufferOffsets[9]], L9_ROWS); ESP_RETURN_ON_ERROR(m_drivers[9]->init(), kTag, "L9 init failed");
+    m_drivers[10] = new AW20216S("aw10", SPI_HANDLE(L10_SPI), L10_CS, &m_buffer[kBufferOffsets[10]], L10_ROWS); ESP_RETURN_ON_ERROR(m_drivers[10]->init(), kTag, "L10 init failed");
+#endif
     return ESP_OK;
 }
 
@@ -196,7 +208,7 @@ esp_err_t LEDMatrix::fill(colour_t colour) {
 esp_err_t LEDMatrix::update() {
     /* TODO: more intelligent updating */
     acquireBuffer();
-    for (int i = 0; i < 8; i++) {
+    for (int i = 0; i < NUM_DRIVERS; i++) {
         ESP_RETURN_ON_ERROR(m_drivers[i]->update(), kTag, "updating L%d failed", i);
     }
     releaseBuffer();

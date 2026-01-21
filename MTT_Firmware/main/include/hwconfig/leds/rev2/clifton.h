@@ -1,0 +1,130 @@
+/* Clifton Hill (Hurstbridge and Mernda) lines */
+
+#pragma once
+
+#include "hwconfig/led_matrix.h"
+
+/* Mernda line */
+#define LMAT_MERNDA_MDD                                 LMAT_BASE(5, 1, 0)
+#define LMAT_MERNDA_MDD_ALT                             LMAT_BASE(5, 3, 0)
+#define LMAT_MERNDA_HWS                                 LMAT_BASE(5, 5, 0)
+#define LMAT_MERNDA_HWS_ALT                             LMAT_BASE(5, 7, 0)
+#define LMAT_MERNDA_MMR                                 LMAT_BASE(5, 9, 0)
+#define LMAT_MERNDA_MMR_ALT                             LMAT_BASE(5, 11, 0)
+#define LMAT_MERNDA_SMG                                 LMAT_BASE(5, 1, 1)
+#define LMAT_MERNDA_SMG_ALT                             LMAT_BASE(5, 3, 1)
+#define LMAT_MERNDA_EPP                                 LMAT_BASE(5, 5, 1)
+#define LMAT_MERNDA_EPP_ALT                             LMAT_BASE(5, 7, 1)
+#define LMAT_MERNDA_LAL                                 LMAT_BASE(5, 9, 1)
+#define LMAT_MERNDA_LAL_ALT                             LMAT_BASE(5, 11, 1)
+#define LMAT_MERNDA_TSN                                 LMAT_BASE(5, 1, 5)
+#define LMAT_MERNDA_TSN_ALT                             LMAT_BASE(5, 3, 5)
+#define LMAT_MERNDA_KPK                                 LMAT_BASE(5, 5, 5)
+#define LMAT_MERNDA_KPK_ALT                             LMAT_BASE(5, 7, 5)
+#define LMAT_MERNDA_RUT                                 LMAT_BASE(5, 9, 5)
+#define LMAT_MERNDA_RUT_ALT                             LMAT_BASE(5, 11, 5)
+#define LMAT_MERNDA_RES                                 LMAT_BASE(5, 1, 3)
+#define LMAT_MERNDA_RES_ALT                             LMAT_BASE(5, 3, 3)
+#define LMAT_MERNDA_REG                                 LMAT_BASE(5, 5, 3)
+#define LMAT_MERNDA_REG_ALT                             LMAT_BASE(5, 7, 3)
+#define LMAT_MERNDA_PRE                                 LMAT_BASE(5, 9, 3)
+#define LMAT_MERNDA_PRE_ALT                             LMAT_BASE(5, 11, 3)
+#define LMAT_MERNDA_BEL                                 LMAT_BASE(5, 11, 2)
+#define LMAT_MERNDA_BEL_ALT                             LMAT_BASE(5, 9, 2)
+#define LMAT_MERNDA_TBY                                 LMAT_BASE(5, 7, 2)
+#define LMAT_MERNDA_TBY_ALT                             LMAT_BASE(5, 5, 2)
+#define LMAT_MERNDA_CXT                                 LMAT_BASE(5, 3, 2)
+#define LMAT_MERNDA_CXT_ALT                             LMAT_BASE(5, 1, 2)
+#define LMAT_MERNDA_NCE                                 LMAT_BASE(5, 0, 2)
+#define LMAT_MERNDA_NCE_ALT                             LMAT_BASE(5, 2, 2)
+#define LMAT_MERNDA_MER                                 LMAT_BASE(5, 4, 2)
+#define LMAT_MERNDA_MER_ALT                             LMAT_BASE(5, 6, 2)
+#define LMAT_MERNDA_RUS                                 LMAT_BASE(5, 8, 2)
+#define LMAT_MERNDA_RUS_ALT                             LMAT_BASE(5, 10, 2)
+
+/* Hurstbridge line */
+#define LMAT_HURSTBRIDGE_HBE                            LMAT_BASE(6, 11, 0)
+#define LMAT_HURSTBRIDGE_HBE_ALT                        LMAT_BASE(6, 9, 0)
+#define LMAT_HURSTBRIDGE_WTT                            LMAT_BASE(6, 7, 0)
+#define LMAT_HURSTBRIDGE_WTT_ALT                        LMAT_BASE(6, 5, 0)
+#define LMAT_HURSTBRIDGE_DCK                            LMAT_BASE(6, 3, 0)
+#define LMAT_HURSTBRIDGE_DCK_ALT                        LMAT_BASE(6, 1, 0)
+#define LMAT_HURSTBRIDGE_ELT                            LMAT_BASE(6, 11, 1)
+#define LMAT_HURSTBRIDGE_ELT_ALT                        LMAT_BASE(6, 9, 1)
+#define LMAT_HURSTBRIDGE_MMY                            LMAT_BASE(6, 7, 1)
+#define LMAT_HURSTBRIDGE_MMY_ALT                        LMAT_BASE(6, 5, 1)
+#define LMAT_HURSTBRIDGE_GRN                            LMAT_BASE(6, 3, 1)
+#define LMAT_HURSTBRIDGE_GRN_ALT                        LMAT_BASE(6, 1, 1)
+#define LMAT_HURSTBRIDGE_WAT                            LMAT_BASE(6, 11, 2)
+#define LMAT_HURSTBRIDGE_WAT_ALT                        LMAT_BASE(6, 9, 2)
+#define LMAT_HURSTBRIDGE_MCD                            LMAT_BASE(6, 7, 2)
+#define LMAT_HURSTBRIDGE_MCD_ALT                        LMAT_BASE(6, 5, 2)
+#define LMAT_HURSTBRIDGE_ROS                            LMAT_BASE(6, 3, 2)
+#define LMAT_HURSTBRIDGE_ROS_ALT                        LMAT_BASE(6, 1, 2)
+#define LMAT_HURSTBRIDGE_HDB                            LMAT_BASE(7, 11, 0)
+#define LMAT_HURSTBRIDGE_HDB_ALT                        LMAT_BASE(7, 9, 0)
+#define LMAT_HURSTBRIDGE_EAG                            LMAT_BASE(7, 7, 0)
+#define LMAT_HURSTBRIDGE_EAG_ALT                        LMAT_BASE(7, 5, 0)
+#define LMAT_HURSTBRIDGE_IVA                            LMAT_BASE(7, 3, 0)
+#define LMAT_HURSTBRIDGE_IVA_ALT                        LMAT_BASE(7, 1, 0)
+#define LMAT_HURSTBRIDGE_DBN                            LMAT_BASE(7, 0, 0)
+#define LMAT_HURSTBRIDGE_DBN_ALT                        LMAT_BASE(7, 2, 0)
+#define LMAT_HURSTBRIDGE_ALP                            LMAT_BASE(7, 4, 0)
+#define LMAT_HURSTBRIDGE_ALP_ALT                        LMAT_BASE(7, 6, 0)
+#define LMAT_HURSTBRIDGE_FFD                            LMAT_BASE(7, 8, 0)
+#define LMAT_HURSTBRIDGE_FFD_ALT                        LMAT_BASE(7, 10, 0)
+#define LMAT_HURSTBRIDGE_DEN                            LMAT_BASE(7, 11, 1)
+#define LMAT_HURSTBRIDGE_DEN_ALT                        LMAT_BASE(7, 9, 1)
+#define LMAT_HURSTBRIDGE_WTG                            LMAT_BASE(7, 7, 1)
+#define LMAT_HURSTBRIDGE_WTG_ALT                        LMAT_BASE(7, 5, 1)
+
+/* Clifton Hill shared track */
+#define LMAT_CLIFTON_CHL                                LMAT_BASE(7, 3, 1)
+#define LMAT_CLIFTON_CHL_ALT                            LMAT_BASE(7, 1, 1)
+#define LMAT_CLIFTON_VPK                                LMAT_BASE(7, 0, 1)
+#define LMAT_CLIFTON_VPK_ALT                            LMAT_BASE(7, 2, 1)
+#define LMAT_CLIFTON_CWD                                LMAT_BASE(7, 4, 1)
+#define LMAT_CLIFTON_CWD_ALT                            LMAT_BASE(7, 6, 1)
+#define LMAT_CLIFTON_NRM                                LMAT_BASE(7, 8, 1)
+#define LMAT_CLIFTON_NRM_ALT                            LMAT_BASE(7, 10, 1)
+#define LMAT_CLIFTON_WRM                                LMAT_BASE(7, 5, 2)
+#define LMAT_CLIFTON_WRM_ALT                            LMAT_BASE(7, 7, 2)
+#define LMAT_CLIFTON_JLI                                LMAT_BASE(7, 9, 2)
+#define LMAT_CLIFTON_JLI_ALT                            LMAT_BASE(7, 11, 2)
+
+/* city stations */
+#define LMAT_CLIFTON_SSS                                LMAT_BASE(3, 8, 0)
+#define LMAT_CLIFTON_SSS_ALT                            LMAT_BASE(3, 9, 0)
+#define LMAT_CLIFTON_FGS                                LMAT_BASE(3, 1, 4)
+#define LMAT_CLIFTON_FGS_ALT                            LMAT_BASE(3, 8, 4)
+#define LMAT_CLIFTON_MCE                                LMAT_BASE(3, 1, 5)
+#define LMAT_CLIFTON_MCE_ALT                            LMAT_BASE(3, 4, 5)
+#define LMAT_CLIFTON_PAR                                LMAT_BASE(3, 4, 2)
+#define LMAT_CLIFTON_PAR_ALT                            LMAT_BASE(3, 1, 2)
+#define LMAT_CLIFTON_FSS                                LMAT_BASE(3, 9, 1)
+#define LMAT_CLIFTON_FSS_CIRC                           LMAT_BASE(3, 4, 1) // City Circle via Clifton Hill tunnel
+
+#define LMAT_CLIFTON \
+    LMAT_MERNDA_MDD, LMAT_MERNDA_MDD_ALT, LMAT_MERNDA_HWS, LMAT_MERNDA_HWS_ALT, \
+    LMAT_MERNDA_MMR, LMAT_MERNDA_MMR_ALT, LMAT_MERNDA_SMG, LMAT_MERNDA_SMG_ALT, \
+    LMAT_MERNDA_EPP, LMAT_MERNDA_EPP_ALT, LMAT_MERNDA_LAL, LMAT_MERNDA_LAL_ALT, \
+    LMAT_MERNDA_TSN, LMAT_MERNDA_TSN_ALT, LMAT_MERNDA_KPK, LMAT_MERNDA_KPK_ALT, \
+    LMAT_MERNDA_RUT, LMAT_MERNDA_RUT_ALT, LMAT_MERNDA_RES, LMAT_MERNDA_RES_ALT, \
+    LMAT_MERNDA_REG, LMAT_MERNDA_REG_ALT, LMAT_MERNDA_PRE, LMAT_MERNDA_PRE_ALT, \
+    LMAT_MERNDA_BEL, LMAT_MERNDA_BEL_ALT, LMAT_MERNDA_TBY, LMAT_MERNDA_TBY_ALT, \
+    LMAT_MERNDA_CXT, LMAT_MERNDA_CXT_ALT, LMAT_MERNDA_NCE, LMAT_MERNDA_NCE_ALT, \
+    LMAT_MERNDA_MER, LMAT_MERNDA_MER_ALT, LMAT_MERNDA_RUS, LMAT_MERNDA_RUS_ALT, \
+    LMAT_HURSTBRIDGE_HBE, LMAT_HURSTBRIDGE_HBE_ALT, LMAT_HURSTBRIDGE_WTT, LMAT_HURSTBRIDGE_WTT_ALT, \
+    LMAT_HURSTBRIDGE_DCK, LMAT_HURSTBRIDGE_DCK_ALT, LMAT_HURSTBRIDGE_ELT, LMAT_HURSTBRIDGE_ELT_ALT, \
+    LMAT_HURSTBRIDGE_MMY, LMAT_HURSTBRIDGE_MMY_ALT, LMAT_HURSTBRIDGE_GRN, LMAT_HURSTBRIDGE_GRN_ALT, \
+    LMAT_HURSTBRIDGE_WAT, LMAT_HURSTBRIDGE_WAT_ALT, LMAT_HURSTBRIDGE_MCD, LMAT_HURSTBRIDGE_MCD_ALT, \
+    LMAT_HURSTBRIDGE_ROS, LMAT_HURSTBRIDGE_ROS_ALT, LMAT_HURSTBRIDGE_HDB, LMAT_HURSTBRIDGE_HDB_ALT, \
+    LMAT_HURSTBRIDGE_EAG, LMAT_HURSTBRIDGE_EAG_ALT, LMAT_HURSTBRIDGE_IVA, LMAT_HURSTBRIDGE_IVA_ALT, \
+    LMAT_HURSTBRIDGE_DBN, LMAT_HURSTBRIDGE_DBN_ALT, LMAT_HURSTBRIDGE_ALP, LMAT_HURSTBRIDGE_ALP_ALT, \
+    LMAT_HURSTBRIDGE_FFD, LMAT_HURSTBRIDGE_FFD_ALT, LMAT_HURSTBRIDGE_DEN, LMAT_HURSTBRIDGE_DEN_ALT, \
+    LMAT_HURSTBRIDGE_WTG, LMAT_HURSTBRIDGE_WTG_ALT, LMAT_CLIFTON_CHL, LMAT_CLIFTON_CHL_ALT, \
+    LMAT_CLIFTON_VPK, LMAT_CLIFTON_VPK_ALT, LMAT_CLIFTON_CWD, LMAT_CLIFTON_CWD_ALT, \
+    LMAT_CLIFTON_NRM, LMAT_CLIFTON_NRM_ALT, LMAT_CLIFTON_WRM, LMAT_CLIFTON_WRM_ALT, \
+    LMAT_CLIFTON_JLI, LMAT_CLIFTON_JLI_ALT, LMAT_CLIFTON_SSS, LMAT_CLIFTON_SSS_ALT, \
+    LMAT_CLIFTON_FGS, LMAT_CLIFTON_FGS_ALT, LMAT_CLIFTON_MCE, LMAT_CLIFTON_MCE_ALT, \
+    LMAT_CLIFTON_PAR, LMAT_CLIFTON_PAR_ALT, LMAT_CLIFTON_FSS

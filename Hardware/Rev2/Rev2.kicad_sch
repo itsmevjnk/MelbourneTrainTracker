@@ -1,0 +1,224 @@
+(kicad_sch
+	(version 20250114)
+	(generator "eeschema")
+	(generator_version "9.0")
+	(uuid "179c1fb3-28fd-4881-8d54-9aff58c09fe4")
+	(paper "A4")
+	(lib_symbols)
+	(sheet
+		(at 15.24 38.1)
+		(size 12.7 5.08)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "26ba574e-578b-4511-8ee6-201497546110")
+		(property "Sheetname" "LED matrix (3)"
+			(at 15.24 37.3884 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "led3.kicad_sch"
+			(at 15.24 43.7646 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "Rev2"
+				(path "/179c1fb3-28fd-4881-8d54-9aff58c09fe4"
+					(page "4")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 15.24 27.94)
+		(size 12.7 5.08)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "51dd055d-8a9a-4d31-b912-88054cb6e20b")
+		(property "Sheetname" "LED matrix (2)"
+			(at 15.24 27.2284 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "city.kicad_sch"
+			(at 15.24 33.6046 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "Rev2"
+				(path "/179c1fb3-28fd-4881-8d54-9aff58c09fe4"
+					(page "3")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 15.24 58.42)
+		(size 12.7 5.08)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "a439bf26-855a-431e-bb37-b656be58d856")
+		(property "Sheetname" "Control"
+			(at 15.24 57.7084 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "ctrl.kicad_sch"
+			(at 15.24 64.0846 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "Rev2"
+				(path "/179c1fb3-28fd-4881-8d54-9aff58c09fe4"
+					(page "6")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 15.24 48.26)
+		(size 12.7 5.08)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "c3a2fec9-b354-4f0d-9659-251f6a91de08")
+		(property "Sheetname" "LED matrix (4)"
+			(at 15.24 47.5484 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "led4.kicad_sch"
+			(at 15.24 53.9246 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "Rev2"
+				(path "/179c1fb3-28fd-4881-8d54-9aff58c09fe4"
+					(page "5")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 15.24 17.78)
+		(size 12.7 5.08)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "d9a7d302-1bd2-4b0b-9e3e-17426de635d0")
+		(property "Sheetname" "LED matrix (1)"
+			(at 15.24 17.0684 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "vline_west.kicad_sch"
+			(at 15.24 23.4446 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "Rev2"
+				(path "/179c1fb3-28fd-4881-8d54-9aff58c09fe4"
+					(page "2")
+				)
+			)
+		)
+	)
+	(sheet_instances
+		(path "/"
+			(page "1")
+		)
+	)
+	(embedded_fonts no)
+)

@@ -2,7 +2,7 @@
 
 <html lang="en">
     <head>
-        <title>Melbourne Train Tracker</title>
+        <title>Victorian Train Tracker</title>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link href="bootstrap.min.css" rel="stylesheet">
@@ -10,7 +10,7 @@
     <body>
         <div class="container">
             <header>
-                <h1 class="my-4">Melbourne Train Tracker</h1>
+                <h1 class="my-4">Victorian Train Tracker</h1>
             </header>
             <section class="row">
                 <h2 class="my-2">Settings</h2>
@@ -89,7 +89,13 @@
                 BDE: "Bairnsdale via Pakenham",
                 TRN: "Traralgon via Pakenham",
                 GEL: "Geelong via Wyndham Vale",
-                WBL: "Warrnambool via Wyndham Vale"
+                WBL: "Warrnambool via Wyndham Vale",
+                BGO: "Bendigo via Sunbury",
+                SWL: "Swan Hill via Sunbury",
+                ECH: "Echuca via Sunbury",
+                SER: "Seymour via Craigieburn",
+                SNH: "Shepparton via Craigieburn",
+                ABY: "Albury via Craigieburn"
             };
             const lineBoxes = document.getElementById('lines');
             const enableLine = (line) => fetch(`http://${host}/lines?l=${line}`, {method: 'PUT'});
@@ -100,7 +106,7 @@
             }
             const board = document.getElementById('bview');
             const updateBoardHeight = () => {
-                board.setAttribute('height', board.clientWidth / 423.5 * 402.4 + 'px');
+                board.style.height = board.contentWindow.document.documentElement.scrollHeight + "px";
             };
             window.addEventListener('load', updateBoardHeight);
             window.addEventListener('resize', updateBoardHeight);

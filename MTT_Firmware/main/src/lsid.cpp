@@ -39,7 +39,7 @@ uint16_t LSID::getLED(infraid_t line, infraid_t code) {
         case INFRAID_WBL: return gelGetLED(code); // Warrnambool
 
 #if LMAT_VLINE_HAS_BENDIGO
-        case INFRAID_BGO: return swlGetLED(code); // Bendigo
+        case INFRAID_BGO: return echGetLED(code); // Bendigo
         case INFRAID_SWL: return swlGetLED(code); // Swan Hill
         case INFRAID_ECH: return echGetLED(code); // Echuca
 #endif
@@ -102,7 +102,7 @@ size_t LSID::getLEDsBetween(infraid_t line, infraid_t fromCode, infraid_t toCode
         case INFRAID_WBL: return gelGetLEDsBetween(fromCode, toCode, buffer, maxLength); // Warrnambool
 
 #if LMAT_VLINE_HAS_BENDIGO
-        case INFRAID_BGO: return swlGetLEDsBetween(fromCode, toCode, buffer, maxLength); // Bendigo
+        case INFRAID_BGO: return echGetLEDsBetween(fromCode, toCode, buffer, maxLength); // Bendigo
         case INFRAID_SWL: return swlGetLEDsBetween(fromCode, toCode, buffer, maxLength); // Swan Hill
         case INFRAID_ECH: return echGetLEDsBetween(fromCode, toCode, buffer, maxLength); // Echuca
 #endif

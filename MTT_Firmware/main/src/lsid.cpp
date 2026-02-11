@@ -150,8 +150,8 @@ colour_t LSID::getLineColour(infraid_t line) {
 
         case INFRAID_STY: return kFrankston;
         case INFRAID_FKN: return kFrankston;
-        case INFRAID_WIL: return kFrankston; // TODO
-        case INFRAID_WER: return kFrankston; // TODO
+        case INFRAID_WIL: return kSandringham;
+        case INFRAID_WER: return kSandringham;
 
         case INFRAID_CGB: return kNorthern;
         case INFRAID_SUY: return kNorthern;

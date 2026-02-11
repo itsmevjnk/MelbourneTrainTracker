@@ -27,12 +27,15 @@ static const station_t kNewportSEN = { LMAT_NEWPORT_SEN, LMAT_NEWPORT_SEN_ALT };
 static const station_t kNewportFSY = { LMAT_NEWPORT_FSY, LMAT_NEWPORT_FSY_ALT };
 static const station_t kNewportSKN = { LMAT_NEWPORT_SKN, LMAT_NEWPORT_SKN_ALT };
 static const station_t kNewportNME = { LMAT_NEWPORT_NME, LMAT_NEWPORT_NME_ALT };
-
-/* Southern Cross Station */
-static const station_t kCrossCitySSS = { LMAT_NEWPORT_SSS, LMAT_NEWPORT_SSS_ALT };
-
-/* Flinders Street Station */
-static const station_t kCrossCityFSS = { LMAT_FRANKSTON_FSS, LMAT_NEWPORT_SSS_ALT }; // alt LED for Frankston services running up to SSS (as reported by PTV API?)
+static const station_t kNewportSSS = {
+    LMAT_NEWPORT_SSS,
+#ifdef LMAT_NEWPORT_SSS_ALT_SHM // because Rev1 boards don't have this LED
+    LMAT_NEWPORT_SSS_ALT_SHM
+#else
+    LMAT_NEWPORT_SSS_ALT
+#endif
+};
+static const station_t kNewportFSS = { LMAT_SANDRINGHAM_FSS, LMAT_NULL }; // joins up to Sandringham line
 
 // NOTE: cross city services change line at Flinders St (according to GTFS timetable)
 
@@ -40,7 +43,7 @@ static const station_t* kWerribeeStations[] = {
     &kWerribeeWER, &kWerribeeHCG, &kWerribeeWLD, &kWerribeeACF, &kWerribeeLAV,
     &kWerribeeWTO, &kWerribeeALT, &kWerribeeSHE, // Altona Loop - NOTE: special case for LAV and NPT on WBE line
     &kNewportNPT, &kNewportSPT, &kNewportYVE, &kNewportSEN, &kNewportFSY, &kNewportSKN, &kNewportNME,
-    &kCrossCitySSS, &kCrossCityFSS,
+    &kNewportSSS, &kNewportFSS,
 };
 static const infraid_t kWerribeeCodes[] = {
     INFRAID_WER, INFRAID_HCG, INFRAID_WLD, INFRAID_ACF, INFRAID_LAV, INFRAID_WTO, INFRAID_ALT, INFRAID_SHE,
@@ -76,7 +79,7 @@ size_t LSID::werGetLEDsBetween(infraid_t fromCode, infraid_t toCode, uint16_t* b
 static const station_t* kWilliamstownStations[] = {
     &kWilliamstownWIL, &kWilliamstownWBH, &kWilliamstownNWN,
     &kNewportNPT, &kNewportSPT, &kNewportYVE, &kNewportSEN, &kNewportFSY, &kNewportSKN, &kNewportNME,
-    &kCrossCitySSS, &kCrossCityFSS,
+    &kNewportSSS, &kNewportFSS,
 };
 static const infraid_t kWilliamstownCodes[] = {
     INFRAID_WIL, INFRAID_WBH, INFRAID_NWN,

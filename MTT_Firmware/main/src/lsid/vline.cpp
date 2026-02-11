@@ -73,7 +73,7 @@ static const station_t kGippslandFSS = { LMAT_GIPPSLAND_FSS, LMAT_VLWEST_SSS_ALT
 #if LMAT_VLINE_HAS_REGIONAL
 static const station_t kGippslandNNG = { LMAT_GIPPSLAND_NNG, LMAT_GIPPSLAND_NNG_ALT };
 static const station_t kGippslandTYN = { LMAT_GIPPSLAND_TYN, LMAT_GIPPSLAND_TYN_ALT };
-static const station_t kGippslandGARV = { LMAT_GIPPSLAND_GARV, LMAT_GIPPSLAND_GARV_ALT };
+static const station_t kGippslandGFD = { LMAT_GIPPSLAND_GFD, LMAT_GIPPSLAND_GFD_ALT };
 static const station_t kGippslandBYP = { LMAT_GIPPSLAND_BYP, LMAT_GIPPSLAND_BYP_ALT };
 static const station_t kGippslandLWY = { LMAT_GIPPSLAND_LWY, LMAT_GIPPSLAND_LWY_ALT };
 static const station_t kGippslandDRN = { LMAT_GIPPSLAND_DRN, LMAT_GIPPSLAND_DRN_ALT };
@@ -170,7 +170,7 @@ static const station_t* kGippslandStations[] = {
     &kGippslandBDE, &kGippslandSTD, &kGippslandSAE, &kGippslandROE, 
     &kGippslandTRN, &kGippslandMWL, &kGippslandMOE, &kGippslandTAR, 
     &kGippslandYON, &kGippslandWGL, &kGippslandDRN, &kGippslandLWY, 
-    &kGippslandBYP, &kGippslandGARV, &kGippslandTYN, &kGippslandNNG,
+    &kGippslandBYP, &kGippslandGFD, &kGippslandTYN, &kGippslandNNG,
 #endif
     &kGippslandPKM, &kGippslandBEW, &kGippslandDNG, &kGippslandCLA, 
     &kGippslandCFD, &kGippslandRMD, &kGippslandFSS, &kVLineSSS
@@ -180,7 +180,7 @@ static const infraid_t kGippslandCodes[] = {
     INFRAID_BDE, INFRAID_STD, INFRAID_SAE, INFRAID_ROE,
     INFRAID_TRN, INFRAID_MWL, INFRAID_MOE, INFRAID_TAR,
     INFRAID_YON, INFRAID_WGL, INFRAID_DRN, INFRAID_LWY,
-    INFRAID_BYP, INFRAID_GARV, INFRAID_TYN, INFRAID_NNG,
+    INFRAID_BYP, INFRAID_GFD, INFRAID_TYN, INFRAID_NNG,
 #endif
     INFRAID_PKM, INFRAID_BEW, INFRAID_DNG, INFRAID_CLA, 
     INFRAID_CFD, INFRAID_RMD, INFRAID_FSS, INFRAID_SSS
@@ -204,7 +204,7 @@ static const station_t kSwanHillKER = { LMAT_SWANHILL_KER, LMAT_SWANHILL_KER_ALT
 static const station_t kSwanHillPYD = { LMAT_SWANHILL_PYD, LMAT_SWANHILL_PYD_ALT };
 static const station_t kSwanHillDGE = { LMAT_SWANHILL_DGE, LMAT_SWANHILL_DGE_ALT };
 static const station_t kSwanHillRAY = { LMAT_SWANHILL_RAY, LMAT_SWANHILL_RAY_ALT };
-static const station_t kSwanHillEAGV = { LMAT_SWANHILL_EAGV, LMAT_SWANHILL_EAGV_ALT };
+static const station_t kSwanHillEHK = { LMAT_SWANHILL_EHK, LMAT_SWANHILL_EHK_ALT };
 
 /* Echuca line */
 static const station_t kEchucaECH = { LMAT_ECHUCA_ECH, LMAT_ECHUCA_ECH_ALT };
@@ -231,7 +231,7 @@ static const station_t kBendigoWGS = { LMAT_BENDIGO_WGS, LMAT_BENDIGO_WGS_ALT };
 
 static const station_t* kSwanHillStations[] = {
 #if LMAT_VLINE_HAS_REGIONAL
-    &kSwanHillSWL, &kSwanHillKER, &kSwanHillPYD, &kSwanHillDGE, &kSwanHillRAY, &kSwanHillEAGV,
+    &kSwanHillSWL, &kSwanHillKER, &kSwanHillPYD, &kSwanHillDGE, &kSwanHillRAY, &kSwanHillEHK,
     &kBendigoBGO, &kBendigoKFT, &kBendigoCME, &kBendigoMBY, &kBendigoKYN, &kBendigoWNO, &kBendigoMDN, &kBendigoGIS, &kBendigoRIK, &kBendigoCKF,
 #endif
     &kBendigoSUY, &kBendigoWGS, 
@@ -240,7 +240,7 @@ static const station_t* kSwanHillStations[] = {
 
 static const infraid_t kSwanHillCodes[] = {
 #if LMAT_VLINE_HAS_REGIONAL
-    INFRAID_SWL, INFRAID_KER, INFRAID_PYD, INFRAID_DGE, INFRAID_RAY, INFRAID_EAGV,
+    INFRAID_SWL, INFRAID_KER, INFRAID_PYD, INFRAID_DGE, INFRAID_RAY, INFRAID_EHK,
     INFRAID_BGO, INFRAID_KFT, INFRAID_CME, INFRAID_MBY, INFRAID_KYN, INFRAID_WNO, INFRAID_MDN, INFRAID_GIS, INFRAID_RIK, INFRAID_CKF,
 #endif
     INFRAID_SUY, INFRAID_WGS, 

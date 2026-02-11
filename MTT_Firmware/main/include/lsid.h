@@ -287,7 +287,7 @@ typedef uint32_t infraid_t;
 #define INFRAID_DRN                                 INFRAID("DRN ")
 #define INFRAID_LWY                                 INFRAID("LWY ")
 #define INFRAID_BYP                                 INFRAID("BYP ")
-#define INFRAID_GARV                                INFRAID("GARV")
+#define INFRAID_GARV                                INFRAID("GARV") // former station code for Garfield station
 #define INFRAID_TYN                                 INFRAID("TYN ")
 #define INFRAID_NNG                                 INFRAID("NNG ")
 #define INFRAID_SWL                                 INFRAID("SWL ")
@@ -295,7 +295,7 @@ typedef uint32_t infraid_t;
 #define INFRAID_PYD                                 INFRAID("PYD ")
 #define INFRAID_DGE                                 INFRAID("DGE ")
 #define INFRAID_RAY                                 INFRAID("RAY ")
-#define INFRAID_EAGV                                INFRAID("EAGV")
+#define INFRAID_EAGV                                INFRAID("EAGV") // former station code for Eaglehawk station
 #define INFRAID_BGO                                 INFRAID("BGO ")
 #define INFRAID_KFT                                 INFRAID("KFT ")
 #define INFRAID_CME                                 INFRAID("CME ")
@@ -333,6 +333,8 @@ typedef uint32_t infraid_t;
 #define INFRAID_VTN                                 INFRAID("VTN ")
 #define INFRAID_EOA                                 INFRAID("EOA ")
 #define INFRAID_AVL                                 INFRAID("AVL ")
+#define INFRAID_EHK                                 INFRAID("EHK ") // Eaglehawk
+#define INFRAID_GFD                                 INFRAID("GFD ") // Garfield
 
 /* NEW: Metro Tunnel stations */
 #define INFRAID_ARN                                 INFRAID("ARN ") // Arden

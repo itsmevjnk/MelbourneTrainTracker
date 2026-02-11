@@ -113,8 +113,8 @@
 #define LMAT_GIPPSLAND_NNG_ALT                          LMAT_BASE(10, 11, 1)
 #define LMAT_GIPPSLAND_TYN                              LMAT_BASE(10, 5, 1)
 #define LMAT_GIPPSLAND_TYN_ALT                          LMAT_BASE(10, 7, 1)
-#define LMAT_GIPPSLAND_GARV                             LMAT_BASE(10, 1, 1)
-#define LMAT_GIPPSLAND_GARV_ALT                         LMAT_BASE(10, 3, 1)
+#define LMAT_GIPPSLAND_GFD                              LMAT_BASE(10, 1, 1)
+#define LMAT_GIPPSLAND_GFD_ALT                          LMAT_BASE(10, 3, 1)
 #define LMAT_GIPPSLAND_BYP                              LMAT_BASE(10, 2, 1)
 #define LMAT_GIPPSLAND_BYP_ALT                          LMAT_BASE(10, 0, 1)
 #define LMAT_GIPPSLAND_LWY                              LMAT_BASE(10, 8, 1)
@@ -167,8 +167,8 @@
 #define LMAT_SWANHILL_DGE_ALT                           LMAT_BASE(0, 3, 1)
 #define LMAT_SWANHILL_RAY                               LMAT_BASE(0, 5, 1)
 #define LMAT_SWANHILL_RAY_ALT                           LMAT_BASE(0, 7, 1)
-#define LMAT_SWANHILL_EAGV                              LMAT_BASE(0, 9, 1)
-#define LMAT_SWANHILL_EAGV_ALT                          LMAT_BASE(0, 11, 1)
+#define LMAT_SWANHILL_EHK                               LMAT_BASE(0, 9, 1)
+#define LMAT_SWANHILL_EHK_ALT                           LMAT_BASE(0, 11, 1)
 
 /* Bendigo shared track */
 #define LMAT_BENDIGO_BGO                                LMAT_BASE(0, 0, 2)
@@ -277,7 +277,7 @@
     LMAT_GIPPSLAND_CFD_ALT, LMAT_GIPPSLAND_CLA, LMAT_GIPPSLAND_CLA_ALT, LMAT_GIPPSLAND_DNG, \
     LMAT_GIPPSLAND_DNG_ALT, LMAT_GIPPSLAND_BEW, LMAT_GIPPSLAND_BEW_ALT, LMAT_GIPPSLAND_PKM, \
     LMAT_GIPPSLAND_PKM_ALT, LMAT_GIPPSLAND_NNG, LMAT_GIPPSLAND_NNG_ALT, LMAT_GIPPSLAND_TYN, \
-    LMAT_GIPPSLAND_TYN_ALT, LMAT_GIPPSLAND_GARV, LMAT_GIPPSLAND_GARV_ALT, LMAT_GIPPSLAND_BYP, \
+    LMAT_GIPPSLAND_TYN_ALT, LMAT_GIPPSLAND_GFD, LMAT_GIPPSLAND_GFD_ALT, LMAT_GIPPSLAND_BYP, \
     LMAT_GIPPSLAND_BYP_ALT, LMAT_GIPPSLAND_LWY, LMAT_GIPPSLAND_LWY_ALT, LMAT_GIPPSLAND_DRN, \
     LMAT_GIPPSLAND_DRN_ALT, LMAT_GIPPSLAND_WGL, LMAT_GIPPSLAND_WGL_ALT, LMAT_GIPPSLAND_YON, \
     LMAT_GIPPSLAND_YON_ALT, LMAT_GIPPSLAND_TAR, LMAT_GIPPSLAND_TAR_ALT, LMAT_GIPPSLAND_MOE, \

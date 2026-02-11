@@ -343,7 +343,7 @@ static const station_t kSheppartonNGE = { LMAT_SHEPPARTON_NGE, LMAT_SHEPPARTON_N
 static const station_t kAlburyABY = { LMAT_ALBURY_ABY, LMAT_ALBURY_ABY_ALT };
 static const station_t kAlburyWOD = { LMAT_ALBURY_WOD, LMAT_ALBURY_WOD_ALT };
 static const station_t kAlburyCHI = { LMAT_ALBURY_CHI, LMAT_ALBURY_CHI_ALT };
-static const station_t kAlburySPTV = { LMAT_ALBURY_SPTV, LMAT_ALBURY_SPTV_ALT };
+static const station_t kAlburySHT = { LMAT_ALBURY_SHT, LMAT_ALBURY_SHT_ALT };
 static const station_t kAlburyWRT = { LMAT_ALBURY_WRT, LMAT_ALBURY_WRT_ALT };
 static const station_t kAlburyBXA = { LMAT_ALBURY_BXA, LMAT_ALBURY_BXA_ALT };
 static const station_t kAlburyVTN = { LMAT_ALBURY_VTN, LMAT_ALBURY_VTN_ALT };
@@ -395,14 +395,14 @@ size_t LSID::snhGetLEDsBetween(infraid_t fromCode, infraid_t toCode, uint16_t* b
 
 #if LMAT_VLINE_HAS_REGIONAL
 static const station_t* kAlburyStations[] = {
-    &kAlburyABY, &kAlburyWOD, &kAlburyCHI, &kAlburySPTV, &kAlburyWRT, &kAlburyBXA, &kAlburyVTN, &kAlburyEOA, &kAlburyAVL,
+    &kAlburyABY, &kAlburyWOD, &kAlburyCHI, &kAlburySHT, &kAlburyWRT, &kAlburyBXA, &kAlburyVTN, &kAlburyEOA, &kAlburyAVL,
     &kSeymourSER, &kSeymourTOK, &kSeymourBRF, &kSeymourKET, &kSeymourWDG, &kSeymourHCJ, &kSeymourWAN, &kSeymourDBK,
     &kSeymourCGB, &kSeymourBMS, &kSeymourESD, &kSeymourNME,
     &kVLineSSS
 };
 
 static const infraid_t kAlburyCodes[] = {
-    INFRAID_ABY, INFRAID_WOD, INFRAID_CHI, INFRAID_SPTV, INFRAID_WRT, INFRAID_BXA, INFRAID_VTN, INFRAID_EOA, INFRAID_AVL,
+    INFRAID_ABY, INFRAID_WOD, INFRAID_CHI, INFRAID_SHT, INFRAID_WRT, INFRAID_BXA, INFRAID_VTN, INFRAID_EOA, INFRAID_AVL,
     INFRAID_SER, INFRAID_TOK, INFRAID_BRF, INFRAID_KET, INFRAID_WDG, INFRAID_HCJ, INFRAID_WAN, INFRAID_DBK,
     INFRAID_CGB, INFRAID_BMS, INFRAID_ESD, INFRAID_NME,
     INFRAID_SSS

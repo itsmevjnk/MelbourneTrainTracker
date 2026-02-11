@@ -327,7 +327,7 @@ typedef uint32_t infraid_t;
 #define INFRAID_ABY                                 INFRAID("ABY ")
 #define INFRAID_WOD                                 INFRAID("WOD ")
 #define INFRAID_CHI                                 INFRAID("CHI ")
-#define INFRAID_SPTV                                INFRAID("SPTV")
+#define INFRAID_SPTV                                INFRAID("SPTV") // former station code for Springhurst station
 #define INFRAID_WRT                                 INFRAID("WRT ")
 #define INFRAID_BXA                                 INFRAID("BXA ")
 #define INFRAID_VTN                                 INFRAID("VTN ")
@@ -335,6 +335,7 @@ typedef uint32_t infraid_t;
 #define INFRAID_AVL                                 INFRAID("AVL ")
 #define INFRAID_EHK                                 INFRAID("EHK ") // Eaglehawk
 #define INFRAID_GFD                                 INFRAID("GFD ") // Garfield
+#define INFRAID_SHT                                 INFRAID("SHT ") // Springhurst
 
 /* NEW: Metro Tunnel stations */
 #define INFRAID_ARN                                 INFRAID("ARN ") // Arden

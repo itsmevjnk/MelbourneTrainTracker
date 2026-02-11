@@ -74,7 +74,7 @@ esp_err_t LEDMatrix::init() {
     m_expectedColours = m_buffer;
     setMulti(kBurnleyOffsets, sizeof(kBurnleyOffsets) / sizeof(size_t), kBurnley);
     setMulti(kCliftonOffsets, sizeof(kCliftonOffsets) / sizeof(size_t), kClifton);
-    setMulti(kCrossCityOffsets, sizeof(kCrossCityOffsets) / sizeof(size_t), kCrossCity);
+    setMulti(kCrossCityOffsets, sizeof(kCrossCityOffsets) / sizeof(size_t), kFrankston);
     setMulti(kDandenongOffsets, sizeof(kDandenongOffsets) / sizeof(size_t), kDandenong);
     setMulti(kMunnelOffsets, sizeof(kMunnelOffsets) / sizeof(size_t), kDandenong);
     setMulti(kFlemingtonOffsets, sizeof(kFlemingtonOffsets) / sizeof(size_t), kFlemington);

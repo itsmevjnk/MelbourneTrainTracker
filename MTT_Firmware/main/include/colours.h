@@ -5,7 +5,8 @@
 // inspired by the PTV Visual Identity Toolkit 2.0: https://archive.org/details/ptv-vit
 typedef enum {
     kSandringham = 0xA0050A, // oddly enough the Clifton Hill colour works well for Sandringham (with some tweaks to reduce brightness)
-    kCrossCity = 0x008000,
+    kFrankston = 0x008000,
+    // Newport line colour will depend on whether it's connected to Sandringham or Frankston
     kDandenong = 0x181880,
     kBurnley = 0x000080,
     kNorthern = 0x804000,

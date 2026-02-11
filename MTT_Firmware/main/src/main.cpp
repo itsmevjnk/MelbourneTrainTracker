@@ -84,7 +84,7 @@ extern "C" void app_main() {
             LMAT_FRANKSTON_HKN, LMAT_FRANKSTON_HKN_ALT,
             LMAT_FRANKSTON_TOR, LMAT_FRANKSTON_TOR_ALT
         };
-        LEDMatrix::fill(kOff); LEDMatrix::setMulti(ledsL2K5_2, sizeof(ledsL2K5_2) / sizeof(size_t), kCrossCity); LEDMatrix::update();
+        LEDMatrix::fill(kOff); LEDMatrix::setMulti(ledsL2K5_2, sizeof(ledsL2K5_2) / sizeof(size_t), kFrankston); LEDMatrix::update();
         vTaskDelay(pdMS_TO_TICKS(1000));
 
         /* L5_K4 test */

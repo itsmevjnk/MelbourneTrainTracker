@@ -249,7 +249,8 @@ typedef uint32_t infraid_t;
 #define INFRAID_CCL                                 INFRAID("CCL ")
 #define INFRAID_ART                                 INFRAID("ART ")
 #define INFRAID_BDE                                 INFRAID("BDE ")
-#define INFRAID_MBY                                 INFRAID("MBY ")
+#define INFRAID_MBY                                 INFRAID("MBY ") // Maryborough line/Malmsbury station
+#define INFRAID_MYB                                 INFRAID("MYB ") // Maryborough station
 #define INFRAID_TRN                                 INFRAID("TRN ")
 #define INFRAID_GEL                                 INFRAID("GEL ")
 #define INFRAID_WBL                                 INFRAID("WBL ")

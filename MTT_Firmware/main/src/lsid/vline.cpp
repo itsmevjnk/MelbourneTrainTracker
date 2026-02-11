@@ -14,7 +14,7 @@ static const station_t kAraratWED = { LMAT_ARARAT_WED, LMAT_ARARAT_WED_ALT };
 
 /* Maryborough line */
 #if LMAT_VLINE_HAS_REGIONAL
-static const station_t kMaryboroughMBY = { LMAT_MARYBOROUGH_MBY, LMAT_MARYBOROUGH_MBY_ALT };
+static const station_t kMaryboroughMYB = { LMAT_MARYBOROUGH_MYB, LMAT_MARYBOROUGH_MYB_ALT };
 static const station_t kMaryboroughTAT = { LMAT_MARYBOROUGH_TAT, LMAT_MARYBOROUGH_TAT_ALT };
 static const station_t kMaryboroughCLU = { LMAT_MARYBOROUGH_CLU, LMAT_MARYBOROUGH_CLU_ALT };
 static const station_t kMaryboroughCWK = { LMAT_MARYBOROUGH_CWK, LMAT_MARYBOROUGH_CWK_ALT };
@@ -117,13 +117,13 @@ size_t LSID::artGetLEDsBetween(infraid_t fromCode, infraid_t toCode, uint16_t* b
 
 #if LMAT_VLINE_HAS_REGIONAL
 static const station_t* kMaryboroughStations[] = {
-    &kMaryboroughMBY, &kMaryboroughTAT, &kMaryboroughCLU, &kMaryboroughCWK,
+    &kMaryboroughMYB, &kMaryboroughTAT, &kMaryboroughCLU, &kMaryboroughCWK,
     &kBallaratBATV, &kBallaratBLN, &kBallaratBLN,
     &kBallaratMEL, &kBallaratTLN, &kBallaratRBK, &kBallaratRVH,
     &kVLineWestDEK, &kVLineWestARR, &kVLineWestSUN, &kVLineWestFSY, &kVLineSSS
 };
 static const infraid_t kMaryboroughCodes[] = {
-    INFRAID_MBY, INFRAID_TAT, INFRAID_CLU, INFRAID_CWK,
+    INFRAID_MYB, INFRAID_TAT, INFRAID_CLU, INFRAID_CWK,
     INFRAID_BATV, INFRAID_BLN, INFRAID_BAH,
     INFRAID_MEL, INFRAID_TLN, INFRAID_RBK, INFRAID_RVH,
     INFRAID_DEK, INFRAID_ARR, INFRAID_SUN, INFRAID_FSY, INFRAID_SSS

@@ -299,7 +299,7 @@ typedef uint32_t infraid_t;
 #define INFRAID_BGO                                 INFRAID("BGO ")
 #define INFRAID_KFT                                 INFRAID("KFT ")
 #define INFRAID_CME                                 INFRAID("CME ")
-#define INFRAID_MMYV                                INFRAID("MMYV")
+#define INFRAID_MMYV                                INFRAID("MMYV") // former station code for Malmsbury station
 #define INFRAID_KYN                                 INFRAID("KYN ")
 #define INFRAID_WNO                                 INFRAID("WNO ")
 #define INFRAID_MDN                                 INFRAID("MDN ")

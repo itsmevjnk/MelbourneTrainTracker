@@ -218,7 +218,7 @@ static const station_t kEchucaEPM = { LMAT_ECHUCA_EPM, LMAT_ECHUCA_EPM_ALT };
 static const station_t kBendigoBGO = { LMAT_BENDIGO_BGO, LMAT_BENDIGO_BGO_ALT };
 static const station_t kBendigoKFT = { LMAT_BENDIGO_KFT, LMAT_BENDIGO_KFT_ALT };
 static const station_t kBendigoCME = { LMAT_BENDIGO_CME, LMAT_BENDIGO_CME_ALT };
-static const station_t kBendigoMMYV = { LMAT_BENDIGO_MMYV, LMAT_BENDIGO_MMYV_ALT };
+static const station_t kBendigoMBY = { LMAT_BENDIGO_MBY, LMAT_BENDIGO_MBY_ALT };
 static const station_t kBendigoKYN = { LMAT_BENDIGO_KYN, LMAT_BENDIGO_KYN_ALT };
 static const station_t kBendigoWNO = { LMAT_BENDIGO_WNO, LMAT_BENDIGO_WNO_ALT };
 static const station_t kBendigoMDN = { LMAT_BENDIGO_MDN, LMAT_BENDIGO_MDN_ALT };
@@ -232,7 +232,7 @@ static const station_t kBendigoWGS = { LMAT_BENDIGO_WGS, LMAT_BENDIGO_WGS_ALT };
 static const station_t* kSwanHillStations[] = {
 #if LMAT_VLINE_HAS_REGIONAL
     &kSwanHillSWL, &kSwanHillKER, &kSwanHillPYD, &kSwanHillDGE, &kSwanHillRAY, &kSwanHillEAGV,
-    &kBendigoBGO, &kBendigoKFT, &kBendigoCME, &kBendigoMMYV, &kBendigoKYN, &kBendigoWNO, &kBendigoMDN, &kBendigoGIS, &kBendigoRIK, &kBendigoCKF,
+    &kBendigoBGO, &kBendigoKFT, &kBendigoCME, &kBendigoMBY, &kBendigoKYN, &kBendigoWNO, &kBendigoMDN, &kBendigoGIS, &kBendigoRIK, &kBendigoCKF,
 #endif
     &kBendigoSUY, &kBendigoWGS, 
     &kVLineWestFSY, &kVLineSSS
@@ -241,7 +241,7 @@ static const station_t* kSwanHillStations[] = {
 static const infraid_t kSwanHillCodes[] = {
 #if LMAT_VLINE_HAS_REGIONAL
     INFRAID_SWL, INFRAID_KER, INFRAID_PYD, INFRAID_DGE, INFRAID_RAY, INFRAID_EAGV,
-    INFRAID_BGO, INFRAID_KFT, INFRAID_CME, INFRAID_MMYV, INFRAID_KYN, INFRAID_WNO, INFRAID_MDN, INFRAID_GIS, INFRAID_RIK, INFRAID_CKF,
+    INFRAID_BGO, INFRAID_KFT, INFRAID_CME, INFRAID_MBY, INFRAID_KYN, INFRAID_WNO, INFRAID_MDN, INFRAID_GIS, INFRAID_RIK, INFRAID_CKF,
 #endif
     INFRAID_SUY, INFRAID_WGS, 
     INFRAID_FSY, INFRAID_SSS
@@ -305,14 +305,14 @@ size_t LSID::swlGetLEDsBetween(infraid_t fromCode, infraid_t toCode, uint16_t* b
 #if LMAT_VLINE_HAS_REGIONAL
 static const station_t* kEchucaStations[] = {
     &kEchucaECH, &kEchucaROR, &kEchucaEME, &kEchucaGRG, &kEchucaHUY, &kEchucaEPM,
-    &kBendigoBGO, &kBendigoKFT, &kBendigoCME, &kBendigoMMYV, &kBendigoKYN, &kBendigoWNO, &kBendigoMDN, &kBendigoGIS, &kBendigoRIK, &kBendigoCKF,
+    &kBendigoBGO, &kBendigoKFT, &kBendigoCME, &kBendigoMBY, &kBendigoKYN, &kBendigoWNO, &kBendigoMDN, &kBendigoGIS, &kBendigoRIK, &kBendigoCKF,
     &kBendigoSUY, &kBendigoWGS,
     &kVLineWestFSY, &kVLineSSS
 };
 
 static const infraid_t kEchucaCodes[] = {
     INFRAID_ECH, INFRAID_ROR, INFRAID_EME, INFRAID_GRG, INFRAID_HUY, INFRAID_EPM,
-    INFRAID_BGO, INFRAID_KFT, INFRAID_CME, INFRAID_MMYV, INFRAID_KYN, INFRAID_WNO, INFRAID_MDN, INFRAID_GIS, INFRAID_RIK, INFRAID_CKF,
+    INFRAID_BGO, INFRAID_KFT, INFRAID_CME, INFRAID_MBY, INFRAID_KYN, INFRAID_WNO, INFRAID_MDN, INFRAID_GIS, INFRAID_RIK, INFRAID_CKF,
     INFRAID_SUY, INFRAID_WGS,
     INFRAID_FSY, INFRAID_SSS
 };

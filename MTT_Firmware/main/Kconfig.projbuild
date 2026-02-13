@@ -38,7 +38,7 @@ menu "Firmware Configuration"
 
     config DEFAULT_TIME_SERVER
         string "Default NTP time server"
-        default "pool.ntp.org"
+        default "time.google.com"
         help
             Sets the default NTP time server hostname/IP address to use if it is not configured in the NVS.
     

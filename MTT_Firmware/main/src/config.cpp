@@ -158,7 +158,7 @@ size_t Config::getWiFiCertLength() {
 }
 
 #ifndef CONFIG_DEFAULT_TIME_SERVER
-#define CONFIG_DEFAULT_TIME_SERVER                          "pool.ntp.org"
+#define CONFIG_DEFAULT_TIME_SERVER                          "time.google.com"
 #endif
 char Config::m_timeServer[64] = CONFIG_DEFAULT_TIME_SERVER;
 const char* Config::getTimeServer() {

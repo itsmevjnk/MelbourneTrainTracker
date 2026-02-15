@@ -63,7 +63,7 @@ const binarySerialise = (message) => {
             toInfraID(entry.line.padEnd(4, ' ')), // line IDs need to be padded 
             toInfraID(entry.stn), // station IDs are 4 letter now (3 + space typically)
             toInt64(entry.dep || entry.arr),
-            toUInt8((hasAdjacent ? (1 << 1) : 0) | (isDeparture ? (1 << 0) : 0) | (entry.mt ? (1 << 2) : 0) | (entry.mto ? (1 << 3) : 0))
+            toUInt8((hasAdjacent ? (1 << 1) : 0) | (isDeparture ? (1 << 0) : 0) | (entry.mt ? (1 << 2) : 0) | (entry.mto ? (1 << 3) : 0) | (entry.rrb ? (1 << 4) : 0))
         ];
         if (hasAdjacent) {
             properties = properties.concat([
@@ -160,6 +160,7 @@ const publish = () => {
                 line: row.line,
                 trip: row.trip_id,
                 stn: row.station,
+                rrb: row.trip_id.startsWith('RRB-'), // set if this is a rail replacement bus
                 mt: row.via_mt,
                 mto: (row.via_mt) ? row.mt_originating : undefined // set if originating from Metro Tunnel (i.e. to Dandenong/Sunbury)
             };

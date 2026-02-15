@@ -71,10 +71,16 @@ const getReplacementBuses = () => {
                 tripID: getTripID(update.route_id, update.trip_id),
                 rawTripID: update.trip_id,
                 routeID: routeID,
-                station: station,
-                arrival: new Date((update.generation_date + update.time_until_arrival) * 1000),
-                departure: (update.time_until_departure === null) ? undefined : new Date((update.generation_date + update.time_until_departure) * 1000)
+                station: station
             };
+            
+            let arrivalTime = (update.generation_date + update.time_until_arrival) * 1000;
+            entry.arrival = new Date(arrivalTime);
+            if (update.time_until_departure !== null) {
+                let departureTime = (update.generation_date + update.time_until_departure) * 1000;
+                if (departureTime < arrivalTime) departureTime = arrivalTime;
+                entry.departure = new Date(departureTime);
+            }
 
             if (!routeLines.hasOwnProperty(routeID)) { // stage route ID for resolution
                 if (!routeIDs.hasOwnProperty(routeID)) routeIDs[routeID] = new Set();

@@ -9,7 +9,7 @@ const generateURL = (path) => {
 };
 
 const getTripID = (routeID, tripID) => {
-    return `R-${routeID}-${tripID}`;
+    return `RRB-${routeID}-${tripID}`;
 };
 
 /* internal cache */

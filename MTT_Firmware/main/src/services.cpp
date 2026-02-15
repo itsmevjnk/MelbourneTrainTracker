@@ -217,6 +217,7 @@ uint32_t Services::m_lines = kAllLines; // all lines on by default
 
 uint32_t Services::getLineBitmask(infraid_t line) {
     uint32_t mask = 0;
+    line &= ~(1UL << 31); // strip RRB flag
     if (line == INFRAID_SUY || line == INFRAID_SUYM || line == INFRAID_SUYm) {
         for (size_t i = 0; i < kNumLines; i++) {
             if (kLineIDs[i] == INFRAID_SUY || kLineIDs[i] == INFRAID_SUYM || kLineIDs[i] == INFRAID_SUYm) mask |= (1 << i);

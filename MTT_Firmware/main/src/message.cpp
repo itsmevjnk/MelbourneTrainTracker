@@ -22,6 +22,8 @@ bool Message::m_started = false;
 
 // TODO: omit this completely for Rev2 once all V/Line LEDs have been mapped
 bool Message::checkVLine(infraid_t line, infraid_t station) {
+    line &= ~(1UL << 31); // strip RRB flag
+
     /* ignore V/Line lines not represented on map */
 #if LMAT_VLINE_HAS_BENDIGO
     bool isBendigo = false;
@@ -134,6 +136,7 @@ void Message::parseFragment(const char* data, int length, bool first) {
             }
         }
 #endif
+        if (entry->flags.isRRB) line |= (1UL << 31);
 
         ESP_LOGV(
             kTag, "trip hash 0x%08lx at %lld: " INFRAID2STR_FMT " %s event at " INFRAID2STR_FMT,

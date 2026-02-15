@@ -398,6 +398,15 @@ const updateGTFS = (url) => {
                         });
                     }))
                     .then((data) => console.log(`Timetable has been updated (${data.total} batches, ${data.duration} msec)`));
+            }).then(() => { // station -> line mapping
+                return db.none('TRUNCATE TABLE gtfs.station_lines CASCADE')
+                    .then(db.none(`
+                        INSERT INTO gtfs.station_lines (station, line)
+                        SELECT DISTINCT
+                        s.station AS station, SPLIT_PART(t.trip_id, '-', 2) AS line
+                        FROM gtfs.timetable t
+                        LEFT JOIN gtfs.stops s ON t.stop_id = s.id  
+                    `))
             });
     }).then(() => {
         console.log("All operations completed");

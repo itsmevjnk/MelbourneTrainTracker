@@ -69,8 +69,14 @@ CREATE TABLE gtfs.trips (
     calendar character varying(16) NOT NULL
 );
 
-
 ALTER TABLE gtfs.trips OWNER TO postgres;
+
+CREATE TABLE gtfs.station_lines (
+    station character(4) NOT NULL,
+    line character(3) NOT NULL
+);
+
+ALTER TABLE gtfs.station_lines OWNER TO postgres;
 
 ALTER TABLE ONLY daily.timetable
     ADD CONSTRAINT timetable_pkey PRIMARY KEY (trip_id, seq);

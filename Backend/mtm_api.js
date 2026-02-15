@@ -60,6 +60,7 @@ const getReplacementBuses = () => {
         const resUpdates = [];
         const routeIDs = {}; // list of unresolved route IDs encountered, as well as all stations within
         const routeTrips = {};
+        const stationRoutes = {};
         for (const update of updates) {
             const routeID = update.route_id;
             const station = stops[update.stop_id];
@@ -88,17 +89,13 @@ const getReplacementBuses = () => {
             } else entry.line = routeLines[routeID];
 
             resUpdates.push(entry);
+
+            if (!stationRoutes.hasOwnProperty(station)) stationRoutes[station] = new Set();
+            stationRoutes[station].add(routeID + '');
         }
 
         /* resolve stopping pattern and sequence number */
-        const stationRoutes = {};
-        for (const [route, stations] of Object.entries(routeIDs)) {
-            for (const station of stations) {
-                if (!stationRoutes.hasOwnProperty(station)) stationRoutes[station] = new Set();
-                stationRoutes[station].add(route);
-            }
-        }
-        const uncoveredRoutes = new Set(Object.keys(routeIDs));
+        const uncoveredRoutes = new Set(Object.keys(routeTrips));
         const queryStations = [];
         while (uncoveredRoutes.size > 0) {
             let bestStation = null;
@@ -137,13 +134,18 @@ const getReplacementBuses = () => {
             }
 
             for (const update of resUpdates) {
+                if (update.hasOwnProperty('seq')) continue;
                 const stopPattern = tripPatterns[update.rawTripID];
-                update.seq = stopPattern.indexOf(update.station);
-                // if (update.seq == -1) {
-                //     console.warn(stopPattern, update.station);
-                // }
-                if (routeIDs.hasOwnProperty(update.routeID))
-                    stopPattern.forEach(station => routeIDs[update.routeID].add(station)); // populate with all stations that can exist on the route
+                if (!stopPattern) { // cannot find stop pattern - fill sequence by order
+                    const tripUpdates = resUpdates.filter(x => x.rawTripID == update.rawTripID).sort((a, b) => a.arrival.getTime() - b.arrival.getTime());
+                    for (let i = 0; i < tripUpdates.length; i++) {
+                        tripUpdates[i].seq = i;
+                    }
+                } else {
+                    update.seq = stopPattern.indexOf(update.station);
+                    if (routeIDs.hasOwnProperty(update.routeID))
+                        stopPattern.forEach(station => routeIDs[update.routeID].add(station)); // populate with all stations that can exist on the route
+                }
             }
 
             /* resolve route IDs */

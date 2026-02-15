@@ -64,184 +64,147 @@ const getReplacementBuses = () => {
             const routeID = update.route_id;
             const station = stops[update.stop_id];
 
-            if (!routeLines.hasOwnProperty(routeID)) { // stage route ID for resolution
-                if (!routeIDs.hasOwnProperty(routeID)) routeIDs[routeID] = new Set();
-                routeIDs[routeID].add(station);
-            }
-
             if (!routeTrips.hasOwnProperty(routeID)) routeTrips[routeID] = new Set();
             routeTrips[routeID].add(update.trip_id);
 
-            resUpdates.push({
+            const entry = {
                 tripID: getTripID(update.route_id, update.trip_id),
+                rawTripID: update.trip_id,
                 routeID: routeID,
                 station: station,
                 arrival: new Date((update.generation_date + update.time_until_arrival) * 1000),
                 departure: (update.time_until_departure === null) ? undefined : new Date((update.generation_date + update.time_until_departure) * 1000)
-            }); // route ID not resolved to line yet - will fix that up dater
+            };
+
+            if (!routeLines.hasOwnProperty(routeID)) { // stage route ID for resolution
+                if (!routeIDs.hasOwnProperty(routeID)) routeIDs[routeID] = new Set();
+                routeIDs[routeID].add(station);
+            } else entry.line = routeLines[routeID];
+
+            resUpdates.push(entry);
         }
 
-        const fillLines = () => {
-            const ret = [];
-            for (const update of resUpdates) {
-                if (routeLines.hasOwnProperty(update.routeID)) {
-                    update.line = routeLines[update.routeID];
-                    ret.push(update);
-                } else console.warn(`Unable to resolve route ID ${update.routeID} for trip ${update.tripID}`);
+        /* resolve stopping pattern and sequence number */
+        const stationRoutes = {};
+        for (const [route, stations] of Object.entries(routeIDs)) {
+            for (const station of stations) {
+                if (!stationRoutes.hasOwnProperty(station)) stationRoutes[station] = new Set();
+                stationRoutes[station].add(route);
             }
-            return ret;
-        };
+        }
+        const uncoveredRoutes = new Set(Object.keys(routeIDs));
+        const queryStations = [];
+        while (uncoveredRoutes.size > 0) {
+            let bestStation = null;
+            let bestCoverage = 0;
+            for (const [station, routes] of Object.entries(stationRoutes)) {
+                const coverage = [...routes].filter(k => uncoveredRoutes.has(k)).length;
+                if (coverage > bestCoverage) {
+                    bestCoverage = coverage;
+                    bestStation = station;
+                }
+            }
+            if (!bestStation) break;
 
-        /* resolve route IDs */
+            queryStations.push(bestStation);
 
-        if (Object.keys(routeIDs).length == 0) return fillLines(); // nothing else to resolve
+            for (const route of stationRoutes[bestStation]) {
+                uncoveredRoutes.delete(route);
+            }
+        }
         
-        // 1. use stations that have shown up in rt-updates.json
-        const resolveIDs = [];
-        const dbPromises = [];
-        for (const [id, stations] of Object.entries(routeIDs)) {
-            resolveIDs.push(id);
-            dbPromises.push(
-                db.any( // attempt to find line using stations with a single line going through
-                    `
-                        WITH unique_stations AS (
-                            SELECT station FROM gtfs.station_lines
-                            GROUP BY station
-                            HAVING COUNT(DISTINCT line) = 1
-                        )
-                        SELECT sl.line
-                        FROM gtfs.station_lines sl
-                        JOIN unique_stations us ON sl.station = us.station
-                        WHERE us.station = ANY($1)
-                        GROUP BY sl.line
-                        ORDER BY COUNT(*) DESC
-                        LIMIT 1
-                    `,
-                    [[...stations]]
-                )
-            );
-        }
-        return Promise.all(dbPromises).then((queryResults) => {
-            for (let i = 0; i < resolveIDs.length; i++) {
-                let id = resolveIDs[i];
-                // console.log(id, routeIDs[id], queryResults[i]);
-                if (queryResults[i].length == 1) { // definitive answer found
-                    delete routeIDs[id];
-                    routeLines[id] = queryResults[i][0].line;
+        const fetchPromises = [];
+        for (const station of queryStations) fetchPromises.push(fetch(generateURL(`bus/bus-${station}.json`)));
+        return Promise.all(fetchPromises).then((responses) => {
+            const promises = [];
+            for (const response of responses) promises.push(response.json());
+            return Promise.all(promises);
+        }).then((results) => {
+            const tripPatterns = {};
+            for (const result of results) {
+                for (const entry of result) {
+                    const stopPattern = patterns[entry.stopping_pattern];
+                    for (const trip of entry.trips) {
+                        if (!tripPatterns.hasOwnProperty(trip) || tripPatterns[trip].length < stopPattern.length) tripPatterns[trip] = stopPattern;
+                    }
                 }
             }
-            if (Object.keys(routeIDs).length == 0) return fillLines();
 
-            // 2. use stopping pattern information
-            const stationRoutes = {};
-            for (const [route, stations] of Object.entries(routeIDs)) {
-                for (const station of stations) {
-                    if (!stationRoutes.hasOwnProperty(station)) stationRoutes[station] = new Set();
-                    stationRoutes[station].add(route);
-                }
+            for (const update of resUpdates) {
+                const stopPattern = tripPatterns[update.rawTripID];
+                update.seq = stopPattern.indexOf(update.station);
+                // if (update.seq == -1) {
+                //     console.warn(stopPattern, update.station);
+                // }
+                if (routeIDs.hasOwnProperty(update.routeID))
+                    stopPattern.forEach(station => routeIDs[update.routeID].add(station)); // populate with all stations that can exist on the route
             }
-            const uncoveredRoutes = new Set(Object.keys(routeIDs));
-            const queryStations = [];
-            while (uncoveredRoutes.size > 0) {
-                let bestStation = null;
-                let bestCoverage = 0;
-                for (const [station, routes] of Object.entries(stationRoutes)) {
-                    const coverage = [...routes].filter(k => uncoveredRoutes.has(k)).length;
-                    if (coverage > bestCoverage) {
-                        bestCoverage = coverage;
-                        bestStation = station;
-                    }
-                }
-                if (!bestStation) break;
 
-                queryStations.push(bestStation);
-
-                for (const route of stationRoutes[bestStation]) {
-                    uncoveredRoutes.delete(route);
-                }
+            /* resolve route IDs */
+            const resolveIDs = [];
+            const dbPromises = [];
+            for (const [id, stations] of Object.entries(routeIDs)) {
+                resolveIDs.push(id);
+                const stationsArray = [...stations];
+                dbPromises.push(
+                    db.any(
+                        `
+                            WITH unique_stations AS (
+                                SELECT station FROM gtfs.station_lines
+                                GROUP BY station
+                                HAVING COUNT(DISTINCT line) = 1
+                            ),
+                            primary_result AS (
+                                SELECT sl.line, 1 AS priority
+                                FROM gtfs.station_lines sl
+                                JOIN unique_stations us ON sl.station = us.station
+                                WHERE us.station = ANY($1)
+                                GROUP BY sl.line
+                                ORDER BY COUNT(*) DESC
+                                LIMIT 1
+                            ),
+                            fallback_result AS (
+                                SELECT line, 2 AS priority
+                                FROM gtfs.station_lines
+                                WHERE station = ANY($1)
+                                GROUP BY line
+                                HAVING COUNT(DISTINCT station) = $2
+                                LIMIT 1
+                            )
+                            SELECT line
+                            FROM (
+                                SELECT * FROM primary_result
+                                UNION ALL
+                                SELECT * FROM fallback_result
+                            ) combined_result
+                            ORDER BY priority
+                            LIMIT 1
+                        `,
+                        [stationsArray, stationsArray.length]
+                    )
+                );
             }
-            
-            const fetchPromises = [];
-            for (const station of queryStations) fetchPromises.push(fetch(generateURL(`bus/bus-${station}.json`)));
-            return Promise.all(fetchPromises).then((responses) => {
-                const promises = [];
-                for (const response of responses) promises.push(response.json());
-                return Promise.all(promises);
-            }).then((results) => {
-                const tripPatterns = {};
-                for (const result of results) {
-                    for (const entry of result) {
-                        const stopPattern = patterns[entry.stopping_pattern];
-                        for (const trip of entry.trips) {
-                            if (!tripPatterns.hasOwnProperty(trip)) tripPatterns[trip] = stopPattern;
-                        }
+
+            return Promise.all(dbPromises).then((queryResults) => {
+                for (let i = 0; i < resolveIDs.length; i++) {
+                    let id = resolveIDs[i];
+                    // console.log(id, routeIDs[id], queryResults[i]);
+                    if (queryResults[i].length == 1) { // definitive answer found
+                        delete routeIDs[id];
+                        routeLines[id] = queryResults[i][0].line;
                     }
                 }
 
-                const resolveIDs = [];
-                const dbPromises = [];
-
-                for (const route of Object.keys(routeIDs)) {
-                    for (const trip of routeTrips[route]) {
-                        if (tripPatterns.hasOwnProperty(trip)) {
-                            resolveIDs.push(route);
-                            const stopPattern = tripPatterns[trip];
-                            dbPromises.push(
-                                db.any(
-                                    `
-                                        WITH unique_stations AS (
-                                            SELECT station FROM gtfs.station_lines
-                                            GROUP BY station
-                                            HAVING COUNT(DISTINCT line) = 1
-                                        ),
-                                        primary_result AS (
-                                            SELECT sl.line, 1 AS priority
-                                            FROM gtfs.station_lines sl
-                                            JOIN unique_stations us ON sl.station = us.station
-                                            WHERE us.station = ANY($1)
-                                            GROUP BY sl.line
-                                            ORDER BY COUNT(*) DESC
-                                            LIMIT 1
-                                        ),
-                                        fallback_result AS (
-                                            SELECT line, 2 AS priority
-                                            FROM gtfs.station_lines
-                                            WHERE station = ANY($1)
-                                            GROUP BY line
-                                            HAVING COUNT(DISTINCT station) = $2
-                                            LIMIT 1
-                                        )
-                                        SELECT line
-                                        FROM (
-                                            SELECT * FROM primary_result
-                                            UNION ALL
-                                            SELECT * FROM fallback_result
-                                        ) combined_result
-                                        ORDER BY priority
-                                        LIMIT 1
-                                    `,
-                                    [stopPattern, stopPattern.length]
-                                )
-                            );
-                            break;
-                        }
-                    }
+                /* clean up */
+                const ret = [];
+                for (const update of resUpdates) {
+                    if (update.hasOwnProperty('line')) ret.push(update); // pre-resolved
+                    else if (routeLines.hasOwnProperty(update.routeID)) { // just resolved now
+                        update.line = routeLines[update.routeID];
+                        ret.push(update);
+                    } else console.warn(`Unable to resolve route ID ${update.routeID} for trip ${update.tripID}`);
                 }
-
-                if (dbPromises.size == 0) return fillLines(); // cannot proceed further
-
-                return Promise.all(dbPromises).then((queryResults) => {
-                    for (let i = 0; i < resolveIDs.length; i++) {
-                        let id = resolveIDs[i];
-                        // console.log(id, routeIDs[id], queryResults[i]);
-                        if (queryResults[i].length == 1) { // definitive answer found
-                            delete routeIDs[id];
-                            routeLines[id] = queryResults[i][0].line;
-                        }
-                    }
-
-                    return fillLines();
-                });
+                return ret;
             });
         });
     });

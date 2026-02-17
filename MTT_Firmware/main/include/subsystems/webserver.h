@@ -32,6 +32,9 @@ private:
     static const httpd_uri_t kGetLEDBuffer;
     static esp_err_t getLEDBuffer(httpd_req_t* req);
 
+    static const httpd_uri_t kGetReverseLUT;
+    static esp_err_t getReverseLUT(httpd_req_t* req);
+
     static const httpd_uri_t kConfigGetMAC_STA;
     static esp_err_t configGetMAC_STA(httpd_req_t* req);
 

@@ -19,24 +19,27 @@
             for (const [name, pos] of Object.entries(components)) {
                 board.innerHTML += `<div class="led" id="${name}" style="left:${pos[0]/251.6*100}cqw;top:${pos[1]/251.6*100}cqw;"></div>`;
             }
+
+            let reverseLUT = null;
+            (async () => {
+                const resp = await fetch(`http://${window.location.hostname}/lut`);
+                const buf = await resp.arrayBuffer();
+                reverseLUT = new Uint8Array(buf);
+                window.reverseLUT = reverseLUT;
+            })();
+            
             const socket = new WebSocket(`ws://${window.location.hostname}/ws/buffer`);
-            const colours = {
-                "160,5,10": "#f178af",
-                "0,128,0": "#028430",
-                "24,24,128": "#279fd5",
-                "0,0,128": "#152c6b",
-                "128,64,0": "#ffbe00",
-                "128,0,0": "#be1014",
-                "96,96,96": "#95979a",
-                "64,0,128": "#7f0d82",
-                "0,0,0": "black"
-            }; // colour map
             socket.onmessage = async (event) => {
                 const buf = new Uint8Array(await event.data.arrayBuffer());
                 for (const [led, pos] of Object.entries(components)) {
                     const offset = (pos[2] * 12 + pos[3]) * 18 + 3 * pos[4];
-                    const rgb = `${buf[offset+2]},${buf[offset+1]},${buf[offset]}`;
-                    document.getElementById(led).style.backgroundColor = colours[rgb] || `rgb(${rgb})`;
+                    let r = buf[offset+2], g = buf[offset+1], b = buf[offset];
+                    if (reverseLUT) {
+                        r = reverseLUT[r];
+                        g = reverseLUT[256 + g];
+                        b = reverseLUT[512 + b];
+                    }
+                    document.getElementById(led).style.backgroundColor = `rgb(${r},${g},${b})`;
                 }
             };
         </script>

@@ -70,6 +70,7 @@ SemaphoreHandle_t LEDMatrix::m_bufferMutex = xSemaphoreCreateRecursiveMutexStati
 uint8_t LEDMatrix::m_redLUT[256];
 uint8_t LEDMatrix::m_greenLUT[256];
 uint8_t LEDMatrix::m_blueLUT[256];
+uint8_t LEDMatrix::m_reverseLUT[256 * 3];
 
 #ifndef CONFIG_LMAT_GAMMA
 #define CONFIG_LMAT_GAMMA                           2200
@@ -84,9 +85,12 @@ esp_err_t LEDMatrix::init() {
         m_greenLUT[i] = globalVal * LMAT_SCALE_GREEN;
         m_blueLUT[i] = globalVal * LMAT_SCALE_BLUE;
         // ESP_LOGI(kTag, "%d: globalVal = %f, red = %d, green = %d, blue = %d", i, globalVal, m_redLUT[i], m_greenLUT[i], m_blueLUT[i]);
+
+        m_reverseLUT[0 * 256 + m_redLUT[i]] = i;
+        m_reverseLUT[1 * 256 + m_greenLUT[i]] = i;
+        m_reverseLUT[2 * 256 + m_blueLUT[i]] = i;
+        // NOTE: there may be uninitialised elements in the reverse LUT, but that's okay since we're mapping the corrected colour back to uncorrected ones
     }
-
-
 
     /* allocate framebuffer */
     m_buffer = new uint8_t[LMAT_SIZE];
@@ -259,4 +263,8 @@ esp_err_t LEDMatrix::update() {
     releaseBuffer();
 
     return ESP_OK;
+}
+
+const uint8_t* LEDMatrix::getReverseCorrectionLUT() {
+    return m_reverseLUT;
 }

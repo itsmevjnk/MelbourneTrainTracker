@@ -47,6 +47,8 @@ public:
     static esp_err_t setMulti(const size_t* offsets, size_t leds, colour_t colour); // set multiple LEDs to a colour
     static esp_err_t fill(colour_t colour); // fill the entire buffer with a colour
 
+    static const uint8_t* getReverseCorrectionLUT(); // get the 256 * 3 (256*R-256*G-256*B) reverse colour correction LUT - used for web interface
+
     static const size_t kBurnleyOffsets[];
     static const size_t kCliftonOffsets[];
     static const size_t kCrossCityOffsets[];
@@ -80,6 +82,7 @@ private:
     static uint8_t m_redLUT[256];
     static uint8_t m_greenLUT[256];
     static uint8_t m_blueLUT[256];
+    static uint8_t m_reverseLUT[256 * 3];
     static uint32_t applyCorrection(colour_t colour);
 
     static esp_err_t setRaw(size_t offset, uint32_t colour);

@@ -13,6 +13,14 @@
 
 // #define CONFIG_LMAT_STRICT_COLOUR_CHECK // TODO: remove this in prod
 
+/* LED calibration parameters */
+// TODO: rev1 calibration
+#define LMAT_SCALE_GLOBAL                               0.5f // global brightness scaling
+// per-colour brightness scaling
+#define LMAT_SCALE_RED                                  0.985f
+#define LMAT_SCALE_GREEN                                1.0f
+#define LMAT_SCALE_BLUE                                 0.65f
+
 class LEDMatrix {
 public:
     static esp_err_t init(); // initialise LED matrix drivers
@@ -67,6 +75,14 @@ private:
 
     static StaticSemaphore_t m_bufferMutexBuf;
     static SemaphoreHandle_t m_bufferMutex;
+
+    // lookup tables for colour correction
+    static uint8_t m_redLUT[256];
+    static uint8_t m_greenLUT[256];
+    static uint8_t m_blueLUT[256];
+    static uint32_t applyCorrection(colour_t colour);
+
+    static esp_err_t setRaw(size_t offset, uint32_t colour);
 
 #ifdef CONFIG_LMAT_STRICT_COLOUR_CHECK
     static const uint8_t* m_expectedColours; // expected colours for each LED - basically a copy of m_buffer with all LEDs set to line colours

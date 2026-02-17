@@ -14,6 +14,6 @@ typedef enum {
     kFlemington = 0x606060, 
     kSpecial = 0x606060, // e.g. on the City Circle
     kVLine = 0x400080,
-    kDisruption = 0x802000,
+    kDisruption = 0x600900,
     kOff = 0x000000, // LED off
 } colour_t;

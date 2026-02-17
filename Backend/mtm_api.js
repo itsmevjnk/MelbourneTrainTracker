@@ -206,6 +206,7 @@ const getReplacementBuses = () => {
                 /* clean up */
                 const ret = [];
                 for (const update of resUpdates) {
+                    if (!update.station) continue; // skip entries that do not have a station associated with it
                     if (update.hasOwnProperty('line')) ret.push(update); // pre-resolved
                     else if (routeLines.hasOwnProperty(update.routeID)) { // just resolved now
                         update.line = routeLines[update.routeID];

@@ -11,6 +11,9 @@
 
 #include "colours.h"
 
+#include <array>
+#include <cmath>
+
 // #define CONFIG_LMAT_STRICT_COLOUR_CHECK // TODO: remove this in prod
 
 /* LED calibration parameters */
@@ -47,8 +50,6 @@ public:
     static esp_err_t setMulti(const size_t* offsets, size_t leds, colour_t colour); // set multiple LEDs to a colour
     static esp_err_t fill(colour_t colour); // fill the entire buffer with a colour
 
-    static const uint8_t* getReverseCorrectionLUT(); // get the 256 * 3 (256*R-256*G-256*B) reverse colour correction LUT - used for web interface
-
     static const size_t kBurnleyOffsets[];
     static const size_t kCliftonOffsets[];
     static const size_t kCrossCityOffsets[];
@@ -78,11 +79,36 @@ private:
     static StaticSemaphore_t m_bufferMutexBuf;
     static SemaphoreHandle_t m_bufferMutex;
 
-    // lookup tables for colour correction
-    static uint8_t m_redLUT[256];
-    static uint8_t m_greenLUT[256];
-    static uint8_t m_blueLUT[256];
-    static uint8_t m_reverseLUT[256 * 3];
+#ifndef CONFIG_LMAT_GAMMA
+#define CONFIG_LMAT_GAMMA                           2200
+#endif
+
+    static constexpr std::array<std::array<uint8_t, 256>, 3> m_forwardLUT = [] {
+        std::array<std::array<uint8_t, 256>, 3> table{};
+
+        float gamma = CONFIG_LMAT_GAMMA / 1000.0f;
+        for (int i = 0; i < 256; i++) {
+            float globalVal = LMAT_SCALE_GLOBAL * std::pow(i / 255.0, gamma) * 255.0;
+            table[0][i] = globalVal * LMAT_SCALE_RED;
+            table[1][i] = globalVal * LMAT_SCALE_GREEN;
+            table[2][i] = globalVal * LMAT_SCALE_BLUE;
+        }
+        
+        return table;
+    }(); // [0] = red, [1] = green, [2] = blue
+
+    static constexpr std::array<uint8_t, 768> m_reverseLUT = [] {
+        std::array<uint8_t, 768> table{};
+
+        for (int col = 0; col < 3; col++) {
+            for (int i = 0; i < 256; i++) {
+                table[col * 256 + m_forwardLUT[col][i]] = i;
+            }
+        }
+
+        return table;
+    }();
+
     static uint32_t applyCorrection(colour_t colour);
 
     static esp_err_t setRaw(size_t offset, uint32_t colour);
@@ -92,4 +118,9 @@ private:
 #endif
 
     static const char* kTag;
+
+public:
+    static constexpr const uint8_t* getReverseCorrectionLUT() { // get the 256 * 3 (256*R-256*G-256*B) reverse colour correction LUT - used for web interface
+        return m_reverseLUT.data();
+    }
 };

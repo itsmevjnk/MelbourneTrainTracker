@@ -1,7 +1,6 @@
 #include "subsystems/led_matrix.h"
 
 #include <string.h>
-#include <math.h>
 
 #include "esp_check.h"
 
@@ -67,31 +66,7 @@ const uint8_t* LEDMatrix::m_expectedColours;
 StaticSemaphore_t LEDMatrix::m_bufferMutexBuf;
 SemaphoreHandle_t LEDMatrix::m_bufferMutex = xSemaphoreCreateRecursiveMutexStatic(&m_bufferMutexBuf);
 
-uint8_t LEDMatrix::m_redLUT[256];
-uint8_t LEDMatrix::m_greenLUT[256];
-uint8_t LEDMatrix::m_blueLUT[256];
-uint8_t LEDMatrix::m_reverseLUT[256 * 3];
-
-#ifndef CONFIG_LMAT_GAMMA
-#define CONFIG_LMAT_GAMMA                           2200
-#endif
-
 esp_err_t LEDMatrix::init() {
-    /* populate lookup tables */
-    float gamma = CONFIG_LMAT_GAMMA / 1000.0f;
-    for (int i = 0; i < 256; i++) {
-        float globalVal = LMAT_SCALE_GLOBAL * pow(i / 255.0, gamma) * 255.0;
-        m_redLUT[i] = globalVal * LMAT_SCALE_RED;
-        m_greenLUT[i] = globalVal * LMAT_SCALE_GREEN;
-        m_blueLUT[i] = globalVal * LMAT_SCALE_BLUE;
-        // ESP_LOGI(kTag, "%d: globalVal = %f, red = %d, green = %d, blue = %d", i, globalVal, m_redLUT[i], m_greenLUT[i], m_blueLUT[i]);
-
-        m_reverseLUT[0 * 256 + m_redLUT[i]] = i;
-        m_reverseLUT[1 * 256 + m_greenLUT[i]] = i;
-        m_reverseLUT[2 * 256 + m_blueLUT[i]] = i;
-        // NOTE: there may be uninitialised elements in the reverse LUT, but that's okay since we're mapping the corrected colour back to uncorrected ones
-    }
-
     /* allocate framebuffer */
     m_buffer = new uint8_t[LMAT_SIZE];
 #ifdef CONFIG_LMAT_STRICT_COLOUR_CHECK
@@ -195,9 +170,9 @@ uint32_t LEDMatrix::applyCorrection(colour_t colour) {
             g = (colour >> 8) & 0xFF, // green
             b = (colour >> 0) & 0xFF; // blue
     
-    r = m_redLUT[r];
-    g = m_greenLUT[g];
-    b = m_blueLUT[b];
+    r = m_forwardLUT[0][r];
+    g = m_forwardLUT[1][g];
+    b = m_forwardLUT[2][b];
 
     return (r << 16) | (g << 8) | b;
 }
@@ -235,9 +210,9 @@ esp_err_t LEDMatrix::setMulti(const size_t* offsets, size_t leds, colour_t colou
 }
 
 esp_err_t LEDMatrix::fill(colour_t colour) {
-    uint8_t r = m_redLUT[(colour >> 16) & 0xFF], // red
-            g = m_greenLUT[(colour >> 8) & 0xFF], // green
-            b = m_blueLUT[(colour >> 0) & 0xFF]; // blue
+    uint8_t r = m_forwardLUT[0][(colour >> 16) & 0xFF], // red
+            g = m_forwardLUT[1][(colour >> 8) & 0xFF], // green
+            b = m_forwardLUT[2][(colour >> 0) & 0xFF]; // blue
     // NOTE: we also apply colour correction above
     
     acquireBuffer();
@@ -263,8 +238,4 @@ esp_err_t LEDMatrix::update() {
     releaseBuffer();
 
     return ESP_OK;
-}
-
-const uint8_t* LEDMatrix::getReverseCorrectionLUT() {
-    return m_reverseLUT;
 }

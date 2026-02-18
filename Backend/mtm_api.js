@@ -14,6 +14,7 @@ const getTripID = (routeID, tripID) => {
 
 /* internal cache */
 let routeLines = {}; // route ID to line mapping
+let stopCache = {}; // stop ID to station code mapping
 let cacheDate = ''; // cache date (in PTV date, i.e. new day starts at 3am)
 
 const getPTDate = () => {
@@ -41,14 +42,14 @@ const getReplacementBuses = () => {
         const currentDate = getPTDate();
         if (cacheDate != currentDate) { // reset cache
             routeLines = {};
+            stopCache = {};
             cacheDate = currentDate;
         }
         
         /* parse index.json */
-        const stops = {};
         for (const stationList of Object.values(index.stations)) {
             for (const stop of stationList) {
-                stops[stop.stop_id] = stop.station_code;
+                stopCache[stop.stop_id] = stop.station_code;
             }
         }
         const patterns = {};
@@ -63,7 +64,8 @@ const getReplacementBuses = () => {
         const stationRoutes = {};
         for (const update of updates) {
             const routeID = update.route_id;
-            const station = stops[update.stop_id];
+            const station = stopCache[update.stop_id];
+            if (!station) continue; // invalid station ID
 
             if (!routeTrips.hasOwnProperty(routeID)) routeTrips[routeID] = new Set();
             routeTrips[routeID].add(update.trip_id);

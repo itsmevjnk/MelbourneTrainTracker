@@ -15,6 +15,7 @@ const getTripID = (routeID, tripID) => {
 /* internal cache */
 let routeLines = {}; // route ID to line mapping
 let stopCache = {}; // stop ID to station code mapping
+let patternCache = {}; // stop pattern dictionary
 let cacheDate = ''; // cache date (in PTV date, i.e. new day starts at 3am)
 
 const getPTDate = () => {
@@ -43,6 +44,7 @@ const getReplacementBuses = () => {
         if (cacheDate != currentDate) { // reset cache
             routeLines = {};
             stopCache = {};
+            patternCache = {};
             cacheDate = currentDate;
         }
         
@@ -52,9 +54,8 @@ const getReplacementBuses = () => {
                 stopCache[stop.stop_id] = stop.station_code;
             }
         }
-        const patterns = {};
         for (const pattern of index.stopping_patterns) {
-            patterns[pattern.id] = pattern.stops;
+            patternCache[pattern.id] = pattern.stops;
         }
 
         /* parse rt-updates.json */
@@ -128,7 +129,7 @@ const getReplacementBuses = () => {
             const tripPatterns = {};
             for (const result of results) {
                 for (const entry of result) {
-                    const stopPattern = patterns[entry.stopping_pattern];
+                    const stopPattern = patternCache[entry.stopping_pattern];
                     for (const trip of entry.trips) {
                         if (!tripPatterns.hasOwnProperty(trip) || tripPatterns[trip].length < stopPattern.length) tripPatterns[trip] = stopPattern;
                     }

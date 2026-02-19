@@ -110,7 +110,8 @@ const publish = () => {
             prev.station AS prev_station,
             prev.departure AS prev_departure,
 			mt_first.seq IS NOT NULL AS via_mt,
-			mt_first.seq = mt_thl.seq AS mt_originating
+			mt_first.seq = mt_thl.seq AS mt_originating,
+            t.trip_id LIKE 'RRB-%' AS rrb
         FROM daily.timetable t
         LEFT JOIN LATERAL (
             SELECT station, arrival
@@ -160,7 +161,7 @@ const publish = () => {
                 line: row.line,
                 trip: row.trip_id,
                 stn: row.station,
-                rrb: row.trip_id.startsWith('RRB-'), // set if this is a rail replacement bus
+                rrb: row.rrb, // set if this is a rail replacement bus
                 mt: row.via_mt,
                 mto: (row.via_mt) ? row.mt_originating : undefined // set if originating from Metro Tunnel (i.e. to Dandenong/Sunbury)
             };

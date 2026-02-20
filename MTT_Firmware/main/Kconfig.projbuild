@@ -1,4 +1,4 @@
-menu "Firmware Configuration"
+menu "Firmware Configuration"    
     choice MUNNEL_COLOUR
         prompt "Metro Tunnel service colour handling"
         default MUNNEL_COLOUR_BLUE
@@ -9,6 +9,13 @@ menu "Firmware Configuration"
         config MUNNEL_COLOUR_NONE
             bool "Change service colour within the Metro Tunnel"
     endchoice
+    
+    config LMAT_GAMMA
+        int "LED matrix gamma factor (x1000)"
+        default 2200
+        help
+            The gamma factor for LED colour correction.
+            Note that this value is scaled by 1000; for instance, a value of 2200 will correspond to a gamma value of 2.2.
 
     config WIFI_CONFIGAP_SSID_PREFIX
         string "Configuration AP SSID prefix"

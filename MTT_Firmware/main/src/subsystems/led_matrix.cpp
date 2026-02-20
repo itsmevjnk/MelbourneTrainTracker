@@ -144,7 +144,7 @@ esp_err_t LEDMatrix::init() {
     return ESP_OK;
 }
 
-esp_err_t LEDMatrix::set(size_t offset, colour_t colour) {
+esp_err_t LEDMatrix::setRaw(size_t offset, uint32_t colour) {
     if (offset == LMAT_NULL) return ESP_OK;
     
     if (offset % 3 != 0 || offset >= LMAT_SIZE) {
@@ -165,17 +165,35 @@ esp_err_t LEDMatrix::set(size_t offset, colour_t colour) {
     return ESP_OK;
 }
 
+uint32_t LEDMatrix::applyCorrection(colour_t colour) {
+    uint8_t r = (colour >> 16) & 0xFF, // red
+            g = (colour >> 8) & 0xFF, // green
+            b = (colour >> 0) & 0xFF; // blue
+    
+    r = m_forwardLUT[0][r];
+    g = m_forwardLUT[1][g];
+    b = m_forwardLUT[2][b];
+
+    return (r << 16) | (g << 8) | b;
+}
+
+esp_err_t LEDMatrix::set(size_t offset, colour_t colour) {
+    return LEDMatrix::setRaw(offset, applyCorrection(colour));
+}
+
 esp_err_t LEDMatrix::setMulti(const size_t* offsets, size_t leds, colour_t colour) {
     // uint8_t r = (colour >> 16) & 0xFF, // red
     //         g = (colour >> 8) & 0xFF, // green
     //         b = (colour >> 0) & 0xFF; // blue
     
+    uint32_t correctedColour = applyCorrection(colour);
+
     esp_err_t ret = ESP_OK;
     acquireBuffer();
     
     for (size_t i = 0; i < leds && ret == ESP_OK; i++, offsets++) { // increment to next offset after each iteration
         size_t offset = *offsets;
-        ret = set(offset, colour); // NOTE: the commented out code causes weird corruption??????
+        ret = setRaw(offset, correctedColour); // NOTE: the commented out code causes weird corruption??????
 
         // if (offset == LMAT_NULL) continue;
         // if (offset % 3 != 0) {
@@ -192,9 +210,10 @@ esp_err_t LEDMatrix::setMulti(const size_t* offsets, size_t leds, colour_t colou
 }
 
 esp_err_t LEDMatrix::fill(colour_t colour) {
-    uint8_t r = (colour >> 16) & 0xFF, // red
-            g = (colour >> 8) & 0xFF, // green
-            b = (colour >> 0) & 0xFF; // blue
+    uint8_t r = m_forwardLUT[0][(colour >> 16) & 0xFF], // red
+            g = m_forwardLUT[1][(colour >> 8) & 0xFF], // green
+            b = m_forwardLUT[2][(colour >> 0) & 0xFF]; // blue
+    // NOTE: we also apply colour correction above
     
     acquireBuffer();
     if (r == g && g == b) memset(m_buffer, r, LMAT_SIZE); // use memset if possible because it's faster

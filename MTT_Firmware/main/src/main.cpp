@@ -55,6 +55,28 @@ extern "C" void app_main() {
     ESP_ERROR_CHECK(UART::init());
     ESP_ERROR_CHECK(StatusLED::init()); ESP_ERROR_CHECK(StatusLED::actyOn()); ESP_ERROR_CHECK(StatusLED::errorOn());
     ESP_ERROR_CHECK(LEDMatrix::init());
+
+    /* colour calibration */
+    // TODO: rev1 board calibration
+    // float redScale = 0.6875, greenScale = 0.70, blueScale = 0.55;
+    // float redScale = 0.985, greenScale = 1.0, blueScale = 0.65;
+    // float globalScale = 0.5; // to prevent saturation/overcurrent
+    // uint8_t red = 255.0 * globalScale * redScale, green = 255.0 * globalScale * greenScale, blue = 255.0 * globalScale * blueScale;
+    
+    // while(1) {
+    //     /* white */
+    //     LEDMatrix::fill((colour_t)((red << 16) | (green << 8) | blue)); LEDMatrix::update();
+    //     vTaskDelay(pdMS_TO_TICKS(2000));
+    //     /* yellow */
+    //     LEDMatrix::fill((colour_t)((red << 16) | (green << 8))); LEDMatrix::update();
+    //     vTaskDelay(pdMS_TO_TICKS(2000));
+    //     /* cyan */
+    //     LEDMatrix::fill((colour_t)((green << 8) | blue)); LEDMatrix::update();
+    //     vTaskDelay(pdMS_TO_TICKS(2000));
+    //     /* magenta */
+    //     LEDMatrix::fill((colour_t)((red << 16) | blue)); LEDMatrix::update();
+    //     vTaskDelay(pdMS_TO_TICKS(2000));
+    // }
     
     /* initialise boot pin */
     gpio_config_t bootIOConf = {

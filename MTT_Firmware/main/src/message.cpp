@@ -133,6 +133,9 @@ void Message::parseFragment(const char* data, int length, bool first) {
                 default: ESP_LOGE(kTag, "viaMunnel flag set for non-MT line " INFRAID2STR_FMT, INFRAID2STR(line)); break;
             }
         }
+#ifdef CONFIG_MUNNEL_COLOUR_BLUE
+        else if (line == INFRAID_SUY && !entry->flags.viaCity) line = INFRAID_SUYM; // Sunbury short workings not via city stations
+#endif
 #endif
 
         ESP_LOGV(

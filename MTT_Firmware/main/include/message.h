@@ -22,7 +22,7 @@ struct MessageEntry {
         uint8_t hasAdjacent : 1;
         uint8_t viaMunnel : 1;
         uint8_t mtOriginating : 1;
-        uint8_t isRRB : 1; // in dev/rrb
+        uint8_t isRRB : 1;
         uint8_t viaCity : 1;
         uint8_t reserved : 2;
     } __attribute__((packed)) flags; // 20

@@ -1,4 +1,5 @@
 const gtfs = require('./gtfs_rt');
+const mtm = require('./mtm_api');
 const { pgp, db } = require('./database');
 const { TableName, ColumnSet, update, values } = pgp.helpers;
 const fs = require('fs');
@@ -28,19 +29,22 @@ const getTripIDPattern = (id) => {
 };
 
 const updateTimetable = (lastTimestamp = null) => {
-    return gtfs.fetchAllUpdates()
-    .then((data) => {
-        if (lastTimestamp != null && lastTimestamp.getTime() == data.timestamp.getTime()) return null; // indicate that the data has not been updated
+    return Promise.all([gtfs.fetchAllUpdates(), mtm.getReplacementBuses()])
+    .then((results) => {
+        const gtfsData = results[0];
+        const rrbData = results[1];
+
+        // if (lastTimestamp != null && lastTimestamp.getTime() == gtfsData.timestamp.getTime()) return null; // indicate that the data has not been updated
 
         const cancelPatterns = [];
-        for (const id of data.cancellations) {
+        for (const id of gtfsData.cancellations) {
             cancelPatterns.push(getTripIDPattern(pgp.as.value(id)));
         }
         const deleteQuery = `DELETE FROM daily.timetable WHERE trip_id SIMILAR TO '${cancelPatterns.join('|')}'`;
         // console.log(deleteQuery);
 
         const updates = [];
-        for (const [ tripID, tripUpdates ] of Object.entries(data.updates)) {
+        for (const [ tripID, tripUpdates ] of Object.entries(gtfsData.updates)) {
             const line = (tripID.startsWith('vic:')) ? tripID.split(':')[1].slice(2) : tripID.split('-')[1]; // 02-SUY or vic:02SUY
             for (const [ seq, seqUpdate ] of Object.entries(tripUpdates)) {
                 updates.push({
@@ -49,11 +53,24 @@ const updateTimetable = (lastTimestamp = null) => {
                     seq: seq,
                     arrival: seqUpdate.arrival,
                     departure: seqUpdate.departure,
-                    last_updated: data.timestamp,
+                    last_updated: gtfsData.timestamp,
                     stop_id: isNaN(seqUpdate.stop) ? null : seqUpdate.stop,
                     station: isNaN(seqUpdate.stop) ? seqUpdate.stop : null
                 });
             }
+        }
+        const now = new Date();
+        for (const update of rrbData) {
+            updates.push({
+                trip_id: update.tripID,
+                line: update.line,
+                seq: update.seq,
+                arrival: update.arrival,
+                departure: (update.departure) ? update.departure : update.arrival,
+                last_updated: now,
+                stop_id: null,
+                station: update.station
+            });
         }
 
         return db.result(deleteQuery).then((deleteResult) => {
@@ -70,14 +87,14 @@ const updateTimetable = (lastTimestamp = null) => {
                 `;
                 return db.any(updateQuery).then((rows) => {
                     return {
-                        timestamp: data.timestamp,
+                        timestamp: gtfsData.timestamp,
                         deletedCount: deleteResult.rowCount,
                         rowCount: rows.length
                     };
                 });
             } else {
                 return {
-                    timestamp: data.timestamp,
+                    timestamp: gtfsData.timestamp,
                     deletedCount: deleteResult.rowCount,
                     rowCount: 0
                 };

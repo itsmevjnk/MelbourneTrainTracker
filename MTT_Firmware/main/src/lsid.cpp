@@ -6,7 +6,7 @@
 const char* LSID::kTag = "lsid";
 
 uint16_t LSID::getLED(infraid_t line, infraid_t code) {
-    switch (line) {
+    switch (line & ~(1UL << 31)) {
         /* metropolitan lines */
         case INFRAID_SHM: return shmGetLED(code);
         case INFRAID_MDD: return mddGetLED(code);
@@ -69,7 +69,7 @@ uint16_t LSID::getLED(infraid_t line, infraid_t code) {
 }
 
 size_t LSID::getLEDsBetween(infraid_t line, infraid_t fromCode, infraid_t toCode, uint16_t* buffer, size_t maxLength) {
-    switch (line) {
+    switch (line & ~(1UL << 31)) {
         /* metropolitan lines */
         case INFRAID_SHM: return shmGetLEDsBetween(fromCode, toCode, buffer, maxLength);
         case INFRAID_MDD: return mddGetLEDsBetween(fromCode, toCode, buffer, maxLength);
@@ -132,7 +132,8 @@ size_t LSID::getLEDsBetween(infraid_t line, infraid_t fromCode, infraid_t toCode
 }
 
 colour_t LSID::getLineColour(infraid_t line) {
-    switch (line) {
+    if (line & (1UL << 31)) return kDisruption;    
+    switch (line & ~(1UL << 31)) {
         /* metropolitan lines */
         case INFRAID_SHM: return kSandringham;
 

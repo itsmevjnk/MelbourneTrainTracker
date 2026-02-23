@@ -12,7 +12,7 @@ httpd_handle_t WebServer::m_server = NULL;
 
 const httpd_uri_t* WebServer::kHandlers[] = {
     &kGetDriverState, &kSetDriverState,
-    &kGetLEDBuffer,
+    &kGetLEDBuffer, &kGetReverseLUT,
     &kLEDBufferWS,
     &kGetLines, &kEnableLines, &kDisableLines,
     &kGetBoardImage, &kGetBoardView, &kGetIndex, &kGetRoot,

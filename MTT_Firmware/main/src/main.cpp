@@ -19,31 +19,10 @@
 #include "esp_log.h"
 static const char* kTag = "main"; // for logging
 
-/* update LED states */
-void update() {
-#ifdef CONFIG_UPDATE_FLASH_LED
-    StatusLED::actyOn();
-#endif
-    Services::acquire();
-    time_t now; time(&now);
-    if (Services::updateStates(now)) { // update available
-        ESP_ERROR_CHECK(LEDMatrix::fill(kOff)); // clear
-        LEDMatrix::acquireBuffer();
-        Services::showAllStates(now);
-        LEDMatrix::update();
-        LEDMatrix::releaseBuffer();
-        ESP_ERROR_CHECK(WebServer::sendLEDBufferAsync());
-        ESP_LOGI(kTag, "updated LED matrix, minimum free heap size: %lu bytes", esp_get_minimum_free_heap_size()); // log to detect excessive RAM usage
-    }
-    Services::release();
-#ifdef CONFIG_UPDATE_FLASH_LED
-    StatusLED::actyOff();
-#endif
-}
+#include "zlib.h"
 
-#ifndef CONFIG_UPDATE_INTERVAL
-#define CONFIG_UPDATE_INTERVAL                 1000
-#endif
+extern const uint8_t badapple_start[] asm("_binary_badapple_dat_gz_start");
+extern const uint8_t badapple_end[] asm("_binary_badapple_dat_gz_end");
 
 /* firmware entry point */
 extern "C" void app_main() {
@@ -78,117 +57,58 @@ extern "C" void app_main() {
     //     vTaskDelay(pdMS_TO_TICKS(2000));
     // }
     
-    /* initialise boot pin */
-    gpio_config_t bootIOConf = {
-        .pin_bit_mask = (1ULL << BTN_BOOT),
-        .mode = GPIO_MODE_INPUT,
-        // .pull_up_en = GPIO_PULLUP_ENABLE,
-        // .pull_down_en = GPIO_PULLDOWN_DISABLE,
-        // .intr_type = GPIO_INTR_DISABLE
-        // NOTE: the BOOT pin should have already been pulled up as it is a strapping pin
-    };
-    ESP_ERROR_CHECK(gpio_config(&bootIOConf));
-
-#ifdef CONFIG_BATCH1_BODGE_TEST
-    ESP_LOGI(kTag, "running 1st batch bodge test - press and release Boot key to continue booting");
-    while (gpio_get_level(BTN_BOOT) == 1) {
-        /* L2_K5 test */
-        static const size_t ledsL2K5_1[] = { 
-            LMAT_NEWPORT_NME, LMAT_NEWPORT_NME_ALT,
-            LMAT_SEYMOUR_NME, LMAT_SEYMOUR_NME_ALT,
-            LMAT_NORTHERN_NME, LMAT_NORTHERN_NME_ALT
-        };
-        LEDMatrix::fill(kOff); LEDMatrix::setMulti(ledsL2K5_1, sizeof(ledsL2K5_1) / sizeof(size_t), kNorthern); LEDMatrix::update();
-        vTaskDelay(pdMS_TO_TICKS(1000));
-        
-        static const size_t ledsL2K5_2[] = { 
-            LMAT_FRANKSTON_ARM, LMAT_FRANKSTON_ARM_ALT,
-            LMAT_FRANKSTON_HKN, LMAT_FRANKSTON_HKN_ALT,
-            LMAT_FRANKSTON_TOR, LMAT_FRANKSTON_TOR_ALT
-        };
-        LEDMatrix::fill(kOff); LEDMatrix::setMulti(ledsL2K5_2, sizeof(ledsL2K5_2) / sizeof(size_t), kFrankston); LEDMatrix::update();
-        vTaskDelay(pdMS_TO_TICKS(1000));
-
-        /* L5_K4 test */
-        static const size_t ledsL5K4_1[] = { 
-            LMAT_SHEPPARTON_SNH, LMAT_SHEPPARTON_SNH_ALT, 
-            LMAT_SHEPPARTON_MPA, LMAT_SHEPPARTON_MPA_ALT, 
-            LMAT_SHEPPARTON_MST, LMAT_SHEPPARTON_MST_ALT
-        };
-        LEDMatrix::fill(kOff); LEDMatrix::setMulti(ledsL5K4_1, sizeof(ledsL5K4_1) / sizeof(size_t), kVLine); LEDMatrix::update();
-        vTaskDelay(pdMS_TO_TICKS(1000));
-        
-        static const size_t ledsL5K4_2[] = { 
-            LMAT_SHEPPARTON_NGE, LMAT_SHEPPARTON_NGE_ALT,
-            LMAT_SEYMOUR_SER, LMAT_SEYMOUR_SER_ALT,
-            LMAT_SEYMOUR_TOK, LMAT_SEYMOUR_TOK_ALT
-        };
-        LEDMatrix::fill(kOff); LEDMatrix::setMulti(ledsL5K4_2, sizeof(ledsL5K4_2) / sizeof(size_t), kVLine); LEDMatrix::update();
-        vTaskDelay(pdMS_TO_TICKS(1000));
-    }
-    LEDMatrix::fill(kOff); LEDMatrix::update();
-    while (gpio_get_level(BTN_BOOT) == 0); // wait for release
-#endif
-
-    /* load config */
-    esp_err_t ret = Config::init();
-    bool runConfig = false;
-    if (ret != ESP_OK) {
-#ifdef CONFIG_ESP_ERR_TO_NME_LOOKUP
-        ESP_LOGE(kTag, "configuration loading failed (%s), booting into configuration CLI", esp_err_to_name(ret));
-#else  
-        ESP_LOGE(kTag, "configuration loading failed (%d), booting into configuration CLI", ret);
-#endif
-        runConfig = true;
-    } else {
-        ESP_LOGI(kTag, "press any key or the BOOT button within 3 seconds to boot into configuration CLI");
-        TickType_t startTick = xTaskGetTickCount();
-        while (xTaskGetTickCount() - startTick < (3000 / portTICK_PERIOD_MS)) {
-            uint8_t buf;
-            if ((UART::read(&buf, 1, 0) > 0) || (gpio_get_level(BTN_BOOT) == 0)) {
-                ESP_LOGI(kTag, "booting into configuration CLI");
-                runConfig = true;
-                break;
-            }
-        }
-    }
-    if (runConfig) {
-        /* initialise web configuration interface access */
-        ESP_ERROR_CHECK(WiFi::initAP());
-        ESP_ERROR_CHECK(WebServer::initConfig()); // do not use mDNS settings here since Config might not be initialised yet
-
-        ESP_ERROR_CHECK(Config::cli());
-        while (true) { // while CLI is running on another task, we flash the two LEDs alternately
-            ESP_ERROR_CHECK(StatusLED::actyOn()); ESP_ERROR_CHECK(StatusLED::errorOff()); vTaskDelay(500 / portTICK_PERIOD_MS);
-            ESP_ERROR_CHECK(StatusLED::actyOff()); ESP_ERROR_CHECK(StatusLED::errorOn()); vTaskDelay(500 / portTICK_PERIOD_MS);
-        }
-    }
-    ESP_ERROR_CHECK(StatusLED::errorOff());
-
-    if (Config::isWiFiEnterprise())
-        ESP_ERROR_CHECK(WiFi::initSTA(Config::getWiFiSSID(), Config::getWiFiIdentity(), Config::getWiFiUsername(), Config::getWiFiPassword(), Config::getWiFiCertificate(), Config::getWiFiCertLength()));
-    else
-        ESP_ERROR_CHECK(WiFi::initSTA(Config::getWiFiSSID(), Config::getWiFiPassword()));
-
-    ESP_ERROR_CHECK(OTA::confirmUpdate());
-
-    ESP_ERROR_CHECK(NTP::init(Config::getTimeServer()));
-
-    ESP_ERROR_CHECK(OTA::doUpdate()); // should occur before setting up MQTT and web server
-    ESP_ERROR_CHECK(OTA::initUpdateTimer());
-
-    ESP_ERROR_CHECK(MQTT::init(Config::getMQTTBroker()));
-
-    ESP_ERROR_CHECK(WebServer::init(Config::getMDNSHostname(), Config::getMDNSInstanceName()));
-
-    ESP_LOGI(kTag, "init end"); ESP_ERROR_CHECK(StatusLED::actyOff());
-
-#ifdef CONFIG_SPI3_ONLY
-    ESP_LOGW(kTag, "CONFIG_SPI3_ONLY is set - all LED controllers are expected to be connected to SPI3 (which is NOT the stock configuration)");
-#endif
+    static const size_t offsets[] = {LMAT_BASE(0, 0, 0), LMAT_BASE(0, 6, 1), LMAT_BASE(1, 6, 3), LMAT_BASE(1, 8, 3), LMAT_BASE(1, 10, 3), LMAT_BASE(1, 1, 3), LMAT_BASE(1, 3, 3), LMAT_BASE(1, 5, 3), LMAT_BASE(1, 7, 3), LMAT_BASE(1, 9, 3), LMAT_BASE(1, 11, 3), LMAT_BASE(1, 0, 5), LMAT_BASE(0, 8, 1), LMAT_BASE(1, 2, 5), LMAT_BASE(1, 4, 5), LMAT_BASE(1, 6, 5), LMAT_BASE(1, 10, 5), LMAT_BASE(1, 8, 5), LMAT_BASE(1, 11, 5), LMAT_BASE(1, 9, 5), LMAT_BASE(1, 7, 5), LMAT_BASE(1, 5, 5), LMAT_BASE(1, 3, 5), LMAT_BASE(0, 10, 1), LMAT_BASE(1, 1, 5), LMAT_BASE(1, 10, 0), LMAT_BASE(1, 10, 4), LMAT_BASE(1, 8, 0), LMAT_BASE(1, 8, 4), LMAT_BASE(1, 6, 0), LMAT_BASE(1, 6, 4), LMAT_BASE(1, 4, 0), LMAT_BASE(1, 4, 4), LMAT_BASE(1, 2, 0), LMAT_BASE(0, 1, 0), LMAT_BASE(1, 2, 4), LMAT_BASE(1, 0, 0), LMAT_BASE(1, 0, 4), LMAT_BASE(1, 1, 0), LMAT_BASE(1, 1, 4), LMAT_BASE(1, 3, 0), LMAT_BASE(1, 3, 4), LMAT_BASE(1, 5, 0), LMAT_BASE(1, 5, 4), LMAT_BASE(1, 7, 0), LMAT_BASE(0, 3, 0), LMAT_BASE(1, 7, 4), LMAT_BASE(1, 9, 0), LMAT_BASE(1, 9, 4), LMAT_BASE(1, 11, 0), LMAT_BASE(1, 11, 4), LMAT_BASE(2, 0, 2), LMAT_BASE(2, 2, 2), LMAT_BASE(2, 4, 2), LMAT_BASE(2, 6, 2), LMAT_BASE(2, 8, 2), LMAT_BASE(0, 5, 0), LMAT_BASE(2, 10, 2), LMAT_BASE(2, 1, 2), LMAT_BASE(2, 3, 2), LMAT_BASE(2, 5, 2), LMAT_BASE(2, 7, 2), LMAT_BASE(2, 9, 2), LMAT_BASE(2, 11, 2), LMAT_BASE(2, 1, 1), LMAT_BASE(2, 3, 1), LMAT_BASE(2, 5, 1), LMAT_BASE(0, 7, 0), LMAT_BASE(2, 7, 1), LMAT_BASE(2, 9, 1), LMAT_BASE(2, 11, 1), LMAT_BASE(2, 10, 1), LMAT_BASE(2, 8, 1), LMAT_BASE(2, 6, 1), LMAT_BASE(2, 4, 1), LMAT_BASE(2, 2, 1), LMAT_BASE(2, 0, 1), LMAT_BASE(2, 10, 0), LMAT_BASE(0, 9, 0), LMAT_BASE(2, 8, 0), LMAT_BASE(2, 6, 0), LMAT_BASE(2, 4, 0), LMAT_BASE(2, 2, 0), LMAT_BASE(2, 0, 0), LMAT_BASE(2, 1, 0), LMAT_BASE(2, 3, 0), LMAT_BASE(2, 5, 0), LMAT_BASE(2, 7, 0), LMAT_BASE(2, 9, 0), LMAT_BASE(0, 11, 0), LMAT_BASE(2, 11, 0), LMAT_BASE(2, 8, 3), LMAT_BASE(2, 10, 3), LMAT_BASE(2, 6, 3), LMAT_BASE(2, 4, 3), LMAT_BASE(2, 2, 3), LMAT_BASE(2, 0, 3), LMAT_BASE(2, 1, 3), LMAT_BASE(2, 3, 3), LMAT_BASE(2, 5, 3), LMAT_BASE(0, 1, 1), LMAT_BASE(2, 7, 3), LMAT_BASE(2, 9, 3), LMAT_BASE(2, 11, 3), LMAT_BASE(2, 10, 4), LMAT_BASE(2, 8, 4), LMAT_BASE(2, 6, 4), LMAT_BASE(2, 4, 4), LMAT_BASE(2, 2, 4), LMAT_BASE(2, 0, 4), LMAT_BASE(2, 1, 4), LMAT_BASE(0, 2, 0), LMAT_BASE(0, 3, 1), LMAT_BASE(2, 3, 4), LMAT_BASE(2, 5, 4), LMAT_BASE(2, 7, 4), LMAT_BASE(2, 9, 4), LMAT_BASE(2, 11, 4), LMAT_BASE(2, 11, 5), LMAT_BASE(2, 9, 5), LMAT_BASE(2, 7, 5), LMAT_BASE(2, 5, 5), LMAT_BASE(2, 3, 5), LMAT_BASE(0, 5, 1), LMAT_BASE(2, 1, 5), LMAT_BASE(2, 10, 5), LMAT_BASE(2, 8, 5), LMAT_BASE(2, 6, 5), LMAT_BASE(2, 4, 5), LMAT_BASE(2, 2, 5), LMAT_BASE(2, 0, 5), LMAT_BASE(3, 0, 1), LMAT_BASE(3, 2, 1), LMAT_BASE(3, 3, 1), LMAT_BASE(0, 7, 1), LMAT_BASE(3, 1, 1), LMAT_BASE(3, 5, 1), LMAT_BASE(3, 10, 1), LMAT_BASE(3, 7, 1), LMAT_BASE(3, 8, 1), LMAT_BASE(3, 9, 1), LMAT_BASE(3, 4, 1), LMAT_BASE(3, 11, 1), LMAT_BASE(3, 6, 1), LMAT_BASE(3, 0, 0), LMAT_BASE(0, 9, 1), LMAT_BASE(3, 1, 0), LMAT_BASE(3, 2, 0), LMAT_BASE(3, 3, 0), LMAT_BASE(3, 4, 0), LMAT_BASE(3, 5, 0), LMAT_BASE(3, 6, 0), LMAT_BASE(3, 7, 0), LMAT_BASE(3, 8, 0), LMAT_BASE(3, 9, 0), LMAT_BASE(3, 10, 0), LMAT_BASE(0, 11, 1), LMAT_BASE(3, 11, 0), LMAT_BASE(3, 2, 4), LMAT_BASE(3, 4, 4), LMAT_BASE(3, 0, 4), LMAT_BASE(3, 6, 4), LMAT_BASE(3, 1, 4), LMAT_BASE(3, 8, 4), LMAT_BASE(3, 3, 4), LMAT_BASE(3, 10, 4), LMAT_BASE(3, 11, 4), LMAT_BASE(0, 0, 2), LMAT_BASE(3, 5, 4), LMAT_BASE(3, 7, 4), LMAT_BASE(3, 9, 4), LMAT_BASE(3, 2, 5), LMAT_BASE(3, 10, 5), LMAT_BASE(3, 0, 5), LMAT_BASE(3, 8, 5), LMAT_BASE(3, 1, 5), LMAT_BASE(3, 4, 5), LMAT_BASE(3, 3, 5), LMAT_BASE(0, 2, 2), LMAT_BASE(3, 6, 5), LMAT_BASE(3, 11, 5), LMAT_BASE(3, 9, 5), LMAT_BASE(3, 7, 5), LMAT_BASE(3, 5, 5), LMAT_BASE(3, 10, 2), LMAT_BASE(3, 2, 2), LMAT_BASE(3, 8, 2), LMAT_BASE(3, 0, 2), LMAT_BASE(3, 4, 2), LMAT_BASE(0, 4, 2), LMAT_BASE(3, 1, 2), LMAT_BASE(3, 6, 2), LMAT_BASE(3, 3, 2), LMAT_BASE(3, 9, 2), LMAT_BASE(3, 11, 2), LMAT_BASE(3, 7, 2), LMAT_BASE(3, 5, 2), LMAT_BASE(3, 0, 3), LMAT_BASE(3, 2, 3), LMAT_BASE(3, 4, 3), LMAT_BASE(0, 6, 2), LMAT_BASE(3, 6, 3), LMAT_BASE(3, 8, 3), LMAT_BASE(3, 3, 3), LMAT_BASE(3, 1, 3), LMAT_BASE(3, 10, 3), LMAT_BASE(3, 5, 3), LMAT_BASE(3, 7, 3), LMAT_BASE(3, 9, 3), LMAT_BASE(3, 11, 3), LMAT_BASE(4, 7, 0), LMAT_BASE(0, 8, 2), LMAT_BASE(4, 5, 0), LMAT_BASE(4, 9, 0), LMAT_BASE(4, 11, 0), LMAT_BASE(4, 3, 0), LMAT_BASE(4, 1, 0), LMAT_BASE(4, 0, 0), LMAT_BASE(4, 2, 0), LMAT_BASE(4, 8, 0), LMAT_BASE(4, 10, 0), LMAT_BASE(4, 6, 0), LMAT_BASE(0, 4, 0), LMAT_BASE(0, 10, 2), LMAT_BASE(4, 4, 0), LMAT_BASE(4, 11, 1), LMAT_BASE(4, 9, 1), LMAT_BASE(4, 7, 1), LMAT_BASE(4, 5, 1), LMAT_BASE(4, 3, 1), LMAT_BASE(4, 1, 1), LMAT_BASE(4, 0, 1), LMAT_BASE(4, 2, 1), LMAT_BASE(4, 4, 1), LMAT_BASE(0, 3, 2), LMAT_BASE(4, 6, 1), LMAT_BASE(4, 8, 1), LMAT_BASE(4, 10, 1), LMAT_BASE(4, 0, 2), LMAT_BASE(4, 2, 2), LMAT_BASE(4, 4, 2), LMAT_BASE(4, 7, 2), LMAT_BASE(4, 8, 2), LMAT_BASE(4, 10, 2), LMAT_BASE(4, 6, 2), LMAT_BASE(0, 5, 2), LMAT_BASE(4, 11, 2), LMAT_BASE(4, 5, 2), LMAT_BASE(4, 3, 2), LMAT_BASE(4, 9, 2), LMAT_BASE(4, 1, 2), LMAT_BASE(4, 11, 5), LMAT_BASE(4, 10, 4), LMAT_BASE(4, 11, 3), LMAT_BASE(4, 9, 5), LMAT_BASE(4, 8, 4), LMAT_BASE(0, 7, 2), LMAT_BASE(4, 9, 3), LMAT_BASE(4, 7, 5), LMAT_BASE(4, 6, 4), LMAT_BASE(4, 1, 3), LMAT_BASE(4, 5, 5), LMAT_BASE(4, 4, 4), LMAT_BASE(4, 3, 3), LMAT_BASE(4, 3, 5), LMAT_BASE(4, 2, 4), LMAT_BASE(4, 5, 3), LMAT_BASE(0, 9, 2), LMAT_BASE(4, 1, 5), LMAT_BASE(4, 0, 4), LMAT_BASE(4, 7, 3), LMAT_BASE(4, 0, 5), LMAT_BASE(4, 1, 4), LMAT_BASE(4, 8, 3), LMAT_BASE(4, 2, 5), LMAT_BASE(4, 3, 4), LMAT_BASE(4, 10, 3), LMAT_BASE(4, 4, 5), LMAT_BASE(0, 11, 2), LMAT_BASE(4, 5, 4), LMAT_BASE(4, 4, 3), LMAT_BASE(4, 6, 5), LMAT_BASE(4, 7, 4), LMAT_BASE(4, 6, 3), LMAT_BASE(4, 8, 5), LMAT_BASE(4, 9, 4), LMAT_BASE(4, 0, 3), LMAT_BASE(4, 10, 5), LMAT_BASE(4, 11, 4), LMAT_BASE(0, 1, 2), LMAT_BASE(4, 2, 3), LMAT_BASE(5, 0, 0), LMAT_BASE(5, 1, 0), LMAT_BASE(5, 2, 0), LMAT_BASE(5, 3, 0), LMAT_BASE(5, 4, 0), LMAT_BASE(5, 5, 0), LMAT_BASE(5, 6, 0), LMAT_BASE(5, 7, 0), LMAT_BASE(5, 8, 0), LMAT_BASE(0, 1, 3), LMAT_BASE(5, 9, 0), LMAT_BASE(5, 10, 0), LMAT_BASE(5, 11, 0), LMAT_BASE(5, 0, 1), LMAT_BASE(5, 1, 1), LMAT_BASE(5, 2, 1), LMAT_BASE(5, 3, 1), LMAT_BASE(5, 4, 1), LMAT_BASE(5, 5, 1), LMAT_BASE(5, 6, 1), LMAT_BASE(0, 11, 3), LMAT_BASE(5, 7, 1), LMAT_BASE(5, 8, 1), LMAT_BASE(5, 9, 1), LMAT_BASE(5, 10, 1), LMAT_BASE(5, 11, 1), LMAT_BASE(5, 0, 5), LMAT_BASE(5, 1, 5), LMAT_BASE(5, 2, 5), LMAT_BASE(5, 3, 5), LMAT_BASE(5, 4, 5), LMAT_BASE(0, 9, 3), LMAT_BASE(5, 5, 5), LMAT_BASE(5, 6, 5), LMAT_BASE(5, 7, 5), LMAT_BASE(5, 8, 5), LMAT_BASE(5, 9, 5), LMAT_BASE(5, 10, 5), LMAT_BASE(5, 11, 5), LMAT_BASE(5, 11, 2), LMAT_BASE(5, 9, 2), LMAT_BASE(5, 7, 2), LMAT_BASE(0, 6, 0), LMAT_BASE(0, 7, 3), LMAT_BASE(5, 5, 2), LMAT_BASE(5, 3, 2), LMAT_BASE(5, 1, 2), LMAT_BASE(5, 0, 2), LMAT_BASE(5, 2, 2), LMAT_BASE(5, 4, 2), LMAT_BASE(5, 6, 2), LMAT_BASE(5, 8, 2), LMAT_BASE(5, 10, 2), LMAT_BASE(5, 1, 4), LMAT_BASE(0, 5, 3), LMAT_BASE(5, 5, 4), LMAT_BASE(5, 7, 4), LMAT_BASE(5, 9, 4), LMAT_BASE(5, 11, 4), LMAT_BASE(5, 3, 4), LMAT_BASE(5, 0, 4), LMAT_BASE(5, 2, 4), LMAT_BASE(5, 4, 4), LMAT_BASE(5, 6, 4), LMAT_BASE(5, 8, 4), LMAT_BASE(0, 3, 3), LMAT_BASE(5, 10, 4), LMAT_BASE(5, 0, 3), LMAT_BASE(5, 1, 3), LMAT_BASE(5, 2, 3), LMAT_BASE(5, 3, 3), LMAT_BASE(5, 4, 3), LMAT_BASE(5, 5, 3), LMAT_BASE(5, 6, 3), LMAT_BASE(5, 7, 3), LMAT_BASE(5, 8, 3), LMAT_BASE(0, 10, 3), LMAT_BASE(5, 9, 3), LMAT_BASE(5, 10, 3), LMAT_BASE(5, 11, 3), LMAT_BASE(6, 11, 0), LMAT_BASE(6, 10, 0), LMAT_BASE(6, 9, 0), LMAT_BASE(6, 8, 0), LMAT_BASE(6, 7, 0), LMAT_BASE(6, 6, 0), LMAT_BASE(6, 5, 0), LMAT_BASE(0, 8, 3), LMAT_BASE(6, 4, 0), LMAT_BASE(6, 3, 0), LMAT_BASE(6, 2, 0), LMAT_BASE(6, 1, 0), LMAT_BASE(6, 0, 0), LMAT_BASE(6, 11, 1), LMAT_BASE(6, 10, 1), LMAT_BASE(6, 9, 1), LMAT_BASE(6, 8, 1), LMAT_BASE(6, 7, 1), LMAT_BASE(0, 6, 3), LMAT_BASE(6, 6, 1), LMAT_BASE(6, 5, 1), LMAT_BASE(6, 4, 1), LMAT_BASE(6, 3, 1), LMAT_BASE(6, 2, 1), LMAT_BASE(6, 1, 1), LMAT_BASE(6, 0, 1), LMAT_BASE(6, 11, 2), LMAT_BASE(6, 10, 2), LMAT_BASE(6, 9, 2), LMAT_BASE(0, 2, 3), LMAT_BASE(6, 8, 2), LMAT_BASE(6, 7, 2), LMAT_BASE(6, 6, 2), LMAT_BASE(6, 5, 2), LMAT_BASE(6, 4, 2), LMAT_BASE(6, 3, 2), LMAT_BASE(6, 2, 2), LMAT_BASE(6, 1, 2), LMAT_BASE(6, 0, 2), LMAT_BASE(6, 0, 3), LMAT_BASE(0, 4, 3), LMAT_BASE(6, 2, 3), LMAT_BASE(6, 4, 3), LMAT_BASE(6, 6, 3), LMAT_BASE(6, 8, 3), LMAT_BASE(6, 10, 3), LMAT_BASE(6, 1, 3), LMAT_BASE(6, 3, 3), LMAT_BASE(6, 5, 3), LMAT_BASE(6, 7, 3), LMAT_BASE(6, 9, 3), LMAT_BASE(0, 0, 3), LMAT_BASE(6, 11, 3), LMAT_BASE(6, 0, 4), LMAT_BASE(6, 2, 4), LMAT_BASE(6, 4, 4), LMAT_BASE(6, 6, 4), LMAT_BASE(6, 8, 4), LMAT_BASE(6, 10, 4), LMAT_BASE(6, 1, 4), LMAT_BASE(6, 3, 4), LMAT_BASE(6, 5, 4), LMAT_BASE(0, 0, 4), LMAT_BASE(6, 7, 4), LMAT_BASE(6, 9, 4), LMAT_BASE(6, 11, 4), LMAT_BASE(6, 11, 5), LMAT_BASE(6, 9, 5), LMAT_BASE(6, 7, 5), LMAT_BASE(6, 5, 5), LMAT_BASE(6, 3, 5), LMAT_BASE(6, 1, 5), LMAT_BASE(6, 10, 5), LMAT_BASE(0, 8, 0), LMAT_BASE(0, 11, 4), LMAT_BASE(6, 8, 5), LMAT_BASE(6, 6, 5), LMAT_BASE(6, 4, 5), LMAT_BASE(6, 2, 5), LMAT_BASE(6, 0, 5), LMAT_BASE(7, 11, 5), LMAT_BASE(7, 11, 3), LMAT_BASE(10, 9, 1), LMAT_BASE(7, 9, 5), LMAT_BASE(7, 9, 3), LMAT_BASE(0, 2, 4), LMAT_BASE(10, 9, 0), LMAT_BASE(7, 7, 5), LMAT_BASE(7, 7, 3), LMAT_BASE(10, 9, 5), LMAT_BASE(7, 5, 5), LMAT_BASE(7, 5, 3), LMAT_BASE(10, 11, 1), LMAT_BASE(7, 3, 5), LMAT_BASE(7, 3, 3), LMAT_BASE(7, 3, 4), LMAT_BASE(0, 9, 4), LMAT_BASE(7, 1, 5), LMAT_BASE(7, 1, 3), LMAT_BASE(7, 1, 4), LMAT_BASE(7, 0, 5), LMAT_BASE(7, 0, 3), LMAT_BASE(7, 0, 4), LMAT_BASE(7, 2, 5), LMAT_BASE(7, 2, 3), LMAT_BASE(7, 2, 4), LMAT_BASE(7, 4, 5), LMAT_BASE(0, 4, 4), LMAT_BASE(7, 4, 3), LMAT_BASE(7, 4, 4), LMAT_BASE(7, 6, 5), LMAT_BASE(7, 6, 3), LMAT_BASE(7, 6, 4), LMAT_BASE(7, 8, 5), LMAT_BASE(7, 8, 3), LMAT_BASE(7, 8, 4), LMAT_BASE(7, 10, 5), LMAT_BASE(7, 10, 3), LMAT_BASE(0, 7, 4), LMAT_BASE(7, 10, 4), LMAT_BASE(7, 3, 2), LMAT_BASE(7, 11, 0), LMAT_BASE(7, 11, 1), LMAT_BASE(7, 1, 2), LMAT_BASE(7, 9, 0), LMAT_BASE(7, 9, 1), LMAT_BASE(7, 0, 2), LMAT_BASE(7, 7, 0), LMAT_BASE(7, 7, 1), LMAT_BASE(0, 6, 4), LMAT_BASE(7, 2, 2), LMAT_BASE(7, 5, 0), LMAT_BASE(7, 5, 1), LMAT_BASE(7, 4, 2), LMAT_BASE(7, 3, 0), LMAT_BASE(7, 3, 1), LMAT_BASE(7, 6, 2), LMAT_BASE(7, 1, 0), LMAT_BASE(7, 1, 1), LMAT_BASE(7, 8, 2), LMAT_BASE(0, 5, 4), LMAT_BASE(7, 0, 0), LMAT_BASE(7, 0, 1), LMAT_BASE(7, 10, 2), LMAT_BASE(7, 2, 0), LMAT_BASE(7, 2, 1), LMAT_BASE(7, 5, 2), LMAT_BASE(7, 4, 0), LMAT_BASE(7, 4, 1), LMAT_BASE(7, 7, 2), LMAT_BASE(7, 6, 0), LMAT_BASE(0, 8, 4), LMAT_BASE(7, 6, 1), LMAT_BASE(7, 9, 2), LMAT_BASE(7, 8, 0), LMAT_BASE(7, 8, 1), LMAT_BASE(7, 11, 2), LMAT_BASE(7, 10, 0), LMAT_BASE(7, 10, 1), LMAT_BASE(8, 9, 2), LMAT_BASE(8, 9, 1), LMAT_BASE(8, 9, 0), LMAT_BASE(0, 3, 4), LMAT_BASE(8, 2, 5), LMAT_BASE(8, 3, 4), LMAT_BASE(8, 8, 3), LMAT_BASE(8, 11, 2), LMAT_BASE(8, 11, 1), LMAT_BASE(8, 11, 0), LMAT_BASE(8, 0, 5), LMAT_BASE(8, 1, 4), LMAT_BASE(8, 10, 3), LMAT_BASE(8, 5, 2), LMAT_BASE(0, 10, 4), LMAT_BASE(8, 5, 1), LMAT_BASE(8, 5, 0), LMAT_BASE(8, 6, 5), LMAT_BASE(8, 7, 4), LMAT_BASE(8, 4, 3), LMAT_BASE(8, 7, 2), LMAT_BASE(8, 7, 1), LMAT_BASE(8, 7, 0), LMAT_BASE(8, 4, 5), LMAT_BASE(8, 5, 4), LMAT_BASE(0, 10, 0), LMAT_BASE(0, 1, 4), LMAT_BASE(8, 6, 3), LMAT_BASE(8, 1, 2), LMAT_BASE(8, 1, 1), LMAT_BASE(8, 1, 0), LMAT_BASE(8, 10, 5), LMAT_BASE(8, 11, 4), LMAT_BASE(8, 11, 3), LMAT_BASE(8, 3, 2), LMAT_BASE(8, 3, 1), LMAT_BASE(8, 3, 0), LMAT_BASE(0, 0, 5), LMAT_BASE(8, 8, 5), LMAT_BASE(8, 9, 4), LMAT_BASE(8, 5, 3), LMAT_BASE(8, 2, 2), LMAT_BASE(8, 2, 1), LMAT_BASE(8, 2, 0), LMAT_BASE(8, 3, 5), LMAT_BASE(8, 8, 4), LMAT_BASE(8, 0, 3), LMAT_BASE(8, 0, 2), LMAT_BASE(0, 2, 5), LMAT_BASE(8, 0, 1), LMAT_BASE(8, 0, 0), LMAT_BASE(8, 1, 5), LMAT_BASE(8, 10, 4), LMAT_BASE(8, 2, 3), LMAT_BASE(8, 6, 2), LMAT_BASE(8, 6, 1), LMAT_BASE(8, 6, 0), LMAT_BASE(8, 7, 5), LMAT_BASE(8, 4, 4), LMAT_BASE(0, 4, 5), LMAT_BASE(8, 3, 3), LMAT_BASE(8, 4, 2), LMAT_BASE(8, 4, 1), LMAT_BASE(8, 4, 0), LMAT_BASE(8, 5, 5), LMAT_BASE(8, 6, 4), LMAT_BASE(8, 1, 3), LMAT_BASE(8, 10, 2), LMAT_BASE(8, 10, 1), LMAT_BASE(8, 10, 0), LMAT_BASE(0, 6, 5), LMAT_BASE(8, 11, 5), LMAT_BASE(8, 0, 4), LMAT_BASE(8, 9, 3), LMAT_BASE(8, 8, 2), LMAT_BASE(8, 8, 1), LMAT_BASE(8, 8, 0), LMAT_BASE(8, 9, 5), LMAT_BASE(8, 2, 4), LMAT_BASE(8, 7, 3), LMAT_BASE(9, 9, 1), LMAT_BASE(0, 8, 5), LMAT_BASE(9, 9, 2), LMAT_BASE(9, 9, 3), LMAT_BASE(9, 6, 4), LMAT_BASE(9, 8, 5), LMAT_BASE(10, 11, 0), LMAT_BASE(9, 11, 1), LMAT_BASE(9, 11, 2), LMAT_BASE(9, 11, 3), LMAT_BASE(9, 8, 4), LMAT_BASE(9, 10, 5), LMAT_BASE(0, 10, 5), LMAT_BASE(10, 11, 5), LMAT_BASE(9, 5, 1), LMAT_BASE(9, 5, 2), LMAT_BASE(9, 5, 3), LMAT_BASE(9, 2, 4), LMAT_BASE(9, 4, 5), LMAT_BASE(10, 5, 1), LMAT_BASE(9, 7, 1), LMAT_BASE(9, 7, 2), LMAT_BASE(9, 7, 3), LMAT_BASE(0, 1, 5), LMAT_BASE(9, 4, 4), LMAT_BASE(9, 6, 5), LMAT_BASE(10, 5, 0), LMAT_BASE(9, 1, 1), LMAT_BASE(9, 1, 2), LMAT_BASE(9, 1, 3), LMAT_BASE(9, 0, 4), LMAT_BASE(9, 0, 5), LMAT_BASE(10, 5, 5), LMAT_BASE(9, 3, 1), LMAT_BASE(0, 3, 5), LMAT_BASE(9, 3, 2), LMAT_BASE(9, 3, 3), LMAT_BASE(10, 7, 1), LMAT_BASE(9, 2, 5), LMAT_BASE(10, 7, 0), LMAT_BASE(9, 2, 1), LMAT_BASE(9, 2, 2), LMAT_BASE(9, 2, 3), LMAT_BASE(9, 3, 4), LMAT_BASE(9, 3, 5), LMAT_BASE(0, 5, 5), LMAT_BASE(10, 7, 5), LMAT_BASE(9, 0, 1), LMAT_BASE(9, 0, 2), LMAT_BASE(9, 0, 3), LMAT_BASE(9, 1, 4), LMAT_BASE(9, 1, 5), LMAT_BASE(10, 1, 1), LMAT_BASE(9, 6, 1), LMAT_BASE(9, 6, 2), LMAT_BASE(9, 6, 3), LMAT_BASE(0, 0, 1), LMAT_BASE(0, 7, 5), LMAT_BASE(9, 7, 4), LMAT_BASE(9, 7, 5), LMAT_BASE(10, 1, 0), LMAT_BASE(9, 4, 1), LMAT_BASE(9, 4, 2), LMAT_BASE(9, 4, 3), LMAT_BASE(9, 5, 4), LMAT_BASE(9, 5, 5), LMAT_BASE(10, 1, 5), LMAT_BASE(9, 10, 1), LMAT_BASE(0, 9, 5), LMAT_BASE(9, 10, 2), LMAT_BASE(9, 10, 3), LMAT_BASE(9, 11, 4), LMAT_BASE(9, 11, 5), LMAT_BASE(10, 3, 1), LMAT_BASE(9, 8, 1), LMAT_BASE(9, 8, 2), LMAT_BASE(9, 8, 3), LMAT_BASE(9, 9, 4), LMAT_BASE(9, 9, 5), LMAT_BASE(0, 11, 5), LMAT_BASE(10, 3, 0), LMAT_BASE(10, 3, 5), LMAT_BASE(10, 2, 1), LMAT_BASE(10, 2, 0), LMAT_BASE(10, 2, 5), LMAT_BASE(10, 0, 1), LMAT_BASE(10, 0, 0), LMAT_BASE(10, 0, 5), LMAT_BASE(10, 8, 1), LMAT_BASE(10, 6, 0), LMAT_BASE(1, 0, 2), LMAT_BASE(10, 10, 1), LMAT_BASE(10, 4, 0), LMAT_BASE(10, 4, 1), LMAT_BASE(10, 10, 0), LMAT_BASE(10, 6, 1), LMAT_BASE(10, 8, 0), LMAT_BASE(1, 2, 2), LMAT_BASE(1, 4, 2), LMAT_BASE(1, 6, 2), LMAT_BASE(1, 8, 2), LMAT_BASE(1, 10, 2), LMAT_BASE(1, 1, 2), LMAT_BASE(0, 2, 1), LMAT_BASE(1, 3, 2), LMAT_BASE(1, 5, 2), LMAT_BASE(1, 7, 2), LMAT_BASE(1, 9, 2), LMAT_BASE(1, 11, 2), LMAT_BASE(1, 0, 1), LMAT_BASE(1, 2, 1), LMAT_BASE(1, 4, 1), LMAT_BASE(1, 6, 1), LMAT_BASE(1, 8, 1), LMAT_BASE(0, 4, 1), LMAT_BASE(1, 10, 1), LMAT_BASE(1, 1, 1), LMAT_BASE(1, 3, 1), LMAT_BASE(1, 5, 1), LMAT_BASE(1, 7, 1), LMAT_BASE(1, 9, 1), LMAT_BASE(1, 11, 1), LMAT_BASE(1, 0, 3), LMAT_BASE(1, 2, 3), LMAT_BASE(1, 4, 3)};
 
     while (true) {
-        update();
-        vTaskDelay(CONFIG_UPDATE_INTERVAL / portTICK_PERIOD_MS);
+        z_stream stream{};
+        stream.next_in = (Bytef*)badapple_start;
+        stream.avail_in = (uintptr_t)badapple_end - (uintptr_t)badapple_start;
+        int ret = inflateInit2(&stream, 16 + MAX_WBITS);
+        if (ret != Z_OK) {
+            ESP_LOGE(kTag, "inflateInit2 failed (%d)", ret);
+            abort();
+        }
+
+        ESP_LOGI(kTag, "inflateInit2 finished");
+
+        static uint8_t buffer[sizeof(offsets) / sizeof(size_t)]; // for decompression
+        size_t frame = 1;
+        size_t filled = 0;
+        TickType_t lastWakeTime = xTaskGetTickCount();
+        do {
+            stream.next_out = &buffer[filled];
+            stream.avail_out = sizeof(buffer) - filled;
+
+            ret = inflate(&stream, Z_NO_FLUSH);
+            if (ret != Z_OK && ret != Z_STREAM_END) {
+                inflateEnd(&stream);
+                ESP_LOGE(kTag, "inflate failed at frame %u (%d)", frame, ret);
+                abort();
+            }
+            
+            filled = sizeof(buffer) - stream.avail_out;
+
+            if (filled == sizeof(buffer)) { // frame decompressed
+                ESP_LOGI(kTag, "frame %u", frame);
+                
+                for (size_t i = 0; i < sizeof(buffer); i++) {
+                    uint32_t x = buffer[i]; // brightness
+                    uint32_t colour = (x << 16) | (x << 8) | x;
+                    LEDMatrix::set(offsets[i], (colour_t)colour);
+                }
+                LEDMatrix::update();
+
+                vTaskDelayUntil(&lastWakeTime, pdMS_TO_TICKS(1000 / 30)); // Bad Apple is 30fps
+
+                filled = 0;
+            }
+
+            frame++;
+        } while (ret != Z_STREAM_END);
+
+        inflateEnd(&stream);
+
+        ESP_LOGI(kTag, "end, will restart in 5 sec");
+        vTaskDelay(pdMS_TO_TICKS(5000));
     }
 }

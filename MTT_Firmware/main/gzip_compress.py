@@ -26,6 +26,7 @@ files = (
     glob('**/*.htm', root_dir=input_dir, recursive=True)
     + glob('**/*.css', root_dir=input_dir, recursive=True)
     + glob('**/*.svg', root_dir=input_dir, recursive=True)
+    + glob('**/*.dat', root_dir=input_dir, recursive=True)
 )
 
 if not files:

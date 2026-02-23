@@ -1,7 +1,7 @@
 set(ASSETS_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/assets")
 set(ASSETS_BUILD_DIR "${CMAKE_BINARY_DIR}/assets")
 
-file(GLOB_RECURSE COMPRESS_SRC "${ASSETS_SRC_DIR}/*.htm" "${ASSETS_SRC_DIR}/*.svg" "${ASSETS_SRC_DIR}/*.css")
+file(GLOB_RECURSE COMPRESS_SRC "${ASSETS_SRC_DIR}/*.htm" "${ASSETS_SRC_DIR}/*.svg" "${ASSETS_SRC_DIR}/*.css" "${ASSETS_SRC_DIR}/*.dat")
 
 # Generate list of expected output files
 set(COMPRESSED_ASSETS "")

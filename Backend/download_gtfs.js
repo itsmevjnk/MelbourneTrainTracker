@@ -69,6 +69,7 @@ const parseStops = (stream) => {
             reject(err);
         });
         const entries = {};
+        const stopNames = {};
         parser.on('readable', () => {
             let record;
             while ((record = parser.read()) !== null) {
@@ -81,11 +82,20 @@ const parseStops = (stream) => {
                     stationCode = stationCode.padEnd(4, ' '); // pad station code to 4 characters
                     if (!entries.hasOwnProperty(stationCode)) entries[stationCode] = new Set(); // unique IDs only (in case some appears multiple times)
                     entries[stationCode].add(stopID);
+
+                    if (!stopNames.hasOwnProperty(stationCode)) {
+                        let name = record.stop_name;
+                        // clean up name
+                        name = name.replaceAll(' Railway Station', '');
+                        name = name.replaceAll(' Rail Replacement Bus Stop', '');
+                        name = name.replaceAll(' Station', '');
+                        stopNames[stationCode] = name;
+                    }
                 } else console.error(`Stop ID ${stopID} (${record.stop_name}) does not have a parent station code (parent_station = "${record.parent_station}") - skipping`);
             }
         });
         parser.on('end', () => {
-            resolve({ stops: entries });
+            resolve({ stops: entries, stopNames: stopNames });
         });
         stream.pipe(parser);
     });
@@ -246,6 +256,7 @@ const download = (url) => {
                             const ret = {
                                 calendar: {},
                                 stops: {},
+                                stopNames: {},
                                 times: {},
                                 tripCalendar: {}
                             };
@@ -260,6 +271,9 @@ const download = (url) => {
                                 for (const [key, value] of Object.entries(results[i].stops)) {
                                     if (ret.stops.hasOwnProperty(key)) ret.stops[key] = new Set([...ret.stops[key], ...value]);
                                     else ret.stops[key] = value;
+                                }
+                                for (const [key, value] of Object.entries(results[i].stopNames)) {
+                                    if (!ret.stopNames.hasOwnProperty(key)) ret.stopNames[key] = value;
                                 }
                                 ret.times = { ...ret.times, ...results[i].times };
                             }
@@ -338,27 +352,48 @@ const updateGTFS = (url) => {
                     return db.none('TRUNCATE TABLE gtfs.stops CASCADE')
                         .then(() => db.none(insert(stops, cs)))
                         .then(() => console.log('Stops have been updated'));
+                })(),
+                (() => { // stop_names
+                    const cs = new ColumnSet(
+                        ['station', 'name'],
+                        { 
+                            table: new TableName({
+                                schema: 'gtfs',
+                                table: 'stop_names'
+                            }) 
+                        }
+                    );
+                    const rows = [];
+                    for (const [key, value] of Object.entries(data.stopNames)) {
+                        rows.push({
+                            station: key,
+                            name: value
+                        });
+                    }
+                    return db.none('TRUNCATE TABLE gtfs.stop_names CASCADE')
+                        .then(() => db.none(insert(rows, cs)))
+                        .then(() => console.log('Stop names have been updated'));
                 })()
             ]).then(() => { // trips
-                const cs = new ColumnSet(
-                    ['id', 'calendar'],
-                    { 
-                        table: new TableName({
-                            schema: 'gtfs',
-                            table: 'trips'
-                        }) 
+                    const cs = new ColumnSet(
+                        ['id', 'calendar'],
+                        { 
+                            table: new TableName({
+                                schema: 'gtfs',
+                                table: 'trips'
+                            }) 
+                        }
+                    );
+                    const trips = [];
+                    for (const [key, value] of Object.entries(data.tripCalendar)) {
+                        trips.push({
+                            id: key,
+                            calendar: value
+                        });
                     }
-                );
-                const trips = [];
-                for (const [key, value] of Object.entries(data.tripCalendar)) {
-                    trips.push({
-                        id: key,
-                        calendar: value
-                    });
-                }
-                return db.none('TRUNCATE TABLE gtfs.trips CASCADE')
-                    .then(() => db.none(insert(trips, cs)))
-                    .then(() => console.log('Trips have been updated'));
+                    return db.none('TRUNCATE TABLE gtfs.trips CASCADE')
+                        .then(() => db.none(insert(trips, cs)))
+                        .then(() => console.log('Trips have been updated'));
             }).then(() => { // timetable
                 const cs = new ColumnSet(
                     ['trip_id', 'seq', 'stop_id', 'arrival', 'departure'],

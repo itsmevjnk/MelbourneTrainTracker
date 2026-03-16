@@ -59,7 +59,7 @@ const getReplacementBuses = () => {
         }
 
         /* parse rt-updates.json */
-        const resUpdates = [];
+        let resUpdates = {};
         const routeIDs = {}; // list of unresolved route IDs encountered, as well as all stations within
         const routeTrips = {};
         const stationRoutes = {};
@@ -75,7 +75,8 @@ const getReplacementBuses = () => {
                 tripID: getTripID(update.route_id, update.trip_id),
                 rawTripID: update.trip_id,
                 routeID: routeID,
-                station: station
+                station: station,
+                modified: update.modified
             };
             
             let arrivalTime = (update.generation_date + update.time_until_arrival) * 1000;
@@ -91,11 +92,15 @@ const getReplacementBuses = () => {
                 routeIDs[routeID].add(station);
             } else entry.line = routeLines[routeID];
 
-            resUpdates.push(entry);
+            const tripIDAndStation = `${entry.trip_id}-${entry.station}`
+            if (!resUpdates.hasOwnProperty(tripIDAndStation) || resUpdates[tripIDAndStation].modified < entry.modified) // keep last modified entry
+                resUpdates[tripIDAndStation] = entry;
 
             if (!stationRoutes.hasOwnProperty(station)) stationRoutes[station] = new Set();
             stationRoutes[station].add(routeID + '');
         }
+
+        resUpdates = Object.values(resUpdates);
 
         /* resolve stopping pattern and sequence number */
         const uncoveredRoutes = new Set(Object.keys(routeTrips));

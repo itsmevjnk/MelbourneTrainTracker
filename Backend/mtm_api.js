@@ -222,7 +222,81 @@ const getReplacementBuses = () => {
     });
 };
 
-module.exports = { getReplacementBuses };
+// from mtm-network-Feb26.json - should this ever change?
+const lineIDs = {
+    HBE: 90,
+    MDD: 87,
+    CGB: 85,
+    UFD: 96,
+    RCE: 0, // according to https://github.com/TransportVic/ptv-api/blob/master/lib/metroSite/metro-site-data.json
+    CBE: 86,
+    PKM: 92,
+    SUY: 95,
+    FKN: 88,
+    STY: 94,
+    SHM: 93,
+    WBE: 97,
+    WIL: 98,
+    ALM: 82,
+    BEG: 84,
+    GWY: 89,
+    LIL: 91
+};
+
+const getOperationalTimetable = (lines) => {
+    if (!Array.isArray(lines)) lines = [lines];
+
+    const promises = [];
+    for (const line of lines) {
+        promises.push(fetch(generateURL(`op_timetable_${line}.json`)));
+    }
+
+    return Promise.all(promises)
+        .then((responses) => {
+            const p = [];
+            for (const response of responses) p.push(response.json());
+            return Promise.all(p);
+        }).then((results) => {
+            const ret = {};
+            for (let i = 0; i < lines.length; i++) {
+                let lineCode = Object.keys(lineIDs).find(key => lineIDs[key] === lines[i]);
+                const lineEntries = [];
+
+                const tripSeq = {}; // for keeping track of sequence num (starting from 1) for each trip ID
+                for (const entry of results[i]) {
+                    /* interpret timestamp */
+                    const [y, m, d] = entry.date.split('-').map(Number);
+                    const utcGuess = new Date(Date.UTC(y, m - 1, d));
+
+                    const offset = new Intl.DateTimeFormat("en-AU", {
+                        timeZone: "Australia/Melbourne",
+                        timeZoneName: "shortOffset"
+                    }).formatToParts(utcGuess).find(p => p.type === "timeZoneName").value;
+
+                    const match = offset.match(/GMT([+-]\d+)(?::(\d+))?/);
+                    const hours = Number(match[1]);
+                    const minutes = Number(match[2] || 0);
+
+                    const timestamp = new Date(Date.UTC(y, m - 1, d, -hours, -minutes) + entry.time_seconds * 1000);
+
+                    const tripID = entry.trip_id;
+                    if (!tripSeq.hasOwnProperty(tripID)) tripSeq[tripID] = 1;
+                    lineEntries.push({
+                        'trip_id': tripID,
+                        'station': entry.station,
+                        'time': timestamp, // departure timestamp, also arrival time for our purposes
+                        'seq': tripSeq[tripID]
+                    });
+                    tripSeq[tripID]++;
+                }
+
+                ret[lineCode] = lineEntries;
+            }
+            return ret;
+        });
+}
+
+module.exports = { getReplacementBuses, lineIDs, getOperationalTimetable };
 
 if (require.main === module) {
     getReplacementBuses().then((result) => {

@@ -37,12 +37,12 @@ void OTA::updateLEDTask(void* pvParameters) {
     }
 }
 
-esp_err_t OTA::doUpdate() {
+esp_err_t OTA::doUpdate(bool forceUpdate) {
     bool update = false;
     char updateURL[80 + sizeof(CONFIG_OTA_GITHUB_REPO)]; // assuming that the remainder of firmware URL is 80 chars long
-    ESP_RETURN_ON_ERROR(checkForUpdates(&update, updateURL), kTag, "cannot check for updates");
+    ESP_RETURN_ON_ERROR(checkForUpdates(&update, updateURL, forceUpdate), kTag, "cannot check for updates");
 
-    if (!update) {
+    if (!update && !forceUpdate) {
         ESP_LOGI(kTag, "update is not needed");
         return ESP_OK;
     }
@@ -82,7 +82,7 @@ esp_err_t OTA::httpEventHandler(esp_http_client_event_t* event) {
     return ESP_OK;
 }
 
-esp_err_t OTA::checkForUpdates(bool* update, char* url) {    
+esp_err_t OTA::checkForUpdates(bool* update, char* url, bool forceCheck) {    
     m_jsonResponse.clear(); // in case it hasn't been cleared yet
 
     esp_http_client_config_t config = {
@@ -118,7 +118,7 @@ esp_err_t OTA::checkForUpdates(bool* update, char* url) {
                 if (strcmp(desc->version, tagName)) { // mismatch - possible update
                     bool updateNeeded = true;
                     size_t currentVersionLen = strlen(desc->version);
-                    if (currentVersionLen > 6 && !memcmp(&desc->version[currentVersionLen - 6], "-dirty", 6)) { // current app version is built from dirty tree - likely to be dev build, so no OTA
+                    if (!forceCheck && currentVersionLen > 6 && !memcmp(&desc->version[currentVersionLen - 6], "-dirty", 6)) { // current app version is built from dirty tree - likely to be dev build, so no OTA
                         ESP_LOGI(kTag, "current build is development build, skipping update");
                         updateNeeded = false;
                     }
@@ -202,27 +202,39 @@ esp_err_t OTA::confirmUpdate() {
 #define CONFIG_OTA_UPDATE_INTERVAL              7
 #endif
 
-esp_err_t OTA::initUpdateTimer() {
+esp_err_t OTA::init() {
     const TickType_t ticks = pdMS_TO_TICKS(CONFIG_OTA_UPDATE_INTERVAL * 86400000ULL);
 
-    TimerHandle_t timer = xTimerCreate(
-        "ota_update",
-        ticks,
-        pdTRUE,
+    BaseType_t taskRet = xTaskCreatePinnedToCore(
+        OTA::updateTask,
+        "update_led",
+        8192,
         NULL,
-        OTA::updateCallback
+        1,
+        NULL,
+        APP_CPU_NUM
     );
-
-    if (!timer) {
-        ESP_LOGE(kTag, "cannot create update timer");
+    if (taskRet != pdPASS) {
+        ESP_LOGE(kTag, "cannot create OTA update task (%d)", taskRet);
         return ESP_FAIL;
     }
 
-    xTimerStart(timer, 0);
     return ESP_OK;
 }
 
-void OTA::updateCallback(TimerHandle_t xTimer) {
-    ESP_LOGI(kTag, "executing update check");
-    doUpdate();
+void OTA::updateTask(void* pvParameters) {
+    /* compute 24hr delay interval */
+    uint64_t ticks = 86400ULL * 1000ULL * (uint64_t) configTICK_RATE_HZ / 1000ULL;
+    TickType_t ticks32 = (TickType_t) ticks;
+    // ESP_LOGI(kTag, "ticks for 24 hour: %u", ticks32);
+
+    while (true) {
+        ESP_LOGI(kTag, "executing update check");
+        doUpdate();
+
+        /* delay for number of days times 86400 sec */
+        for (int days = 0; days < CONFIG_OTA_UPDATE_INTERVAL; days++) {
+            vTaskDelay(ticks32);
+        }
+    }
 }

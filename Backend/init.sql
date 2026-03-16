@@ -53,6 +53,13 @@ CREATE TABLE gtfs.stops (
 
 ALTER TABLE gtfs.stops OWNER TO postgres;
 
+CREATE TABLE gtfs.stop_names (
+    station character(4) NOT NULL,
+    name character varying(32) NOT NULL
+);
+
+ALTER TABLE gtfs.stop_names OWNER TO postgres;
+
 CREATE TABLE gtfs.timetable (
     trip_id character varying(32) NOT NULL,
     stop_id integer NOT NULL,
@@ -87,6 +94,9 @@ ALTER TABLE ONLY gtfs.calendar
 ALTER TABLE ONLY gtfs.stops
     ADD CONSTRAINT stops_pkey PRIMARY KEY (id);
 
+ALTER TABLE ONLY gtfs.stop_names
+    ADD CONSTRAINT station PRIMARY KEY (station);
+
 ALTER TABLE ONLY gtfs.timetable
     ADD CONSTRAINT timetable_pkey PRIMARY KEY (seq, trip_id);
 
@@ -107,4 +117,3 @@ ALTER TABLE ONLY gtfs.timetable
 
 ALTER TABLE ONLY gtfs.trips
     ADD CONSTRAINT trips_calendar FOREIGN KEY (calendar) REFERENCES gtfs.calendar(id);
-

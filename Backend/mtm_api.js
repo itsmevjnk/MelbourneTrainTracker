@@ -296,7 +296,7 @@ const getOperationalTimetable = (lines) => {
         });
 }
 
-module.exports = { getReplacementBuses, lineIDs, getOperationalTimetable };
+module.exports = { getPTDate, getReplacementBuses, lineIDs, getOperationalTimetable };
 
 if (require.main === module) {
     getReplacementBuses().then((result) => {

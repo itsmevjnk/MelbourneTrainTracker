@@ -369,6 +369,7 @@ public:
     static colour_t getLineColour(infraid_t line);
 
     static inline bool isValidLine(infraid_t line) {
+        line &= ~(1UL << 31); // strip RRB flag
         return line == INFRAID_SHM || line == INFRAID_MDD || line == INFRAID_HBE || line == INFRAID_CCL ||
             line == INFRAID_PKM || line == INFRAID_CBE || line == INFRAID_BEG || line == INFRAID_LIL ||
             line == INFRAID_GWY || line == INFRAID_ALM || line == INFRAID_STY || line == INFRAID_FKN ||

@@ -174,8 +174,8 @@ extern "C" void app_main() {
 
     ESP_ERROR_CHECK(NTP::init(Config::getTimeServer()));
 
-    ESP_ERROR_CHECK(OTA::doUpdate()); // should occur before setting up MQTT and web server
-    ESP_ERROR_CHECK(OTA::initUpdateTimer());
+    // ESP_ERROR_CHECK(OTA::doUpdate()); // should occur before setting up MQTT and web server
+    ESP_ERROR_CHECK(OTA::init());
 
     ESP_ERROR_CHECK(MQTT::init(Config::getMQTTBroker()));
 

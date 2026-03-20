@@ -20,9 +20,15 @@
 // TODO: rev1 calibration
 #define LMAT_SCALE_GLOBAL                               0.5f // global brightness scaling
 // per-colour brightness scaling
+#if CONFIG_IDF_TARGET_ESP32S3
 #define LMAT_SCALE_RED                                  0.985f
 #define LMAT_SCALE_GREEN                                1.0f
 #define LMAT_SCALE_BLUE                                 0.65f
+#else
+#define LMAT_SCALE_RED                                  0.9143f
+#define LMAT_SCALE_GREEN                                1.0f
+#define LMAT_SCALE_BLUE                                 0.8421f
+#endif
 
 class LEDMatrix {
 public:

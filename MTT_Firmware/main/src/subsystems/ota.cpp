@@ -11,6 +11,7 @@
 
 #include "soc/soc.h"
 #include "subsystems/status_led.h"
+#include "utils/http_client.h"
 
 #include "ArduinoJson.h"
 
@@ -74,30 +75,13 @@ esp_err_t OTA::doUpdate(bool forceUpdate) {
     return ret;
 }
 
-std::string OTA::m_jsonResponse;
-esp_err_t OTA::httpEventHandler(esp_http_client_event_t* event) {
-    if (event->event_id == HTTP_EVENT_ON_DATA) {
-        m_jsonResponse.append((char*)event->data, event->data_len);
-    }
-    return ESP_OK;
-}
-
 esp_err_t OTA::checkForUpdates(bool* update, char* url, bool forceCheck) {    
-    m_jsonResponse.clear(); // in case it hasn't been cleared yet
-
-    esp_http_client_config_t config = {
-        .url = "https://api.github.com/repos/" CONFIG_OTA_GITHUB_REPO "/releases/latest",
-        .method = HTTP_METHOD_GET,
-        .event_handler = &OTA::httpEventHandler,
-        .crt_bundle_attach = esp_crt_bundle_attach
-    };
-    esp_http_client_handle_t client = esp_http_client_init(&config);
-    esp_http_client_set_header(client, "User-Agent", "VicTrains");
-    esp_http_client_set_header(client, "Accept", "application/vnd.github+json");
-    esp_err_t err = esp_http_client_perform(client);
+    HTTPClient client("https://api.github.com/repos/" CONFIG_OTA_GITHUB_REPO "/releases/latest");
+    client.setHeader("Accept", "application/vnd.github+json");
+    esp_err_t err = client.perform();
 
     if (err == ESP_OK) {
-        int status = esp_http_client_get_status_code(client);
+        int status = client.getStatusCode();
         if (status >= 400) {
             ESP_LOGE(kTag, "received invalid HTTP status code %d when querying latest firmware release", status);
         } else {
@@ -107,7 +91,7 @@ esp_err_t OTA::checkForUpdates(bool* update, char* url, bool forceCheck) {
             filter["assets"][0]["browser_download_url"] = true;
 
             JsonDocument doc;
-            DeserializationError jsonErr = deserializeJson(doc, m_jsonResponse, DeserializationOption::Filter(filter));
+            DeserializationError jsonErr = client.deserialiseResponse(doc, filter);
 
             if (!jsonErr) {
                 const char* tagName = doc["tag_name"];
@@ -145,8 +129,6 @@ esp_err_t OTA::checkForUpdates(bool* update, char* url, bool forceCheck) {
     } else {
         ESP_LOGE(kTag, "error querying latest firmware release (%d)", err);
     }
-
-    m_jsonResponse.clear(); m_jsonResponse.shrink_to_fit(); // shrink JSON response to minimum as we're done with it
 
     return err;
 }

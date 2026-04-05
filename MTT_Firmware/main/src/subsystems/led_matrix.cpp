@@ -1,6 +1,7 @@
 #include "subsystems/led_matrix.h"
 
 #include <string.h>
+#include <algorithm>
 
 #include "esp_check.h"
 
@@ -45,6 +46,7 @@ const size_t LEDMatrix::kBufferOffsets[NUM_DRIVERS] = {
 #endif
 };
 
+float LEDMatrix::m_brightness = 1.0;
 AW20216S* LEDMatrix::m_drivers[NUM_DRIVERS];
 uint8_t* LEDMatrix::m_buffer; // LED matrix frame buffer
 bool LEDMatrix::m_driverState = false;
@@ -165,6 +167,25 @@ esp_err_t LEDMatrix::setRaw(size_t offset, uint32_t colour) {
     return ESP_OK;
 }
 
+uint8_t LEDMatrix::getBrightness() {
+    return (uint8_t)std::clamp(m_brightness * 100.0f, 0.0f, 100.0f);
+}
+
+void LEDMatrix::setBrightness(uint8_t value, bool rescale) {
+    float normValue = std::clamp((float)value / 100.0f, 0.0f, 100.0f);
+    if (normValue == m_brightness) return;
+
+    float oldBrightness = m_brightness;
+    m_brightness = normValue;
+    if (rescale) {
+        for (size_t i = 0; i < LMAT_SIZE; i++) {
+            float oldVal = m_buffer[i];
+            float newVal = std::clamp(oldVal / oldBrightness * normValue, 0.0f, 255.0f);
+            m_buffer[i] = newVal;
+        }
+    }
+}
+
 uint32_t LEDMatrix::applyCorrection(colour_t colour) {
     uint8_t r = (colour >> 16) & 0xFF, // red
             g = (colour >> 8) & 0xFF, // green
@@ -174,7 +195,11 @@ uint32_t LEDMatrix::applyCorrection(colour_t colour) {
     g = m_forwardLUT[1][g];
     b = m_forwardLUT[2][b];
 
-    return (r << 16) | (g << 8) | b;
+    float   rScaled = std::clamp((float)r * m_brightness, 0.0f, 255.0f),
+            gScaled = std::clamp((float)g * m_brightness, 0.0f, 255.0f),
+            bScaled = std::clamp((float)b * m_brightness, 0.0f, 255.0f);
+
+    return ((uint8_t)rScaled << 16) | ((uint8_t)gScaled << 8) | (uint8_t)bScaled;
 }
 
 esp_err_t LEDMatrix::set(size_t offset, colour_t colour) {
@@ -210,10 +235,10 @@ esp_err_t LEDMatrix::setMulti(const size_t* offsets, size_t leds, colour_t colou
 }
 
 esp_err_t LEDMatrix::fill(colour_t colour) {
-    uint8_t r = m_forwardLUT[0][(colour >> 16) & 0xFF], // red
-            g = m_forwardLUT[1][(colour >> 8) & 0xFF], // green
-            b = m_forwardLUT[2][(colour >> 0) & 0xFF]; // blue
-    // NOTE: we also apply colour correction above
+    uint32_t correctedColour = applyCorrection(colour);
+    uint8_t r = (correctedColour >> 16) & 0xFF, // red
+            g = (correctedColour >> 8) & 0xFF, // green
+            b = (correctedColour >> 0) & 0xFF; // blue
     
     acquireBuffer();
     if (r == g && g == b) memset(m_buffer, r, LMAT_SIZE); // use memset if possible because it's faster

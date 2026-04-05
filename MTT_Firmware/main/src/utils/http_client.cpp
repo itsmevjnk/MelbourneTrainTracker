@@ -18,6 +18,10 @@ HTTPClient::~HTTPClient() {
     esp_http_client_cleanup(m_client);
 }
 
+esp_err_t HTTPClient::setURL(const char* url) {
+    return esp_http_client_set_url(m_client, url);
+}
+
 esp_err_t HTTPClient::setHeader(const char* key, const char* value) {
     return esp_http_client_set_header(m_client, key, value);
 }

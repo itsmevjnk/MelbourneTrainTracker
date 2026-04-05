@@ -9,6 +9,7 @@ public:
     HTTPClient(const char* url, esp_http_client_method_t method = HTTP_METHOD_GET);
     ~HTTPClient();
 
+    esp_err_t setURL(const char* url);
     esp_err_t setHeader(const char* key, const char* value);
 
     esp_err_t perform();

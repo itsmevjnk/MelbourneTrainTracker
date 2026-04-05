@@ -6,6 +6,13 @@
 #include "esp_log.h"
 #include "esp_console.h"
 
+enum BrightnessMode {
+    kManualTemporary = 0,
+    kManualPersistent,
+    kAutoManualTime,
+    kAutoSunTime // automatic sunset/sunrise time
+};
+
 class Config {
 public:
     static esp_err_t init(); // load configuration if possible; otherwise, drop into config CLI
@@ -40,6 +47,19 @@ public:
     static esp_err_t setWiFiCredentials(const char* ssid, const char* identity, const char* username, const char* password); // WPA2-Enterprise
     static esp_err_t setWiFiCredentials(const char* ssid, const char* identity, const char* username, const char* password, const char* cert, size_t certLength); // WPA2-Enterprise with certificate
 
+    static BrightnessMode getBrightnessMode();
+    static uint8_t getMinBrightness();
+    static uint8_t getMaxBrightness();
+    static uint32_t getBrightnessSunsetTime();
+    static uint32_t getBrightnessSunriseTime();
+    static float getBrightnessLatitude();
+    static float getBrightnessLongitude();
+
+    static void overrideBrightness(uint8_t val);
+    static esp_err_t setBrightnessMode(uint8_t init, bool persist); // manual mode
+    static esp_err_t setBrightnessMode(uint8_t minValue, uint8_t maxValue, uint32_t sunsetTime, uint32_t sunriseTime); // auto mode with manual time
+    static esp_err_t setBrightnessMode(uint8_t minValue, uint8_t maxValue, float latitude, float longitude); // auto mode with auto time
+
 private:
     static bool m_initialised;
 
@@ -51,6 +71,15 @@ private:
     static char m_wifiIdentity[64];
     static char* m_wifiCert;
     static size_t m_wifiCertLength;
+
+    /* brightness configuration */
+    static BrightnessMode m_brightMode;
+    static uint8_t m_brightMin;
+    static uint8_t m_brightMax; // also initial brightness
+    static uint32_t m_brightSunsetTime; // seconds since midnight
+    static uint32_t m_brightSunriseTime; // seconds since midnight of previous day
+    static float m_brightLatitude;
+    static float m_brightLongitude;
 
     /* network address configuration */
     static char m_timeServer[64];

@@ -58,10 +58,6 @@ esp_err_t Brightness::getTimesFromAPI(HTTPClient& client, time_t now, time_t* su
     return ESP_OK;
 }
 
-#ifndef CONFIG_DIM_ALPHA
-#define CONFIG_DIM_ALPHA                                    10
-#endif
-
 esp_err_t Brightness::updateSunTimes() {
     time_t now; time(&now);
     struct tm timeinfo;
@@ -140,16 +136,16 @@ uint8_t Brightness::getCurrentBrightness() {
         if (now < sunsetTime) return Config::getMaxBrightness(); // not sunset yet
 
         // raw brightness scale: 1 at sunset -> 0 at middle (midnight) -> 1 at sunrise (linear)
-        time_t midnightTime = (sunsetTime + sunriseTime) / 2;
-        float rawScale = fabs(((float)now - (float)midnightTime) / (float)midnightTime);
+        float rawScale = fabs(2.0 / (float)(sunriseTime - sunsetTime) * (float)now + (float)(sunsetTime + sunriseTime) / (float)(sunsetTime - sunriseTime));
         
-        // exponentially scale the raw scale
-        float expScale = (pow(CONFIG_DIM_ALPHA, rawScale) - 1) / (float)(CONFIG_DIM_ALPHA - 1);
+        // cube scale the raw scale
+        float scale = rawScale * rawScale * rawScale;
 
         // apply scaling on brightness
         float min = Config::getMinBrightness();
         float max = Config::getMaxBrightness();
-        float scaledBrightness = min + (max - min) * expScale;
+        float scaledBrightness = min + (max - min) * scale;
+
         return scaledBrightness;
     }
 }

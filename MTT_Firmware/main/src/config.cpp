@@ -92,7 +92,7 @@ esp_err_t Config::init() {
 #endif
                 return ret;
         }
-        ret = brightHandle.getU32("set", &m_brightSunriseTime);
+        ret = brightHandle.getU32("rise", &m_brightSunriseTime);
         switch (ret) {
             case ESP_OK: break;
             case ESP_ERR_NVS_NOT_FOUND: ESP_LOGW(kTag, "sunrise time not set in NVS, defaulting to %u", m_brightSunriseTime); break;
@@ -386,7 +386,7 @@ esp_err_t Config::setBrightnessMode(uint8_t minValue, uint8_t maxValue, float la
     if (minValue > maxValue) return ESP_ERR_INVALID_ARG;
     if (latitude < -90 || latitude > 90 || longitude < -180 || latitude > 180) return ESP_ERR_INVALID_ARG;
 
-    m_brightMode = kAutoManualTime;
+    m_brightMode = kAutoSunTime;
     m_brightMin = minValue; m_brightMax = maxValue;
     m_brightLatitude = latitude; m_brightLongitude = longitude;
 
@@ -401,7 +401,12 @@ esp_err_t Config::setBrightnessMode(uint8_t minValue, uint8_t maxValue, float la
     return ESP_OK;
 }
 
-void Config::overrideBrightness(uint8_t val) {
+esp_err_t Config::overrideBrightness(uint8_t val) {
     m_brightMax = val;
-    m_brightMode = kManualTemporary;
+    if (m_brightMode == kManualPersistent)
+        return setBrightnessMode(val, true); // persist in NVS
+    else {
+        m_brightMode = kManualTemporary;
+        return ESP_OK;
+    }
 }

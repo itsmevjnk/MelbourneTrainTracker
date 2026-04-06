@@ -55,7 +55,7 @@ public:
     static float getBrightnessLatitude();
     static float getBrightnessLongitude();
 
-    static void overrideBrightness(uint8_t val);
+    static esp_err_t overrideBrightness(uint8_t val);
     static esp_err_t setBrightnessMode(uint8_t init, bool persist); // manual mode
     static esp_err_t setBrightnessMode(uint8_t minValue, uint8_t maxValue, uint32_t sunsetTime, uint32_t sunriseTime); // auto mode with manual time
     static esp_err_t setBrightnessMode(uint8_t minValue, uint8_t maxValue, float latitude, float longitude); // auto mode with auto time

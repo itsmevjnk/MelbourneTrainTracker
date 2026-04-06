@@ -118,6 +118,18 @@ private:
     static const httpd_uri_t kDisableLines;
     static esp_err_t setLines(httpd_req_t* req);
 
+    static const httpd_uri_t kConfigGetBrightnessMode;
+    static esp_err_t configGetBrightnessMode(httpd_req_t* req);
+    
+    static const httpd_uri_t kConfigSetBrightnessMode;
+    static esp_err_t configSetBrightnessMode(httpd_req_t* req);
+
+    static const httpd_uri_t kGetBrightness;
+    static esp_err_t getBrightness(httpd_req_t* req);
+
+    static const httpd_uri_t kSetBrightness;
+    static esp_err_t setBrightness(httpd_req_t* req);
+
     static esp_err_t serveStaticData(httpd_req_t* req);
 
     static const StaticData kBoardImage;

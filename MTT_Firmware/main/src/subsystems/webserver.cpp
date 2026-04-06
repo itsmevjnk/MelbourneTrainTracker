@@ -21,7 +21,8 @@ const httpd_uri_t* WebServer::kHandlers[] = {
     &kConfigGetMDNSHost, &kConfigGetMDNSInst,
     &kConfigGetWiFiSSID,
     &kGetBootstrapCSS,
-    &kConfigGetBuild, &kConfigGetUptime
+    &kConfigGetBuild, &kConfigGetUptime,
+    &kGetBrightness, &kSetBrightness
 };
 
 const httpd_uri_t* WebServer::kConfigHandlers[] = {
@@ -35,7 +36,8 @@ const httpd_uri_t* WebServer::kConfigHandlers[] = {
     &kConfigReset,
     &kGetBootstrapCSS,
     &kConfigGetBuild, &kConfigGetUptime,
-    &kGetConfigIndex, &kGetConfigRoot
+    &kGetConfigIndex, &kGetConfigRoot,
+    &kConfigGetBrightnessMode, &kConfigSetBrightnessMode
 };
 
 mdns_txt_item_t WebServer::kMDNSServiceTXT[] = {

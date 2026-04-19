@@ -13,7 +13,7 @@ size_t WebServer::getLinesString(char* result, size_t resultLen) {
         if (id == INFRAID_SUYM || id == INFRAID_PKMM || id == INFRAID_CBEM || id == INFRAID_SUYm || id == INFRAID_PKMm || id == INFRAID_CBEm)
             continue; // Sunbury/Pakenham/Cranbourne via Metro Tunnel
 
-        if (lines & (1 << i)) {
+        if (lines & (1ULL << i)) {
             if (resultIndex + 4 > resultLen) break; // no more space
 
             if (resultIndex > 0) result[resultIndex - 1] = ','; // not first occurrence - change last line's termination to comma

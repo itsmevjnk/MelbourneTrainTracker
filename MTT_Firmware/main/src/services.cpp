@@ -29,7 +29,8 @@ void ServiceState::show(time_t now) const {
     else {
         size_t numMidLEDs = LSID::getLEDsBetween(m_line, m_station, m_nextStation, midLEDs, sizeof(midLEDs) / sizeof(uint16_t));
         if (numMidLEDs > 0) {
-            int ledIndex = (now - m_time) * numMidLEDs / (m_nextTime - m_time);
+            int ledIndex = 0;
+            if (m_nextTime != m_time) ledIndex = (now - m_time) * numMidLEDs / (m_nextTime - m_time);
             if (ledIndex >= numMidLEDs) ledIndex = numMidLEDs - 1;
             // ESP_LOGI(kTag, "ledIndex = %d", ledIndex);
             // assert(ledIndex >= 0 && ledIndex < numMidLEDs);
@@ -90,7 +91,7 @@ void Services::showAllStates(time_t now, uint32_t lines) {
     for (auto& [tripHash, state] : m_states) {
         const ServiceState& stateObj = m_allStates[state];
 
-        uint32_t mask = getLineBitmask(stateObj.getLine());
+        uint64_t mask = getLineBitmask(stateObj.getLine());
         assert(mask);
 
         if (lines & mask) stateObj.show(now);
@@ -212,28 +213,28 @@ const infraid_t Services::kLineIDs[] = {
     // TODO: properly do this for web interface
 }; // line IDs to match with m_lines flag
 const size_t Services::kNumLines = (sizeof(kLineIDs) / sizeof(infraid_t));
-const uint32_t Services::kAllLines = (1 << kNumLines) - 1;
-uint32_t Services::m_lines = kAllLines; // all lines on by default
+const uint64_t Services::kAllLines = (1ULL << kNumLines) - 1;
+uint64_t Services::m_lines = kAllLines; // all lines on by default
 
-uint32_t Services::getLineBitmask(infraid_t line) {
-    uint32_t mask = 0;
+uint64_t Services::getLineBitmask(infraid_t line) {
+    uint64_t mask = 0;
     line &= ~(1UL << 31); // strip RRB flag
     if (line == INFRAID_SUY || line == INFRAID_SUYM || line == INFRAID_SUYm) {
         for (size_t i = 0; i < kNumLines; i++) {
-            if (kLineIDs[i] == INFRAID_SUY || kLineIDs[i] == INFRAID_SUYM || kLineIDs[i] == INFRAID_SUYm) mask |= (1 << i);
+            if (kLineIDs[i] == INFRAID_SUY || kLineIDs[i] == INFRAID_SUYM || kLineIDs[i] == INFRAID_SUYm) mask |= (1ULL << i);
         }
     } else if (line == INFRAID_CBE || line == INFRAID_CBEM || line == INFRAID_CBEm) {
         for (size_t i = 0; i < kNumLines; i++) {
-            if (kLineIDs[i] == INFRAID_CBE || kLineIDs[i] == INFRAID_CBEM || kLineIDs[i] == INFRAID_CBEm) mask |= (1 << i);
+            if (kLineIDs[i] == INFRAID_CBE || kLineIDs[i] == INFRAID_CBEM || kLineIDs[i] == INFRAID_CBEm) mask |= (1ULL << i);
         }
     } else if (line == INFRAID_PKM || line == INFRAID_PKMM || line == INFRAID_PKMm) {
         for (size_t i = 0; i < kNumLines; i++) {
-            if (kLineIDs[i] == INFRAID_PKM || kLineIDs[i] == INFRAID_PKMM || kLineIDs[i] == INFRAID_PKMm) mask |= (1 << i);
+            if (kLineIDs[i] == INFRAID_PKM || kLineIDs[i] == INFRAID_PKMM || kLineIDs[i] == INFRAID_PKMm) mask |= (1ULL << i);
         }
     } else {
         for (size_t i = 0; i < kNumLines; i++) {
             if (line == kLineIDs[i]) {
-                mask = (1 << i);
+                mask = (1ULL << i);
                 break;
             }
         }
@@ -244,14 +245,14 @@ uint32_t Services::getLineBitmask(infraid_t line) {
 }
 
 esp_err_t Services::enableLine(infraid_t line) {
-    uint32_t mask = getLineBitmask(line);
+    uint64_t mask = getLineBitmask(line);
     if (!mask) return ESP_ERR_INVALID_ARG;
     m_lines |= mask;
     return ESP_OK;
 }
 
 esp_err_t Services::disableLine(infraid_t line) {
-    uint32_t mask = getLineBitmask(line);
+    uint64_t mask = getLineBitmask(line);
     if (!mask) return ESP_ERR_INVALID_ARG;
     m_lines &= ~mask;
     return ESP_OK;

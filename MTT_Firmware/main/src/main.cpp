@@ -8,6 +8,7 @@
 #include "subsystems/mqtt.h"
 #include "subsystems/webserver.h"
 #include "subsystems/ota.h"
+#include "subsystems/brightness.h"
 
 #include "driver/gpio.h"
 
@@ -26,7 +27,10 @@ void update() {
 #endif
     Services::acquire();
     time_t now; time(&now);
+    uint8_t brightness = Brightness::getCurrentBrightness();
+    ESP_LOGI(kTag, "current brightness: %u", brightness);
     if (Services::updateStates(now)) { // update available
+        LEDMatrix::setBrightness(brightness, false); // we're clearing anyway
         ESP_ERROR_CHECK(LEDMatrix::fill(kOff)); // clear
         LEDMatrix::acquireBuffer();
         Services::showAllStates(now);
@@ -34,6 +38,9 @@ void update() {
         LEDMatrix::releaseBuffer();
         ESP_ERROR_CHECK(WebServer::sendLEDBufferAsync());
         ESP_LOGI(kTag, "updated LED matrix, minimum free heap size: %lu bytes", esp_get_minimum_free_heap_size()); // log to detect excessive RAM usage
+    } else {
+        LEDMatrix::setBrightness(brightness, true);
+        LEDMatrix::update();
     }
     Services::release();
 #ifdef CONFIG_UPDATE_FLASH_LED

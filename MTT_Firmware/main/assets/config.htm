@@ -49,6 +49,68 @@
             </section>
 
             <section class="row my-4">
+                <h2>Brightness configuration</h2>
+                <form id="brightForm" class="mb-3">
+                    <div class="mb-3">
+                        <label for="bright_mode" class="form-label">Brightness mode</label>
+                        <select class="form-control" id="bright_mode">
+                            <option id="bright_mode_man" value="0">Manual control</option>
+                            <option id="bright_mode_auto" value="1">Automatic control</option>
+                        </select>
+                    </div>
+                    <div class="mb-3" id="bright_man">
+                        <div>
+                            In this mode, the display brightness will remain constant throughout the day.
+                            The brightness can be changed on-the-fly through the web interface in normal operation mode, as well as through API calls.
+                        </div>
+
+                        <label for="bright_man_init" class="form-label">Initial brightness</label>
+                        <input type="number" class="form-control" id="bright_man_init" name="bright_man_init" min="0" max="100" step="1">
+                        <input class="form-check-input" type="checkbox" id="bright_man_persist">
+                        <label class="form-check-label" for="bright_man_persist">Persist on-the-fly brightness level (<b>CAUTION:</b> may cause unnecessary Flash wear for frequent updates!)</label>
+                    </div>
+                    <div class="mb-3" id="bright_auto">
+                        <div>
+                            In this mode, the display will change to dim gradually from sunset to midnight, and then brighten gradually until sunrise.
+                            Any on-the-fly change to the brightness through web interface or API call will put the board into manual mode until the next reset.
+                        </div>
+
+                        <label for="bright_auto_max" class="form-label">Daytime brightness</label>
+                        <input type="number" class="form-control" id="bright_auto_max" name="bright_auto_max" min="0" max="100" step="1">
+                        <label for="bright_auto_min" class="form-label">Minimum night-time brightness</label>
+                        <input type="number" class="form-control" id="bright_auto_min" name="bright_auto_min" min="0" max="100" step="1">
+
+                        <label for="bright_auto_src" class="form-label">Timing source</label>
+                        <select class="form-control" id="bright_auto_src">
+                            <option id="bright_auto_src_man" value="0">Manual</option>
+                            <option id="bright_auto_src_auto" value="1">Automatic</option>
+                        </select>
+
+                        <div class="mb-3" id="bright_auto_man">
+                            <label for="bright_auto_sunset" class="form-label">Sunset time</label>
+                            <input type="time" class="form-control" id="bright_auto_sunset" step="1">
+                            <label for="bright_auto_sunset" class="form-label">Sunrise time</label>
+                            <input type="time" class="form-control" id="bright_auto_sunrise" step="1">
+                            <span>
+                                All times are in Melbourne (AEST/AEDT) timezone.
+                                Sunrise times set to occur before sunset time will be interpreted as occurring the day after sunset.
+                            </span>
+                        </div>
+                        <div class="mb-3" id="bright_auto_auto">
+                            <label for="bright_auto_lat" class="form-label">Latitude</label>
+                            <input type="number" class="form-control" id="bright_auto_lat" min="-90" max="90" step=".000001">
+                            <label for="bright_auto_long" class="form-label">Longitude</label>
+                            <input type="number" class="form-control" id="bright_auto_long" min="-180" max="180" step=".000001">
+                            <button type="button" class="btn btn-primary" id="get_location">Use current location</button><span id="location_stat"></span><br>
+                            <span>Sunrise and sunset times are provided by <a href="https://sunrise-sunset.org/" target="_blank">Sunrise-Sunset</a>.</span>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                    <span id="bright_save_status" class="ms-3"></span>
+                </form>
+            </section>
+
+            <section class="row my-4">
                 <h2>mDNS Configuration</h2>
                 <form id="mdnsForm" class="mb-3">
                     <div class="mb-3">
@@ -111,6 +173,21 @@
             </section>
         </div>
         <script>
+            const from_seconds = (sec) => {
+                const h = Math.floor(sec / 3600);
+                const m = Math.floor((sec % 3600) / 60);
+                const s = sec % 60;
+                return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+            };
+
+            const to_seconds = (timeStr) => {
+                const parts = timeStr.split(':');
+                const h = parseInt(parts[0], 10);
+                const m = parseInt(parts[1], 10);
+                const s = parts[2] ? parseInt(parts[2], 10) : 0;
+                return h * 3600 + m * 60 + s;
+            };
+
             const host = window.location.hostname;
             
             document.addEventListener('DOMContentLoaded', () => {
@@ -131,6 +208,25 @@
                 wifiAuth.addEventListener('change', updateWifiFields);
                 updateWifiFields();
 
+                const brightMode = document.getElementById('bright_mode');
+                const brightMan = document.getElementById('bright_man');
+                const brightAuto = document.getElementById('bright_auto');
+                const brightAutoSrc = document.getElementById('bright_auto_src');
+                const brightAutoMan = document.getElementById('bright_auto_man');
+                const brightAutoAuto = document.getElementById('bright_auto_auto');
+                function updateBrightFields() {
+                    const mode = brightMode.value;
+                    brightMan.style.display = (mode == 0) ? '' : 'none';
+                    brightAuto.style.display = (mode == 1) ? '' : 'none';
+                    const src = brightAutoSrc.value;
+                    brightAutoMan.style.display = (src == 0) ? '' : 'none';
+                    brightAutoAuto.style.display = (src == 1) ? '' : 'none';
+                }
+
+                brightMode.addEventListener('change', updateBrightFields);
+                brightAutoSrc.addEventListener('change', updateBrightFields);
+                updateBrightFields();
+
                 // load info                
                 fetch(`http://${host}/config/mac/sta`).then((resp) => resp.text()).then((data) => {
                     document.getElementById('sta_mac').innerHTML = data;
@@ -139,10 +235,7 @@
                         return fetch(`http://${host}/config/build`).then((resp) => resp.text()).then((data) => {
                             document.getElementById('buildrev').innerHTML = data;
                             return fetch(`http://${host}/config/uptime`).then((resp) => resp.text()).then((data) => {
-                                const h = Math.floor(data / 3600);
-                                const m = Math.floor((data % 3600) / 60);
-                                const s = Math.floor(data % 60);
-                                document.getElementById('uptime').innerHTML = h + ':' + m.toString().padStart(2, '0') + ':' + s.toString().padStart(2, '0');
+                                document.getElementById('uptime').innerHTML = from_seconds(data);
                             });
                         });
                     });
@@ -185,6 +278,29 @@
                                     document.getElementById('ntp_server').value = data;
                                     return fetch(`http://${host}/config/mqtt`).then(resp => resp.text()).then(data => {
                                         document.getElementById('mqtt_broker').value = data;
+                                        return fetch(`http://${host}/config/bright`).then(resp => resp.text()).then(data => {
+                                            const lines = data.split(/\r?\n/);
+                                            
+                                            const mode = lines[0];
+                                            if (mode < 2) { // 0/1 - manual
+                                                brightMode.value = 0;
+                                                document.getElementById('bright_man_persist').checked = (mode == 1);
+                                            } else { // 2/3 - auto
+                                                brightMode.value = 1;
+                                                brightAutoSrc.value = (mode == 3) ? 1 : 0;
+                                            }
+                                            
+                                            document.getElementById('bright_auto_min').value = lines[1];
+                                            document.getElementById('bright_auto_max').value = document.getElementById('bright_man_init').value = lines[2];
+
+                                            document.getElementById('bright_auto_sunset').value = from_seconds(lines[3]);
+                                            document.getElementById('bright_auto_sunrise').value = from_seconds(lines[4] % 86400);
+
+                                            document.getElementById('bright_auto_lat').value = lines[5];
+                                            document.getElementById('bright_auto_long').value = lines[6];
+
+                                            updateBrightFields();
+                                        });
                                     });
                                 });                                
                             });
@@ -197,6 +313,12 @@
                         }
                     });
                 });
+
+                // sync max brightness fields
+                const bright_auto_max = document.getElementById('bright_auto_max');
+                const bright_man_init = document.getElementById('bright_man_init');
+                bright_auto_max.addEventListener('input', () => { bright_man_init.value = bright_auto_max.value; });
+                bright_man_init.addEventListener('input', () => { bright_auto_max.value = bright_man_init.value; });
 
                 document.getElementById('wifiForm').addEventListener('submit', (e) => {
                     e.preventDefault();
@@ -261,7 +383,69 @@
                         if (resp.ok) status.textContent = "Saved!";
                         else status.textContent = "Error.";
                     }).catch(() => status.textContent = "Error.");
-                });                
+                }); 
+                
+                document.getElementById('get_location').addEventListener('click', () => {
+                    const status = document.getElementById('location_stat');
+                    status.textContent = '';
+
+                    if (!navigator.geolocation) status.textContent = 'Geolocation is not supported by your browser.';
+                    else {
+                        status.textContent = 'Locating...';
+                        navigator.geolocation.getCurrentPosition(
+                            (position) => {
+                                document.getElementById('bright_auto_lat').value = position.coords.latitude;
+                                document.getElementById('bright_auto_long').value = position.coords.longitude;
+                                status.textContent = 'Location retrieved successfully.';
+                            },
+                            () => {
+                                status.textContent = 'Unable to retrieve your location.';
+                            }
+                        )
+                    }
+                });
+
+                document.getElementById('brightForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    let status = document.getElementById('bright_save_status');
+
+                    const minBright = document.getElementById('bright_auto_min').value;
+                    const maxBright = document.getElementById('bright_auto_max').value; // or bright_man_init
+                    
+                    status.textContent = 'Saving...';
+                    let body = '';
+                    if (brightMode.value == 0) { // 0/1
+                        body = (
+                            (document.getElementById('bright_man_persist').checked ? '1' : '0') + '\r\n'
+                            + minBright + '\r\n' + maxBright
+                        );
+                    } else { // 2/3
+                        const auto = brightAutoSrc.checked;
+                        body = (
+                            (auto ? '3' : '2') + '\r\n'
+                            + minBright + '\r\n' + maxBright + '\r\n'
+                        );
+                        if (auto) {
+                            body += (
+                                document.getElementById('bright_auto_lat').value.toFixed(6) + '\r\n' +
+                                document.getElementById('bright_auto_long').value.toFixed(6)
+                            );
+                        } else {
+                            const sunset = to_seconds(document.getElementById('bright_auto_sunset').value);
+                            let sunrise = to_seconds(document.getElementById('bright_auto_sunrise').value);
+                            if (sunrise < sunset) sunrise += 86400;
+                            body += sunset + '\r\n' + sunrise;
+                        }
+                    }
+
+                    fetch(`http://${host}/config/bright`, {
+                        method: 'POST',
+                        body: body
+                    }).then(resp => {
+                        if (resp.ok) status.textContent = "Saved!";
+                        else status.textContent = "Error.";
+                    }).catch(() => status.textContent = "Error.");
+                }); 
 
                 document.getElementById('mdnsForm').addEventListener('submit', (e) => {
                     e.preventDefault();

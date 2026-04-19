@@ -19,9 +19,6 @@ public:
 private:
     static const char* kTag;
 
-    static std::string m_jsonResponse;
-    static esp_err_t httpEventHandler(esp_http_client_event_t* event);
-
     static void updateTask(void* pvParameters);
     static void updateLEDTask(void* pvParameters);
 };

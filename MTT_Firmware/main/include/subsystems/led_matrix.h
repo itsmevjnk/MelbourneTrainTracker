@@ -56,6 +56,9 @@ public:
     static esp_err_t setMulti(const size_t* offsets, size_t leds, colour_t colour); // set multiple LEDs to a colour
     static esp_err_t fill(colour_t colour); // fill the entire buffer with a colour
 
+    static uint8_t getBrightness();
+    static void setBrightness(uint8_t value, bool rescale = false);
+
     static const size_t kBurnleyOffsets[];
     static const size_t kCliftonOffsets[];
     static const size_t kCrossCityOffsets[];
@@ -77,6 +80,8 @@ public:
     }
 
 private:
+    static float m_brightness;
+
     static AW20216S* m_drivers[NUM_DRIVERS]; // LED driver objects - initialised in init()
     static const size_t kBufferOffsets[NUM_DRIVERS]; // offsets into the buffer for each LED driver
 

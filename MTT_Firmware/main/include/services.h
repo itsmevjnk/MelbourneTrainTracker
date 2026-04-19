@@ -81,7 +81,7 @@ public:
     static void printInfo(); // dump all states and updates
     static void printInfoWithoutMutex(); // for use in crashes
 
-    static uint32_t getLineBitmask(infraid_t line);
+    static uint64_t getLineBitmask(infraid_t line);
 
     static const infraid_t kLineIDs[]; // line IDs to match with m_lines flag
     static const size_t kNumLines;
@@ -121,6 +121,6 @@ private:
     static StateUpdateVector m_updatesBacking; // backing container for m_updates; this should not shrink in size (and will thus get the aggressive reserve() treatment)
     static StaticSemaphore_t m_updatesMutexBuf; static SemaphoreHandle_t m_updatesMutex;
 
-    static const uint32_t kAllLines;
-    static uint32_t m_lines;
+    static const uint64_t kAllLines;
+    static uint64_t m_lines;
 };

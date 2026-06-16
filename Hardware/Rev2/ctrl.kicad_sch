@@ -9340,7 +9340,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "C2930231"
+		(property "MPN" "C15401"
 			(at 181.61 45.72 90)
 			(effects
 				(font
@@ -9558,7 +9558,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "C2930231"
+		(property "MPN" "C15401"
 			(at 224.79 71.12 90)
 			(effects
 				(font
@@ -9832,7 +9832,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "C93012"
+		(property "MPN" "C5138994"
 			(at 172.72 76.2 0)
 			(effects
 				(font
@@ -10205,7 +10205,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "C2930231"
+		(property "MPN" "C15401"
 			(at 267.97 71.12 90)
 			(effects
 				(font
@@ -10448,7 +10448,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "C2930231"
+		(property "MPN" "C15401"
 			(at 40.64 95.25 90)
 			(effects
 				(font
@@ -10806,7 +10806,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "C2930231"
+		(property "MPN" "C15401"
 			(at 134.62 39.37 90)
 			(effects
 				(font
@@ -11084,7 +11084,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "C93012"
+		(property "MPN" "C5138994"
 			(at 166.37 118.11 0)
 			(effects
 				(font
@@ -11262,7 +11262,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "C93012"
+		(property "MPN" "C5138994"
 			(at 259.08 50.8 0)
 			(effects
 				(font
@@ -11724,7 +11724,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "C93012"
+		(property "MPN" "C5138994"
 			(at 259.08 25.4 0)
 			(effects
 				(font
@@ -11836,7 +11836,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "C2930231"
+		(property "MPN" "C15401"
 			(at 224.79 45.72 90)
 			(effects
 				(font
@@ -12054,7 +12054,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "C2930231"
+		(property "MPN" "C15401"
 			(at 134.62 34.29 90)
 			(effects
 				(font
@@ -12852,7 +12852,7 @@
 				)
 			)
 		)
-		(property "Value" "220R"
+		(property "Value" "470R"
 			(at 75.438 155.448 90)
 			(effects
 				(font
@@ -12887,7 +12887,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" " C2907127"
+		(property "MPN" "C23179"
 			(at 71.12 157.48 90)
 			(effects
 				(font
@@ -12993,7 +12993,7 @@
 				)
 			)
 		)
-		(property "Value" "220R"
+		(property "Value" "470R"
 			(at 75.438 144.018 90)
 			(effects
 				(font
@@ -13028,7 +13028,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" " C2907127"
+		(property "MPN" "C2907127"
 			(at 71.12 146.05 90)
 			(effects
 				(font
@@ -13134,7 +13134,7 @@
 				)
 			)
 		)
-		(property "Value" "220R"
+		(property "Value" "470R"
 			(at 75.438 150.368 90)
 			(effects
 				(font
@@ -13169,7 +13169,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" " C2907127"
+		(property "MPN" "C23179"
 			(at 71.12 152.4 90)
 			(effects
 				(font
@@ -13310,7 +13310,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "C93012"
+		(property "MPN" "C5138994"
 			(at 215.9 50.8 0)
 			(effects
 				(font
@@ -13491,7 +13491,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "C93012"
+		(property "MPN" "C5138994"
 			(at 186.69 118.11 0)
 			(effects
 				(font
@@ -13669,7 +13669,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "C2930231"
+		(property "MPN" "C15401"
 			(at 134.62 36.83 90)
 			(effects
 				(font
@@ -14019,7 +14019,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "C2930231"
+		(property "MPN" "C15401"
 			(at 134.62 31.75 90)
 			(effects
 				(font
@@ -14256,7 +14256,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "C93012"
+		(property "MPN" "C5138994"
 			(at 172.72 50.8 0)
 			(effects
 				(font
@@ -15056,7 +15056,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "C2930231"
+		(property "MPN" "C15401"
 			(at 181.61 71.12 90)
 			(effects
 				(font
@@ -15132,7 +15132,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "C2930231"
+		(property "MPN" "C15401"
 			(at 267.97 45.72 90)
 			(effects
 				(font
@@ -15408,7 +15408,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "C2930231"
+		(property "MPN" "C15401"
 			(at 40.64 125.73 90)
 			(effects
 				(font
@@ -15931,7 +15931,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "C2930231"
+		(property "MPN" "C15401"
 			(at 134.62 29.21 90)
 			(effects
 				(font
@@ -16074,7 +16074,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "C93012"
+		(property "MPN" "C5138994"
 			(at 215.9 76.2 0)
 			(effects
 				(font
@@ -16384,7 +16384,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "C93012"
+		(property "MPN" "C5138994"
 			(at 259.08 76.2 0)
 			(effects
 				(font
@@ -16564,7 +16564,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "C93012"
+		(property "MPN" "C5138994"
 			(at 172.72 25.4 0)
 			(effects
 				(font
@@ -17477,7 +17477,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "C93012"
+		(property "MPN" "C5138994"
 			(at 146.05 118.11 0)
 			(effects
 				(font
@@ -17591,7 +17591,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "C93012"
+		(property "MPN" "C5138994"
 			(at 215.9 25.4 0)
 			(effects
 				(font
@@ -18562,7 +18562,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "C2930231"
+		(property "MPN" "C15401"
 			(at 134.62 26.67 90)
 			(effects
 				(font

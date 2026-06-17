@@ -21,7 +21,7 @@ struct ServiceState {
     // index to previous/next entry in the same trip - set to SIZE_MAX if not valid
     ServiceStateIndex prevIdx;
     ServiceStateIndex nextIdx;
-} __attribute__((packed));
+};
 
 struct ServiceStateOffsetEntry {
     /* key */

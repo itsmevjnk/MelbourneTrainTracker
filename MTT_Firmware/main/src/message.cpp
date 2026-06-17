@@ -81,11 +81,11 @@ void Message::parseFragment(const char* data, int length, bool first) {
         if (m_started) {
             ESP_LOGW(kTag, "message parsing restarted - was the previous message not received in full?");
         } else {
-            Services::acquire(); Services::acquireUpdates();
+            Services::acquire();
         }
 
         m_expectedEntries = *((const uint32_t*)data); offset = 4; // read number of entries in message
-        Services::clearAndReserve(m_expectedEntries * 2); // worst-case
+        Services::clearAndReserve(m_expectedEntries);
         m_started = true; m_receivedEntries = 0; m_entryFragmentSize = 0;
 
         ESP_LOGD(kTag, "available memory at the beginning of message parsing: %lu bytes", esp_get_minimum_free_heap_size());
@@ -154,17 +154,23 @@ void Message::parseFragment(const char* data, int length, bool first) {
         if (checkVLine(line, entry->station)) {
             assert(LSID::isValidLine(line));
 
-            if (entry->flags.isDeparture) { // departing station
-                if (entry->flags.hasAdjacent && checkVLine(line, entry->adjStation)) { // departing to another (valid) station
-                    time_t departTime = entry->timestamp + CONFIG_MSG_STATION_PAD;
-                    Services::insertUpdate(entry->tripHash, ServiceState(line, departTime, entry->station, entry->adjTimestamp, entry->adjStation)); // in transit
-                }
-            } else { // arriving at station
-                Services::insertUpdate(entry->tripHash, ServiceState(line, entry->timestamp, entry->station)); // stopping
-                if (entry->flags.hasAdjacent && checkVLine(line, entry->adjStation)) { // arriving from another (valid) station
-                    time_t departTime = entry->adjTimestamp + CONFIG_MSG_STATION_PAD;
-                    Services::insertUpdate(entry->tripHash, ServiceState(line, departTime, entry->adjStation, entry->timestamp, entry->station)); // in transit state from previous station to this one
-                }
+            // if (entry->flags.isDeparture) { // departing station
+            //     if (entry->flags.hasAdjacent && checkVLine(line, entry->adjStation)) { // departing to another (valid) station
+            //         time_t departTime = entry->timestamp + CONFIG_MSG_STATION_PAD;
+            //         Services::insertUpdate(entry->tripHash, ServiceState(line, departTime, entry->station, entry->adjTimestamp, entry->adjStation)); // in transit
+            //     }
+            // }
+            // else { // arriving at station
+            //     Services::insertUpdate(entry->tripHash, ServiceState(line, entry->timestamp, entry->station)); // stopping
+            //     if (entry->flags.hasAdjacent && checkVLine(line, entry->adjStation)) { // arriving from another (valid) station
+            //         time_t departTime = entry->adjTimestamp + CONFIG_MSG_STATION_PAD;
+            //         Services::insertUpdate(entry->tripHash, ServiceState(line, departTime, entry->adjStation, entry->timestamp, entry->station)); // in transit state from previous station to this one
+            //     }
+            // }
+
+            if (!entry->flags.isDeparture) { // arriving at station, departure time is in adjacent timestamp
+                time_t departureTime = ((entry->flags.hasAdjacent) ? entry->adjTimestamp : entry->timestamp) + CONFIG_MSG_STATION_PAD;
+                Services::insertState(line, entry->tripHash, entry->station, entry->timestamp, departureTime);
             }
         }
 
@@ -199,6 +205,6 @@ void Message::finish() {
 
     ESP_LOGD(kTag, "available memory at the end of message parsing: %lu bytes", esp_get_minimum_free_heap_size());
 
-    Services::release(); Services::releaseUpdates();
+    Services::release();
     m_started = false;
 }

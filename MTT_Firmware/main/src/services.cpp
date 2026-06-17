@@ -4,145 +4,117 @@
 #include "subsystems/led_matrix.h"
 #include "esp_check.h"
 
-const char* ServiceState::kTag = "service_state";
+StaticSemaphore_t Services::m_statesMutexBuf;
+SemaphoreHandle_t Services::m_statesMutex = xSemaphoreCreateRecursiveMutexStatic(&m_statesMutexBuf);
 
-void ServiceState::copy(const ServiceState& other) {
-    m_line = other.m_line;
-    m_station = other.m_station;
-    m_time = other.m_time;
-    m_nextStation = other.m_nextStation;
-    m_nextTime = other.m_nextTime;
-}
-
-static uint16_t midLEDs[75]; // LEDs in the middle - count might be overkill. this is so that we don't have to use the stack and risk overflowing it
-
-void ServiceState::show(time_t now) const {
-    uint16_t stationLED = LSID::getLED(m_line, m_station);
-    if (stationLED == LMAT_NULL) {
-        ESP_LOGW(kTag, "invalid station code " INFRAID2STR_FMT " on line " INFRAID2STR_FMT, INFRAID2STR(m_station), INFRAID2STR(m_line));
-        return;
-    }
-
-    colour_t lineColour = LSID::getLineColour(m_line);
-
-    if (!m_nextStation) ESP_ERROR_CHECK(LEDMatrix::set(stationLED, lineColour));
-    else {
-        size_t numMidLEDs = LSID::getLEDsBetween(m_line, m_station, m_nextStation, midLEDs, sizeof(midLEDs) / sizeof(uint16_t));
-        if (numMidLEDs > 0) {
-            int ledIndex = 0;
-            if (m_nextTime != m_time) ledIndex = (now - m_time) * numMidLEDs / (m_nextTime - m_time);
-            if (ledIndex >= numMidLEDs) ledIndex = numMidLEDs - 1;
-            // ESP_LOGI(kTag, "ledIndex = %d", ledIndex);
-            // assert(ledIndex >= 0 && ledIndex < numMidLEDs);
-            ESP_ERROR_CHECK(LEDMatrix::set(midLEDs[ledIndex], lineColour));
-        } else ESP_ERROR_CHECK(LEDMatrix::set(stationLED, lineColour)); // fallback, and also used in the FSS -> PAR on Northern group scenario
-    }
-}
-
-void ServiceState::printInfo() const {
-    if (isInTransit()) {
-        esp_rom_printf(" - at %lld: " INFRAID2STR_FMT " line in transit from " INFRAID2STR_FMT " to " INFRAID2STR_FMT " (arriving at %lld)\r\n", m_time, INFRAID2STR(m_line), INFRAID2STR(m_station), INFRAID2STR(m_nextStation), m_nextTime);
-    } else {
-        esp_rom_printf(" - at %lld: " INFRAID2STR_FMT " line stopping at " INFRAID2STR_FMT "\r\n", m_time, INFRAID2STR(m_line), INFRAID2STR(m_station));
-    }
-}
-
-StaticSemaphore_t Services::m_statesMutexBuf; SemaphoreHandle_t Services::m_statesMutex = xSemaphoreCreateRecursiveMutexStatic(&m_statesMutexBuf);
-StaticSemaphore_t Services::m_updatesMutexBuf; SemaphoreHandle_t Services::m_updatesMutex = xSemaphoreCreateRecursiveMutexStatic(&m_updatesMutexBuf);
-
-Services::StatesDict Services::m_states;
-Services::StateUpdateQueue Services::m_updates;
-Services::StateUpdateVector Services::m_updatesBacking;
-
-bool Services::updateStates(time_t now) {
-    acquire(); acquireUpdates();
-
-    bool noStates = m_states.empty(); // set if there are no states (i.e. just been cleared)
-    bool noUpdates = m_updates.empty(); // set if there are no updates (i.e. no services)
-    
-    bool updated = false; // set when any state update was popped
-    while (!m_updates.empty()) {
-        const TaggedServiceStateIndex& update = m_updates.top();
-        uint32_t updateTrip = update.first; ServiceStateIndex updateState = update.second;
-
-        time_t updateTime = m_allStates[updateState].getTimestamp();
-        if (updateTime > now) break; // future update - stop
-
-        m_updates.pop(); // consume update
-        auto state = m_states.find(updateTrip);
-        if (state == m_states.end() || m_allStates[state->second].getTimestamp() < updateTime)
-            m_states[updateTrip] = updateState;
-
-        updated = true;
-    }
-
-    ESP_LOGD(kTag, "available memory after updateStates(): %lu bytes", esp_get_minimum_free_heap_size());
-
-    release(); releaseUpdates();
-
-    return (noStates && !noUpdates && !updated) ? false : true;
-}
+std::vector<ServiceState> Services::m_states;
+std::vector<ServiceStateOffsetEntry> Services::m_trips;
 
 const char* Services::kTag = "services";
 
 void Services::showAllStates(time_t now, uint32_t lines) {
     acquire();
 
-    for (auto& [tripHash, state] : m_states) {
-        const ServiceState& stateObj = m_allStates[state];
+    for (auto& trip : m_trips) {
+        colour_t lineColour = LSID::getLineColour(trip.line);
+        ESP_LOGI(kTag, "line " INFRAID2STR_FMT " trip 0x%08x:", INFRAID2STR(trip.line), trip.tripHash);
+        for (size_t idx = trip.firstIdx; idx != SIZE_MAX; idx = m_states[idx].nextIdx) {
+            ESP_LOGI(kTag, " - idx %lu: at " INFRAID2STR_FMT ": arrival %lld, departure %lld", idx, INFRAID2STR(m_states[idx].station), m_states[idx].arrivalTime, m_states[idx].departureTime);
+            if (now < m_states[idx].arrivalTime) { // before arriving at this station
+                ServiceStateIndex prevIdx = m_states[idx].prevIdx;
+                if (prevIdx == SIZE_MAX) { // first entry
+                    goto atStation;
+                } else { // between previous entry and this one
+                    static uint16_t midLEDs[75]; // LEDs in the middle - count might be overkill. this is so that we don't have to use the stack and risk overflowing it
+                    size_t numMidLEDs = LSID::getLEDsBetween(
+                        trip.line, m_states[prevIdx].station, m_states[idx].station,
+                        midLEDs, sizeof(midLEDs) / sizeof(uint16_t)
+                    );
 
-        uint64_t mask = getLineBitmask(stateObj.getLine());
-        assert(mask);
+                    if (numMidLEDs > 0) {
+                        int ledIndex = 0;
+                        time_t prevDepartureTime = m_states[prevIdx].departureTime;
+                        time_t arrivalTime = m_states[idx].arrivalTime;
+                        if (prevDepartureTime != arrivalTime) ledIndex = (now - prevDepartureTime) * numMidLEDs / (arrivalTime - prevDepartureTime);
+                        if (ledIndex >= numMidLEDs) ledIndex = numMidLEDs - 1;
+                        // ESP_LOGI(kTag, "ledIndex = %d", ledIndex);
+                        // assert(ledIndex >= 0 && ledIndex < numMidLEDs);
+                        ESP_ERROR_CHECK(LEDMatrix::set(midLEDs[ledIndex], lineColour));
+                        break;
+                    } else goto atStation; // fallback, and also used in the FSS -> PAR on Northern group scenario
+                }
+            } else if (now <= m_states[idx].departureTime) { // at this station already
+atStation:
+                uint16_t stationLED = LSID::getLED(trip.line, m_states[idx].station);
+                if (stationLED == LMAT_NULL) {
+                    ESP_LOGW(kTag, "invalid station code " INFRAID2STR_FMT " on line " INFRAID2STR_FMT, INFRAID2STR(m_states[idx].station), INFRAID2STR(trip.line));
+                    break;
+                }
 
-        if (lines & mask) stateObj.show(now);
+                ESP_ERROR_CHECK(LEDMatrix::set(stationLED, lineColour));
+                break;
+            }
+        }
     }
 
     release();    
 }
 
-ServiceState* Services::m_allStates = nullptr;
-ServiceStateIndex Services::m_allStatesCount = 0;
-ServiceStateIndex Services::m_allStatesCapacity = 0;
-
 void Services::clearAndReserve(ServiceStateIndex count) {
-    acquire(); acquireUpdates();
-    ESP_LOGD(kTag, "available memory before clearing: %lu bytes", esp_get_minimum_free_heap_size());
+    acquire();
+    ESP_LOGD(kTag, "available memory before clearAndReserve(): %lu bytes", esp_get_minimum_free_heap_size());
 
-    m_states.clear();
-    m_updates.clear();
+    m_states.clear(); m_states.reserve(count);
+    m_trips.clear();
 
-    m_allStatesCount = 0;
-    if (m_allStates) free(m_allStates);
-    if (count > m_allStatesCapacity) {
-        ESP_LOGD(kTag, "growing m_allStatesCapacity to %u", count);
-        m_allStatesCapacity = count; // increase reserved capacity
-    }
-    size_t allocSize = m_allStatesCapacity * sizeof(ServiceState);
-    ESP_LOGD(kTag, "allocating %u bytes for m_allStates", allocSize);
-    m_allStates = (ServiceState*)malloc(allocSize); // here we can get away with not reallocating since there are no more states
-    assert(!m_allStatesCapacity || m_allStates); // ensure that calloc doesn't die (but if there are no entries to begin with then that's okay)
-
-    ESP_LOGD(kTag, "available memory after clearing: %lu bytes", esp_get_minimum_free_heap_size());
-    release(); releaseUpdates();
+    ESP_LOGD(kTag, "available memory after clearAndReserve(): %lu bytes", esp_get_minimum_free_heap_size());
+    release();
 }
 
-#ifndef CONFIG_SERVICES_CAPACITY_GROWTH
-#define CONFIG_SERVICES_CAPACITY_GROWTH                    10
-#endif
+ServiceStateIndex Services::insertState(infraid_t line, uint32_t tripHash, infraid_t station, time_t arrivalTime, time_t departureTime) {
+    if (arrivalTime > departureTime && departureTime > 0) departureTime = arrivalTime; // enforce arrivalTime <= departureTime
 
-ServiceStateIndex Services::insertUpdate(uint32_t tripHash, ServiceState&& state) {
-    acquire(); acquireUpdates();
-    ServiceStateIndex index = m_allStatesCount;
-    if (index == m_allStatesCapacity) {
-        m_allStatesCapacity += CONFIG_SERVICES_CAPACITY_GROWTH;
-        ESP_LOGW(kTag, "growing m_allStatesCapacity outside of reserved capacity to %u bytes - wrong estimate?",  m_allStatesCapacity * sizeof(ServiceState));
-        m_allStates = (ServiceState*)realloc(m_allStates, m_allStatesCapacity * sizeof(ServiceState)); // we have to realloc to keep all states
-        assert(m_allStates);
+    acquire();
+
+    /* search for trip in offset lookup table */
+    size_t offsetIdx = 0;
+    for (offsetIdx = 0; offsetIdx < m_trips.size(); offsetIdx++) {
+        if (m_trips[offsetIdx].line == line && m_trips[offsetIdx].tripHash == tripHash) break;
     }
-    m_allStates[m_allStatesCount++] = state;
-    m_updates.push(std::make_pair(tripHash, index));
-    release(); releaseUpdates();
-    return index;
+    if (offsetIdx >= m_trips.size()) {
+        m_trips.emplace_back(line, tripHash, SIZE_MAX); // placeholder
+        offsetIdx = m_trips.size() - 1; // index to placeholder
+    }
+
+    /* insert into service states */
+    m_states.emplace_back(station, arrivalTime, departureTime, SIZE_MAX, SIZE_MAX);
+    size_t stateIdx = m_states.size() - 1;
+    
+    /* search for position in trip to drop service state in */
+    size_t prevStateIdx = m_trips[offsetIdx].firstIdx;
+    if (prevStateIdx == SIZE_MAX) { // first and only entry
+        m_trips[offsetIdx].firstIdx = stateIdx;
+    } else if (m_states[prevStateIdx].arrivalTime >= departureTime) { // append before first entry
+        m_trips[offsetIdx].firstIdx = stateIdx;
+        m_states[stateIdx].nextIdx = prevStateIdx;
+        m_states[prevStateIdx].prevIdx = stateIdx;
+    } else {
+        while (m_states[prevStateIdx].nextIdx != SIZE_MAX && m_states[m_states[prevStateIdx].nextIdx].arrivalTime < departureTime) {
+            prevStateIdx = m_states[prevStateIdx].nextIdx;
+        }
+        // after this prevStateIdx points to the state before this one
+
+        size_t nextStateIdx = m_states[prevStateIdx].nextIdx;
+
+        m_states[stateIdx].prevIdx = prevStateIdx;
+        m_states[stateIdx].nextIdx = nextStateIdx;
+
+        m_states[prevStateIdx].nextIdx = stateIdx;
+        if (nextStateIdx != SIZE_MAX) m_states[nextStateIdx].prevIdx = stateIdx;
+    }
+
+    release();
+    return stateIdx;
 }
 
 void Services::printInfo() {
@@ -153,10 +125,12 @@ void Services::printInfo() {
 
 void Services::printInfoWithoutMutex() {
     esp_rom_printf("current service states:\r\n");
-    for (auto& [tripHash, state] : m_states) {
-        m_allStates[state].printInfo();
+    for (auto& trip : m_trips) {
+        esp_rom_printf(" - line " INFRAID2STR_FMT " trip 0x%08x:\r\n", INFRAID2STR(trip.line), trip.tripHash);
+        for (size_t idx = trip.firstIdx; idx != SIZE_MAX; idx = m_states[idx].nextIdx) {
+            esp_rom_printf("   - idx %lu: stop " INFRAID2STR_FMT " arrival %lld, departure %lld\r\n", idx, INFRAID2STR(m_states[idx].station), m_states[idx].arrivalTime, m_states[idx].departureTime);
+        }
     }
-    // TODO: dump available updates
 }
 
 extern "C" void printServicesWithoutMutex() {

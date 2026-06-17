@@ -25,16 +25,21 @@ void update() {
 #ifdef CONFIG_UPDATE_FLASH_LED
     StatusLED::actyOn();
 #endif
+
     Services::acquire();
-    time_t now; time(&now);
+
     LEDMatrix::acquireBuffer();
-    Services::showAllStates(now);
+    ESP_ERROR_CHECK(LEDMatrix::fill(kOff)); // clear
+    Services::showAllStates();
     LEDMatrix::update();
     LEDMatrix::releaseBuffer();
     ESP_ERROR_CHECK(WebServer::sendLEDBufferAsync());
+
     uint8_t brightness = Brightness::getCurrentBrightness();
     ESP_LOGI(kTag, "updated LED matrix (brightness: %u), minimum free heap size: %lu bytes", brightness, esp_get_minimum_free_heap_size()); // log to detect excessive RAM usage
+    
     Services::release();
+
 #ifdef CONFIG_UPDATE_FLASH_LED
     StatusLED::actyOff();
 #endif

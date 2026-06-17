@@ -16,6 +16,11 @@ void Services::showAllStates(time_t now, uint32_t lines) {
     acquire();
 
     for (auto& trip : m_trips) {
+        /* check if line is selected for display */
+        uint64_t mask = getLineBitmask(trip.line);
+        assert(mask);
+        if (!(lines & mask)) continue;
+
         colour_t lineColour = LSID::getLineColour(trip.line);
         ESP_LOGD(kTag, "line " INFRAID2STR_FMT " trip 0x%08x:", INFRAID2STR(trip.line), trip.tripHash);
         for (size_t idx = trip.firstIdx; idx != SIZE_MAX; idx = m_states[idx].nextIdx) {

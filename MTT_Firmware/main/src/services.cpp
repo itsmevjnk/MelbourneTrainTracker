@@ -17,9 +17,9 @@ void Services::showAllStates(time_t now, uint32_t lines) {
 
     for (auto& trip : m_trips) {
         colour_t lineColour = LSID::getLineColour(trip.line);
-        ESP_LOGI(kTag, "line " INFRAID2STR_FMT " trip 0x%08x:", INFRAID2STR(trip.line), trip.tripHash);
+        ESP_LOGD(kTag, "line " INFRAID2STR_FMT " trip 0x%08x:", INFRAID2STR(trip.line), trip.tripHash);
         for (size_t idx = trip.firstIdx; idx != SIZE_MAX; idx = m_states[idx].nextIdx) {
-            ESP_LOGI(kTag, " - idx %lu: at " INFRAID2STR_FMT ": arrival %lld, departure %lld", idx, INFRAID2STR(m_states[idx].station), m_states[idx].arrivalTime, m_states[idx].departureTime);
+            ESP_LOGD(kTag, " - idx %lu: at " INFRAID2STR_FMT ": arrival %lld, departure %lld", idx, INFRAID2STR(m_states[idx].station), m_states[idx].arrivalTime, m_states[idx].departureTime);
             if (now < m_states[idx].arrivalTime) { // before arriving at this station
                 ServiceStateIndex prevIdx = m_states[idx].prevIdx;
                 if (prevIdx == SIZE_MAX) { // first entry

@@ -33,6 +33,7 @@ const httpd_uri_t* WebServer::kConfigHandlers[] = {
     &kConfigGetMDNSInst, &kConfigSetMDNSInst,
     &kConfigGetWiFiSSID, &kConfigGetWiFiIdentity, &kConfigGetWiFiUsername, &kConfigGetWiFiPassword, &kConfigGetWiFiCertificate,
     &kConfigSetWiFiUnauth, &kConfigSetWiFiPass, &kConfigSetWiFiEnt, &kConfigSetWiFiEntCert,
+    &kConfigWiFiScan,
     &kConfigReset,
     &kGetBootstrapCSS,
     &kConfigGetBuild, &kConfigGetUptime,

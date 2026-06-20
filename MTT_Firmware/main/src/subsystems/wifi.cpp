@@ -148,17 +148,15 @@ esp_err_t WiFi::initStub(wifi_config_t& config, bool ap, size_t maxRetries) {
         }
     }
 
-    if (ap) {
+    wifi_init_config_t initConfig = WIFI_INIT_CONFIG_DEFAULT();
+    ESP_RETURN_ON_ERROR(esp_wifi_init(&initConfig), kTag, "cannot initialise Wi-Fi driver");
+
+    esp_netif_create_default_wifi_sta(); // attach event handlers for handling Wi-Fi connection (including DHCP)
+    if (ap) { // AP+STA
         esp_netif_create_default_wifi_ap();
-
-        wifi_init_config_t initConfig = WIFI_INIT_CONFIG_DEFAULT();
-        ESP_RETURN_ON_ERROR(esp_wifi_init(&initConfig), kTag, "cannot initialise Wi-Fi driver");
-
-        ESP_RETURN_ON_ERROR(esp_wifi_set_mode(WIFI_MODE_AP), kTag, "cannot set mode to AP");
+        ESP_RETURN_ON_ERROR(esp_wifi_set_mode(WIFI_MODE_APSTA), kTag, "cannot set mode to AP");
         ESP_RETURN_ON_ERROR(esp_wifi_set_config(WIFI_IF_AP, &config), kTag, "cannot set configuration");
-    } else {
-        esp_netif_create_default_wifi_sta(); // attach event handlers for handling Wi-Fi connection (including DHCP)
-
+    } else { // STA
         ESP_RETURN_ON_ERROR(
             esp_event_handler_instance_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &wifiEventHandler, NULL, NULL), // NOTE: we might not have to store the instance
             kTag, "cannot register Wi-Fi event handler"
@@ -168,9 +166,6 @@ esp_err_t WiFi::initStub(wifi_config_t& config, bool ap, size_t maxRetries) {
             esp_event_handler_instance_register(IP_EVENT, IP_EVENT_STA_GOT_IP, &ipEventHandler, NULL, NULL),
             kTag, "cannot register IP event handler"
         );
-
-        wifi_init_config_t initConfig = WIFI_INIT_CONFIG_DEFAULT();
-        ESP_RETURN_ON_ERROR(esp_wifi_init(&initConfig), kTag, "cannot initialise Wi-Fi driver");
 
         ESP_RETURN_ON_ERROR(esp_wifi_set_mode(WIFI_MODE_STA), kTag, "cannot set mode to STA");
         ESP_RETURN_ON_ERROR(esp_wifi_set_config(WIFI_IF_STA, &config), kTag, "cannot set configuration");
@@ -282,5 +277,25 @@ esp_err_t WiFi::initAP() {
 
     // that's it, no need for waiting
 
+    return ESP_OK;
+}
+
+esp_err_t WiFi::scan(wifi_ap_record_t** records, size_t* count) {
+    ESP_RETURN_ON_FALSE(count, ESP_ERR_INVALID_ARG, kTag, "count pointer cannot be null");
+    ESP_RETURN_ON_FALSE(records, ESP_ERR_INVALID_ARG, kTag, "records pointer pointer cannot be null");
+
+    ESP_RETURN_ON_ERROR(esp_wifi_scan_start(NULL, true), kTag, "WiFi scan failed");
+    uint16_t count16 = *count;
+    bool allocateRecords = !*records;
+    if (allocateRecords) { // allocate records - must be freed by free()
+        ESP_RETURN_ON_ERROR(esp_wifi_scan_get_ap_num(&count16), kTag, "cannot get AP record count");
+        ESP_LOGI(kTag, "allocating %u AP records", count16);
+        *records = (wifi_ap_record_t*)calloc(count16, sizeof(wifi_ap_record_t));
+        ESP_RETURN_ON_FALSE(*records, ESP_ERR_NO_MEM, kTag, "cannot allocate records");
+    }
+    esp_err_t ret = esp_wifi_scan_get_ap_records(&count16, *records);
+    if (ret != ESP_OK && allocateRecords) free(*records);
+    ESP_RETURN_ON_ERROR(ret, kTag, "cannot get AP records");
+    *count = count16;
     return ESP_OK;
 }

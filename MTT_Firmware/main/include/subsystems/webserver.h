@@ -81,6 +81,9 @@ private:
     
     static const httpd_uri_t kConfigGetWiFiCertificate;
     static esp_err_t configGetWiFiCertificate(httpd_req_t* req);
+
+    static const httpd_uri_t kConfigWiFiScan;
+    static esp_err_t configWiFiScan(httpd_req_t* req);
     
     static const httpd_uri_t kConfigSetWiFiUnauth;
     static esp_err_t configSetWiFiUnauth(httpd_req_t* req);

@@ -44,8 +44,21 @@
                         <textarea class="form-control" id="wifi_cert" name="certificate" rows="5" placeholder="Paste the PEM certificate here"></textarea>
                     </div>
                     <button type="submit" class="btn btn-primary">Save</button>
-                    <span id="wifi_save_status" class="ms-3"></span>
+                    <button type="button" class="btn btn-secondary" onclick="scanWiFi();">Scan for networks</button>
+                    <span id="wifi_status" class="ms-3"></span>
                 </form>
+                <table class="table" id="wifiNetworksTable" style="display: none;">
+                    <thead>
+                        <tr>
+                            <th scope="col">BSSID</th>
+                            <th scope="col">SSID</th>
+                            <th scope="col">RSSI</th>
+                            <th scope="col">Auth. mode</th>
+                            <th scope="col">Select</th>
+                        </tr>
+                    </thead>
+                    <tbody id="wifiNetworks"></tbody>
+                </table>
             </section>
 
             <section class="row my-4">
@@ -328,7 +341,7 @@
                     const username = document.getElementById('wifi_username').value;
                     const password = document.getElementById('wifi_password').value;
                     const cert = document.getElementById('wifi_cert').value;
-                    let status = document.getElementById('wifi_save_status');
+                    let status = document.getElementById('wifi_status');
                     
                     if (ssid.length < 1 || ssid.length > 32) {
                         status.textContent = 'SSID must be 1-32 characters long.';
@@ -527,6 +540,29 @@
                     });
                 });
             });
+
+            const scanWiFi = () => {
+                let status = document.getElementById('wifi_status');
+                status.textContent = 'Scanning for Wi-Fi networks.';
+                fetch(`http://${host}/config/wifi/scan`).then(resp => resp.text()).then(resp => {
+                    document.getElementById('wifiNetworksTable').style = '';
+                    const elem = document.getElementById('wifiNetworks');
+                    elem.innerHTML = "";
+                    resp.split('\n').forEach(line => {
+                        const data = line.split('\t');
+                        if (data.length != 4) return;
+                        var buttonElem = '';
+                        if (data[3] == 'Open')
+                            buttonElem = `<button type="button" class="btn btn-secondary" onclick="document.getElementById('wifi_ssid').value = '${data[1]}'; document.getElementById('wifi_auth').value = 'open'; updateWifiFields();">Select</button>`;
+                        else if (data[3].endsWith('-PSK'))
+                            buttonElem = `<button type="button" class="btn btn-secondary" onclick="document.getElementById('wifi_ssid').value = '${data[1]}'; document.getElementById('wifi_auth').value = 'wpa-psk'; updateWifiFields();">Select</button>`;
+                        else if (data[3].endsWith('-Enterprise'))
+                            buttonElem = `<button type="button" class="btn btn-secondary" onclick="document.getElementById('wifi_ssid').value = '${data[1]}'; document.getElementById('wifi_auth').value = 'wpa2-ent'; updateWifiFields();">Select</button>`;
+                        elem.innerHTML += `<tr><td>${data[0]}</td><td>${data[1]}</td><td>${data[2]}</td><td>${data[3]}</td><td>${buttonElem}</td></tr>\n`;
+                    });
+                    status.textContent = 'Scanning completed.';
+                }).catch(() => status.textContent = "Error.");
+            };
         </script>
     </body>
 </html>

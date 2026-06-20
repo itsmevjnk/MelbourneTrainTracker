@@ -1,4 +1,5 @@
 #include "subsystems/webserver.h"
+#include "subsystems/wifi.h"
 #include "config.h"
 
 #include "esp_check.h"
@@ -286,5 +287,40 @@ esp_err_t WebServer::configSetWiFiEntCert(httpd_req_t* req) {
         kTag, "POST %s: cannot send response", req->uri
     );
 
+    return ESP_OK;
+}
+
+const httpd_uri_t WebServer::kConfigWiFiScan = {
+    .uri = "/config/wifi/scan",
+    .method = HTTP_GET,
+    .handler = configWiFiScan,
+    .user_ctx = nullptr
+};
+
+esp_err_t WebServer::configWiFiScan(httpd_req_t* req) {
+    wifi_ap_record_t* records = nullptr;
+    size_t recordCount;
+    ESP_RETURN_ON_ERROR(WiFi::scan(&records, &recordCount), kTag, "cannot scan for Wi-Fi networks");
+
+    for (size_t i = 0; i < recordCount; i++) {
+        char buf[6 * 2 + 5 + 2];
+        int len = sprintf(buf, "%02x:%02x:%02x:%02x:%02x:%02x\t", records[i].bssid[0], records[i].bssid[1], records[i].bssid[2], records[i].bssid[3], records[i].bssid[4], records[i].bssid[5]);
+        httpd_resp_send_chunk(req, buf, len); // send BSSID
+        httpd_resp_sendstr_chunk(req, (char*)records[i].ssid); // send SSID
+        len = sprintf(buf, "\t%d\t", records[i].rssi);
+        httpd_resp_send_chunk(req, buf, len); // send RSSI
+        switch (records[i].authmode) {
+            case WIFI_AUTH_OPEN: httpd_resp_sendstr_chunk(req, "Open\n"); break;
+            case WIFI_AUTH_WPA_PSK: httpd_resp_sendstr_chunk(req, "WPA-PSK\n"); break;
+            case WIFI_AUTH_WPA2_PSK: httpd_resp_sendstr_chunk(req, "WPA2-PSK\n"); break;
+            case WIFI_AUTH_WPA_WPA2_PSK: httpd_resp_sendstr_chunk(req, "WPA/WPA2-PSK\n"); break;
+            case WIFI_AUTH_WPA2_ENTERPRISE: httpd_resp_sendstr_chunk(req, "WPA2-Enterprise\n"); break;
+            case WIFI_AUTH_WPA2_WPA3_PSK: httpd_resp_sendstr_chunk(req, "WPA2/WPA3-PSK\n"); break;
+            default: httpd_resp_sendstr_chunk(req, "\n"); break;
+        }
+    }
+    httpd_resp_send_chunk(req, NULL, 0); // stop sending
+
+    free(records);
     return ESP_OK;
 }

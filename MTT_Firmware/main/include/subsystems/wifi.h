@@ -33,7 +33,7 @@ public:
 
     /* AP (access point) mode */
     static esp_err_t initAP(); // default name, no password
-
+    static esp_err_t scan(wifi_ap_record_t** records, size_t* count); // scan for WiFi networks and return up to *count values
 private:
     static esp_err_t initStub(wifi_config_t& config, bool ap, size_t maxRetries = 3); // initialise Wi-Fi with prepared configuration, without starting the Wi-Fi driver. this allows the WPA2-Enterprise init method to inject addition setup
     static esp_err_t startSTA(); // start Wi-Fi driver and wait for connection

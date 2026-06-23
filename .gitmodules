@@ -1,0 +1,6 @@
+[submodule "MTT_Firmware/components/u8g2"]
+	path = MTT_Firmware/components/u8g2
+	url = https://github.com/olikraus/u8g2.git
+[submodule "MTT_Firmware/components/u8g2-hal-esp-idf"]
+	path = MTT_Firmware/components/u8g2-hal-esp-idf
+	url = https://github.com/itsmevjnk/u8g2-hal-esp-idf.git

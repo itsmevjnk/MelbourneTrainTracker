@@ -44,6 +44,9 @@
 #define LED_ACTY                        GPIO_NUM_18
 #define LED_ERROR                       GPIO_NUM_8
 
+#define I2C_SCL                         GPIO_NUM_41
+#define I2C_SDA                         GPIO_NUM_40
+
 #else // original ESP32 revision
 
 /* SPI buses */

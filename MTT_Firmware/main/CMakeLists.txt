@@ -14,6 +14,7 @@ idf_component_register(
     SRC_DIRS "src" "src/config_cli" "src/lsid" "src/subsystems" "src/utils" "src/subsystems/endpoints" "src/subsystems/endpoints/config"
     INCLUDE_DIRS "include"
     EMBED_FILES ${COMPRESSED_ASSETS}
+    PRIV_REQUIRES esp_wifi esp_driver_i2c esp_driver_spi esp_http_client esp_http_server vfs fatfs mqtt nvs_flash esp_app_format mbedtls esp_https_ota esp_partition app_update wpa_supplicant arduinojson mdns u8g2-hal-esp-idf
 )
 
 # Custom commands must be after idf_component_register in ESP-IDF

@@ -8805,7 +8805,7 @@
 			)
 		)
 	)
-	(global_label "MTCK"
+	(global_label "MTDI"
 		(shape output)
 		(at 203.2 134.62 180)
 		(fields_autoplaced yes)
@@ -8817,7 +8817,7 @@
 		)
 		(uuid "b6b78527-d1d3-473d-a8b8-8f76d44f107b")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 195.2558 134.62 0)
+			(at 195.921 134.62 0)
 			(effects
 				(font
 					(size 1.27 1.27)

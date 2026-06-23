@@ -33,6 +33,7 @@ public:
 
     /* AP (access point) mode */
     static esp_err_t initAP(); // default name, no password
+    static esp_err_t initAP(char* ssidOut, size_t ssidOutLength); // return SSID
 
 private:
     static esp_err_t initStub(wifi_config_t& config, bool ap, size_t maxRetries = 3); // initialise Wi-Fi with prepared configuration, without starting the Wi-Fi driver. this allows the WPA2-Enterprise init method to inject addition setup

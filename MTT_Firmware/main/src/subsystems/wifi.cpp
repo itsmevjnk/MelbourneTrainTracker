@@ -261,7 +261,7 @@ void WiFi::ipEventHandler(void* arg, esp_event_base_t eventBase, int32_t eventID
 #define CONFIG_WIFI_CONFIGAP_MAXCONN 4
 #endif
 
-esp_err_t WiFi::initAP() {
+esp_err_t WiFi::initAP(char* ssidOut, size_t ssidOutLength) {
     wifi_config_t config; memset(&config, 0, sizeof(config));
 
     /* generate SSID */
@@ -277,10 +277,19 @@ esp_err_t WiFi::initAP() {
     config.ap.authmode = WIFI_AUTH_OPEN;
     config.ap.max_connection = CONFIG_WIFI_CONFIGAP_MAXCONN;
 
+    if (ssidOut != nullptr && ssidOutLength > 1) {
+        memset(ssidOut, 0, ssidOutLength);
+        memcpy(ssidOut, config.ap.ssid, (ssidOutLength <= config.ap.ssid_len) ? (ssidOutLength - 1) : config.ap.ssid_len);
+    }
+
     ESP_RETURN_ON_ERROR(initStub(config, true), kTag, "Wi-Fi initialisation failed"); // run init stub (maxRetries doesn't matter for us, since we're initialising AP)
     ESP_RETURN_ON_ERROR(esp_wifi_start(), kTag, "cannot start Wi-Fi driver");
 
     // that's it, no need for waiting
 
     return ESP_OK;
+}
+
+esp_err_t WiFi::initAP() {
+    return initAP(nullptr, 0);
 }

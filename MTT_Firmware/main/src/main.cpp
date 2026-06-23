@@ -9,6 +9,7 @@
 #include "subsystems/webserver.h"
 #include "subsystems/ota.h"
 #include "subsystems/brightness.h"
+#include "subsystems/oled.h"
 
 #include "driver/gpio.h"
 
@@ -52,6 +53,10 @@ void update() {
 #define CONFIG_UPDATE_INTERVAL                 1000
 #endif
 
+#ifndef CONFIG_QRCODE_PADDING
+#define CONFIG_QRCODE_PADDING                   2
+#endif
+
 /* firmware entry point */
 extern "C" void app_main() {
     // ESP_LOGI(kTag, "waiting");
@@ -62,6 +67,15 @@ extern "C" void app_main() {
     ESP_ERROR_CHECK(UART::init());
     ESP_ERROR_CHECK(StatusLED::init()); ESP_ERROR_CHECK(StatusLED::actyOn()); ESP_ERROR_CHECK(StatusLED::errorOn());
     ESP_ERROR_CHECK(LEDMatrix::init());
+    ESP_ERROR_CHECK(OLED::init());
+
+    /* boot screen */
+    uint8_t fontWidth = OLED::getFontWidth(); // not including spacing
+    uint8_t fontHeight = OLED::getFontHeight();
+    OLED::drawCenteredString(2 * fontHeight - 1, "Victorian", true); // NOTE: U8g2 uses bottom-left for baseline coordinates
+    OLED::drawCenteredString(4 * fontHeight - 1, "Train", true);
+    OLED::drawCenteredString(6 * fontHeight - 1, "Tracker", true);
+    OLED::update();
 
     /* colour calibration */
     // TODO: rev1 board calibration
@@ -149,6 +163,7 @@ extern "C" void app_main() {
         runConfig = true;
     } else {
         ESP_LOGI(kTag, "press any key or the BOOT button within 3 seconds to boot into configuration CLI");
+        OLED::drawString(0, OLED_HEIGHT - 1, "Press BOOT for config."); OLED::update();
         TickType_t startTick = xTaskGetTickCount();
         while (xTaskGetTickCount() - startTick < (3000 / portTICK_PERIOD_MS)) {
             uint8_t buf;
@@ -160,9 +175,40 @@ extern "C" void app_main() {
         }
     }
     if (runConfig) {
+        /* indicate on OLED that we're entering config */
+        OLED::clear();
+        OLED::drawBox(0, 0, OLED_WIDTH, fontHeight);
+        OLED::setInverted(true); OLED::drawCenteredString(fontHeight - 1, "Configuration Mode"); OLED::setInverted(false);
+        if (ret != ESP_OK) OLED::drawString(0, OLED_HEIGHT - 1 - fontHeight, "Config loading failed.");
+        OLED::drawString(0, OLED_HEIGHT - 1, "Press RESET to exit.");
+
         /* initialise web configuration interface access */
-        ESP_ERROR_CHECK(WiFi::initAP());
+        char qrPayload[16 + 32 + 2 + 1] = "WIFI:T:nopass;S:"; // 16 characters prefix + up to 32 characters for SSID + ;; + termination
+        ESP_ERROR_CHECK(WiFi::initAP(&qrPayload[16], sizeof(qrPayload) - 16));
+        size_t qrPayloadLength = strlen(qrPayload);
+        qrPayload[qrPayloadLength] = qrPayload[qrPayloadLength + 1] = ';'; qrPayload[qrPayloadLength + 2] = '\0';
         ESP_ERROR_CHECK(WebServer::initConfig()); // do not use mDNS settings here since Config might not be initialised yet
+
+        uint32_t qrSize;
+        uint8_t qrY = fontHeight + CONFIG_QRCODE_PADDING;
+        OLED::drawQRCode(CONFIG_QRCODE_PADDING, qrY, qrPayload, &qrSize);
+
+        uint32_t wifiX = 2 * CONFIG_QRCODE_PADDING + qrSize;
+        OLED::drawString(wifiX, qrY + 1 * fontHeight - 1, "Connect to WiFi:");
+        qrPayload[qrPayloadLength] = '\0';
+        /* print WiFi SSID on multiple lines if needed */
+        uint8_t increment = (OLED_WIDTH - wifiX) / (fontWidth + 1);
+        for (size_t offset = 16, y = qrY + 2 * fontHeight - 1; offset < qrPayloadLength; offset += increment, y += fontHeight) {
+            char c = 0;
+            if (offset + increment < qrPayloadLength) {
+                c = qrPayload[offset + increment];
+                qrPayload[offset + increment] = '\0';
+            }
+            OLED::drawString(wifiX, y, &qrPayload[offset]);
+            if (offset + increment < qrPayloadLength) qrPayload[offset + increment] = c;
+        }
+
+        OLED::update();
 
         ESP_ERROR_CHECK(Config::cli());
         while (true) { // while CLI is running on another task, we flash the two LEDs alternately
@@ -172,14 +218,24 @@ extern "C" void app_main() {
     }
     ESP_ERROR_CHECK(StatusLED::errorOff());
 
+    /* display init checklist */
+    OLED::clear();
+    OLED::drawBox(0, 0, OLED_WIDTH, fontHeight);
+    OLED::setInverted(true); OLED::drawCenteredString(fontHeight - 1, "Initialising"); OLED::setInverted(false);
+    OLED::drawString(0, 2 * fontHeight - 1, " - WiFi");
+    OLED::drawString(0, 3 * fontHeight - 1, " - NTP");
+    OLED::update();    
+
     if (Config::isWiFiEnterprise())
         ESP_ERROR_CHECK(WiFi::initSTA(Config::getWiFiSSID(), Config::getWiFiIdentity(), Config::getWiFiUsername(), Config::getWiFiPassword(), Config::getWiFiCertificate(), Config::getWiFiCertLength()));
     else
         ESP_ERROR_CHECK(WiFi::initSTA(Config::getWiFiSSID(), Config::getWiFiPassword()));
+    OLED::drawString(OLED_WIDTH - 4 * fontWidth - 4, 2 * fontHeight - 1, "Done"); OLED::update();
 
     ESP_ERROR_CHECK(OTA::confirmUpdate());
 
     ESP_ERROR_CHECK(NTP::init(Config::getTimeServer()));
+    OLED::drawString(OLED_WIDTH - 4 * fontWidth - 4, 3 * fontHeight - 1, "Done"); OLED::update();
 
     // ESP_ERROR_CHECK(OTA::doUpdate()); // should occur before setting up MQTT and web server
     ESP_ERROR_CHECK(OTA::init());
@@ -189,6 +245,7 @@ extern "C" void app_main() {
     ESP_ERROR_CHECK(WebServer::init(Config::getMDNSHostname(), Config::getMDNSInstanceName()));
 
     ESP_LOGI(kTag, "init end"); ESP_ERROR_CHECK(StatusLED::actyOff());
+    OLED::clear(); OLED::update();
 
 #ifdef CONFIG_SPI3_ONLY
     ESP_LOGW(kTag, "CONFIG_SPI3_ONLY is set - all LED controllers are expected to be connected to SPI3 (which is NOT the stock configuration)");

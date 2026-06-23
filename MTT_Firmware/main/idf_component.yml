@@ -16,3 +16,4 @@ dependencies:
   #   public: true
   espressif/mdns: '*'
   bblanchon/arduinojson: '*'
+  espressif/qrcode: '*'

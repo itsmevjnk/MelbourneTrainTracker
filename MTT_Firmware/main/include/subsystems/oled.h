@@ -22,6 +22,7 @@ public:
     static esp_err_t drawCenteredString(uint8_t y, const char* str, bool large = false);
 
     static esp_err_t setSleep(bool state);
+    static esp_err_t setBrightness(uint8_t percent);
 
     static uint8_t getFontWidth();
     static uint8_t getFontHeight();
@@ -40,5 +41,7 @@ private:
     static uint8_t m_fontHeight;
 
     static void displayQRCode(esp_qrcode_handle_t qrcode, void* userData); // callback for QR code drawing
+    static void IRAM_ATTR buttonHandler(void* arg);
+    static TaskHandle_t m_clockTask;
     static void clockTask(void* pvParameters);
 };

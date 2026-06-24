@@ -5,6 +5,9 @@
 #include <sys/time.h>
 
 #include "driver/i2c_master.h"
+#include "driver/gpio.h"
+
+#include "subsystems/brightness.h"
 
 #include "esp_check.h"
 
@@ -214,6 +217,8 @@ esp_err_t OLED::drawQRCode(uint8_t x, uint8_t y, const char* payload, uint8_t ma
     return drawQRCode(x, y, payload, nullptr, maxSize);
 }
 
+TaskHandle_t OLED::m_clockTask;
+
 esp_err_t OLED::initClockTask() {
 #if CONFIG_IDF_TARGET_ESP32S3
     if (!m_initialised) return ESP_ERR_INVALID_STATE;
@@ -224,52 +229,105 @@ esp_err_t OLED::initClockTask() {
         2048,
         NULL,
         1,
-        NULL,
+        &m_clockTask,
         APP_CPU_NUM
     );
     if (taskRet != pdPASS) {
         ESP_LOGE(kTag, "cannot create OTA update task (%d)", taskRet);
         return ESP_FAIL;
     }
+
+    /* set up BOOT button ISR */
+    ESP_RETURN_ON_ERROR(gpio_install_isr_service(0), kTag, "cannot install GPIO ISR service");
+    ESP_RETURN_ON_ERROR(gpio_isr_handler_add(BTN_BOOT, &OLED::buttonHandler, nullptr), kTag, "cannot add ISR handler for BOOT button");
 #endif
     return ESP_OK;
 }
 
+void IRAM_ATTR OLED::buttonHandler(void* arg) {
+    BaseType_t higherPriorityWoken = pdFALSE;
+    vTaskNotifyGiveFromISR(m_clockTask, &higherPriorityWoken);
+    portYIELD_FROM_ISR(higherPriorityWoken);
+}
+
+#ifndef CONFIG_OLED_CLOCK_DISP_TIME
+#define CONFIG_OLED_CLOCK_DISP_TIME                 15000
+#endif
+
 void OLED::clockTask(void* pvParameters) {
     static char buf[32]; // character buffer
-    TickType_t lastWakeTime = xTaskGetTickCount();
+    TickType_t lastPressTime = xTaskGetTickCount();
     while (true) {
-        OLED::clear();
-
-        OLED::drawBox(0, 0, OLED_WIDTH, m_fontHeight);
-        uint8_t y = m_fontHeight - 1;
-        OLED::setInverted(true); OLED::drawCenteredString(y, "Current Time"); OLED::setInverted(false);
+        TickType_t startTime = xTaskGetTickCount();
         
         time_t now; time(&now);
         struct tm timeInfo; localtime_r(&now, &timeInfo);
-
-        sprintf(buf, "%02d:%02d:%02d", timeInfo.tm_hour, timeInfo.tm_min, timeInfo.tm_sec);
-        y += m_fontHeight / 2 + 2 * m_fontHeight;
-        drawCenteredString(y, buf, true);
-
-        static const char* weekdays[] = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
-        sprintf(buf, "%s %02d-%02d-%04d", weekdays[timeInfo.tm_wday], timeInfo.tm_mday, timeInfo.tm_mon + 1, timeInfo.tm_year + 1900);
-        y += m_fontHeight / 2 + m_fontHeight;
-        drawCenteredString(y, buf);
-
-        /* calculate timezone offset (+10 = AEST, +11 = AEDT) */
-        struct tm utcTimeInfo; gmtime_r(&now, &utcTimeInfo);
-        timeInfo.tm_isdst = -1; // let system decide DST status
-        utcTimeInfo.tm_isdst = 0; // no DST for UTC
-        time_t local_sec = mktime(&timeInfo);
-        time_t utc_sec = mktime(&utcTimeInfo);
-        size_t offsetHours = (local_sec - utc_sec) / 3600;
-
-        y += m_fontHeight / 2 + m_fontHeight;
-        drawCenteredString(y, (offsetHours == 10) ? "AEST (UTC+10:00)" : "AEDT (UTC+11:00)");
-
-        OLED::update();
         
-        vTaskDelayUntil(&lastWakeTime, pdMS_TO_TICKS(1000));
+        bool display = xTaskGetTickCount() - lastPressTime <= pdMS_TO_TICKS(CONFIG_OLED_CLOCK_DISP_TIME);
+        if (!display && timeInfo.tm_sec == 0) { // trigger display on the start of each minute
+            display = true;
+            lastPressTime = xTaskGetTickCount();
+        }
+
+        if (display) {
+            OLED::clear();
+
+            OLED::drawBox(0, 0, OLED_WIDTH, m_fontHeight);
+            uint8_t y = m_fontHeight - 1;
+            OLED::setInverted(true); OLED::drawCenteredString(y, "Current Time"); OLED::setInverted(false);
+
+            sprintf(buf, "%02d:%02d:%02d", timeInfo.tm_hour, timeInfo.tm_min, timeInfo.tm_sec);
+            y += m_fontHeight / 2 + 2 * m_fontHeight;
+            drawCenteredString(y, buf, true);
+
+            static const char* weekdays[] = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
+            sprintf(buf, "%s %02d-%02d-%04d", weekdays[timeInfo.tm_wday], timeInfo.tm_mday, timeInfo.tm_mon + 1, timeInfo.tm_year + 1900);
+            y += m_fontHeight / 2 + m_fontHeight;
+            drawCenteredString(y, buf);
+
+            /* calculate timezone offset (+10 = AEST, +11 = AEDT) */
+            struct tm utcTimeInfo; gmtime_r(&now, &utcTimeInfo);
+            timeInfo.tm_isdst = -1; // let system decide DST status
+            utcTimeInfo.tm_isdst = 0; // no DST for UTC
+            time_t local_sec = mktime(&timeInfo);
+            time_t utc_sec = mktime(&utcTimeInfo);
+            size_t offsetHours = (local_sec - utc_sec) / 3600;
+
+            y += m_fontHeight / 2 + m_fontHeight;
+            drawCenteredString(y, (offsetHours == 10) ? "AEST (UTC+10:00)" : "AEDT (UTC+11:00)");
+            setBrightness(Brightness::getCurrentBrightness());
+
+            OLED::update();
+        } else setSleep(true);       
+
+        TickType_t endTime = xTaskGetTickCount();
+        uint32_t ticks = pdMS_TO_TICKS(1000); if (endTime > startTime && ticks > (endTime - startTime)) ticks -= endTime - startTime;
+        // ESP_LOGI(kTag, "waiting for notification for up to %u ticks", ticks);
+        uint32_t ret = ulTaskNotifyTake(pdTRUE, ticks); // close enough(?) approximation for vTaskDelayUntil
+        if (ret) lastPressTime = xTaskGetTickCount(); // button pressed; task notified from ISR
     }
+}
+
+#ifndef CONFIG_OLED_MIN_CONTRAST
+#define CONFIG_OLED_MIN_CONTRAST                0
+#endif
+
+#ifndef CONFIG_OLED_MAX_CONTRAST
+#define CONFIG_OLED_MAX_CONTRAST                127
+#endif
+
+esp_err_t OLED::setBrightness(uint8_t percent) {
+#if CONFIG_IDF_TARGET_ESP32S3
+    if (!m_initialised) return ESP_ERR_INVALID_STATE;
+
+    if (!percent) return setSleep(true); // 0% brightness - put screen to sleep already
+
+    float scale = percent / 100.0;
+    float contrast = CONFIG_OLED_MIN_CONTRAST + scale * (CONFIG_OLED_MAX_CONTRAST - CONFIG_OLED_MIN_CONTRAST);
+    if (contrast > CONFIG_OLED_MAX_CONTRAST) contrast = CONFIG_OLED_MAX_CONTRAST;
+    else if (contrast < CONFIG_OLED_MIN_CONTRAST) contrast = CONFIG_OLED_MIN_CONTRAST;
+    u8g2_SetContrast(&m_u8g2, (uint8_t)contrast);
+    setSleep(false); // in case it's put to sleep
+#endif
+    return ESP_OK;
 }

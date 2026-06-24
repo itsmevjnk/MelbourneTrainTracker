@@ -1,6 +1,9 @@
 #include <subsystems/oled.h>
 #include <hwconfig/pindefs.h>
 
+#include <time.h>
+#include <sys/time.h>
+
 #include "driver/i2c_master.h"
 
 #include "esp_check.h"
@@ -209,4 +212,64 @@ esp_err_t OLED::drawQRCode(uint8_t x, uint8_t y, const char* payload, uint32_t* 
 
 esp_err_t OLED::drawQRCode(uint8_t x, uint8_t y, const char* payload, uint8_t maxSize) {
     return drawQRCode(x, y, payload, nullptr, maxSize);
+}
+
+esp_err_t OLED::initClockTask() {
+#if CONFIG_IDF_TARGET_ESP32S3
+    if (!m_initialised) return ESP_ERR_INVALID_STATE;
+
+    BaseType_t taskRet = xTaskCreatePinnedToCore(
+        OLED::clockTask,
+        "oled_clock",
+        2048,
+        NULL,
+        1,
+        NULL,
+        APP_CPU_NUM
+    );
+    if (taskRet != pdPASS) {
+        ESP_LOGE(kTag, "cannot create OTA update task (%d)", taskRet);
+        return ESP_FAIL;
+    }
+#endif
+    return ESP_OK;
+}
+
+void OLED::clockTask(void* pvParameters) {
+    static char buf[32]; // character buffer
+    TickType_t lastWakeTime = xTaskGetTickCount();
+    while (true) {
+        OLED::clear();
+
+        OLED::drawBox(0, 0, OLED_WIDTH, m_fontHeight);
+        uint8_t y = m_fontHeight - 1;
+        OLED::setInverted(true); OLED::drawCenteredString(y, "Current Time"); OLED::setInverted(false);
+        
+        time_t now; time(&now);
+        struct tm timeInfo; localtime_r(&now, &timeInfo);
+
+        sprintf(buf, "%02d:%02d:%02d", timeInfo.tm_hour, timeInfo.tm_min, timeInfo.tm_sec);
+        y += m_fontHeight / 2 + 2 * m_fontHeight;
+        drawCenteredString(y, buf, true);
+
+        static const char* weekdays[] = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
+        sprintf(buf, "%s %02d-%02d-%04d", weekdays[timeInfo.tm_wday], timeInfo.tm_mday, timeInfo.tm_mon + 1, timeInfo.tm_year + 1900);
+        y += m_fontHeight / 2 + m_fontHeight;
+        drawCenteredString(y, buf);
+
+        /* calculate timezone offset (+10 = AEST, +11 = AEDT) */
+        struct tm utcTimeInfo; gmtime_r(&now, &utcTimeInfo);
+        timeInfo.tm_isdst = -1; // let system decide DST status
+        utcTimeInfo.tm_isdst = 0; // no DST for UTC
+        time_t local_sec = mktime(&timeInfo);
+        time_t utc_sec = mktime(&utcTimeInfo);
+        size_t offsetHours = (local_sec - utc_sec) / 3600;
+
+        y += m_fontHeight / 2 + m_fontHeight;
+        drawCenteredString(y, (offsetHours == 10) ? "AEST (UTC+10:00)" : "AEDT (UTC+11:00)");
+
+        OLED::update();
+        
+        vTaskDelayUntil(&lastWakeTime, pdMS_TO_TICKS(1000));
+    }
 }

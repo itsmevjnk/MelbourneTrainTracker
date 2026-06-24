@@ -244,8 +244,9 @@ extern "C" void app_main() {
 
     ESP_ERROR_CHECK(WebServer::init(Config::getMDNSHostname(), Config::getMDNSInstanceName()));
 
+    ESP_ERROR_CHECK(OLED::initClockTask());
+
     ESP_LOGI(kTag, "init end"); ESP_ERROR_CHECK(StatusLED::actyOff());
-    OLED::clear(); OLED::update();
 
 #ifdef CONFIG_SPI3_ONLY
     ESP_LOGW(kTag, "CONFIG_SPI3_ONLY is set - all LED controllers are expected to be connected to SPI3 (which is NOT the stock configuration)");

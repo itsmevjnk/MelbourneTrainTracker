@@ -29,6 +29,8 @@ public:
 
     static esp_err_t drawQRCode(uint8_t x, uint8_t y, const char* payload, uint32_t* sizeOut, uint8_t maxSize = OLED_HEIGHT);
     static esp_err_t drawQRCode(uint8_t x, uint8_t y, const char* payload, uint8_t maxSize = OLED_HEIGHT);
+
+    static esp_err_t initClockTask();
 private:
     static const char* kTag;
     static u8g2_t m_u8g2;
@@ -38,4 +40,5 @@ private:
     static uint8_t m_fontHeight;
 
     static void displayQRCode(esp_qrcode_handle_t qrcode, void* userData); // callback for QR code drawing
+    static void clockTask(void* pvParameters);
 };

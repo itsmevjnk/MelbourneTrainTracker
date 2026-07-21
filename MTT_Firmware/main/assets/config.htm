@@ -409,17 +409,16 @@
                     e.preventDefault();
                     let status = document.getElementById('bright_save_status');
 
-                    const minBright = document.getElementById('bright_auto_min').value;
-                    const maxBright = document.getElementById('bright_auto_max').value; // or bright_man_init
-                    
                     status.textContent = 'Saving...';
                     let body = '';
                     if (brightMode.value == 0) { // 0/1
                         body = (
                             (document.getElementById('bright_man_persist').checked ? '1' : '0') + '\r\n'
-                            + minBright + '\r\n' + maxBright
+                            + document.getElementById('bright_man_init').value
                         );
                     } else { // 2/3
+                        const minBright = document.getElementById('bright_auto_min').value;
+                        const maxBright = document.getElementById('bright_auto_max').value;
                         const auto = brightAutoSrc.checked;
                         body = (
                             (auto ? '3' : '2') + '\r\n'
